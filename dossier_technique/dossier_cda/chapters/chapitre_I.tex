@@ -2,134 +2,227 @@
 
 \section{Rôle du candidat et contexte}
 
-Dans cette section, vous devez présenter votre rôle dans le projet et le contexte organisationnel. Le jury attend une explication claire de vos responsabilités et de l'environnement de travail dans lequel s'inscrit votre projet CDA.
+\paragraph{Mon rôle :}En tant que concepteur-développeur full-stack, mon rôle consiste à identifier et analyser les besoins afin d’apporter des solutions numériques concrètes et adaptées aux problématiques rencontrées. Mes expériences précédentes, à la fois en formation et en milieu professionnel, m’ont permis d’acquérir un éventail de compétences suffisamment large pour intervenir efficacement sur l’ensemble du cycle de développement. Je suis en autonomie sur l’architecture, la conception, les choix techniques et le développement, tout en tenant compte des retours des parties prenantes du club test "Aquaclub 21".
 
-\textbf{Votre rôle :} \textit{[Décrivez votre fonction exacte : développeur full-stack, frontend, backend, DevOps, etc. Précisez vos responsabilités principales et votre niveau d'autonomie]}
+\vspace{0.3cm}
 
-\textbf{Contexte organisationnel :} \textit{[Expliquez l'entreprise, l'équipe, les enjeux métier, et la problématique que votre projet doit résoudre. Mentionnez les contraintes techniques et organisationnelles]}
+\paragraph{Contexte organisationnel :}Je suis membre actif d’un club associatif de plongée affilié à la FFESSM depuis quatre ans et j’ai intégré le comité directeur. J’interviens sur la communication, la gestion du site internet et la coordination numérique du club. Comme dans de nombreuses structures associatives, l’organisation repose essentiellement sur le bénévolat, avec des ressources humaines et techniques limitées. Cela implique une forte autonomie dans la gestion des outils numériques pour les membres du comité.
 
-\textbf{Durée et planning :} \textit{[Précisez la durée de votre alternance, les phases du projet, et les jalons importants]}
+Aujourd’hui, la gestion du club s’appuie sur une combinaison d’outils dispersés : VPDive, Google Drive, formulaires externes, tableurs partagés, messageries, documents papier. Cette fragmentation entraîne des manipulations manuelles répétitives, une perte d’informations, un risque d’erreur élevé et une charge administrative importante. Les retours du comité montrent une perte de 1 à 3 heures par semaine pour les bénévoles chargés du suivi des adhésions, certificats médicaux, inscriptions et paiements.
 
-\begin{exemple}
-\textbf{Exemple de pitch QQOQCP :}
+Un autre élément clé du contexte métier est le niveau d’aisance numérique hétérogène des pratiquants. Dans le club test Aquaclub 21, 64{,}6\% ont plus de 46 ans, dont 30\% ont plus de 61 ans. Ils peuvent facilement se retrouver en difficulté face à des interfaces complexes ou à des processus éclatés. Ils privilégient la simplicité, la lisibilité et l’automatisation.
+
+Cette réalité accroît la nécessité d’un outil centralisé, clair et accessible, permettant de réduire les frictions, d’éviter les erreurs et de rendre les démarches (adhésion, certificats, inscriptions) plus intuitives. En tant que membre du comité, je suis régulièrement confronté à ces difficultés, ce qui m’a permis d’identifier précisément les points de friction et les besoins réels des utilisateurs.
+
+Face à ces contraintes, les échanges avec le comité ont permis d’identifier le besoin d’une plateforme unifiée, robuste et adaptée aux processus du club associatif. L’objectif est de :
+
 \begin{itemize}
-    \item \textbf{Quoi :} Application de gestion des projets internes
-    \item \textbf{Qui :} Équipes de développement et management
-    \item \textbf{Où :} Environnement cloud hybride
-    \item \textbf{Quand :} Déploiement progressif sur 6 mois
-    \item \textbf{Comment :} Architecture microservices avec React/Node.js
-    \item \textbf{Pourquoi :} Centraliser et optimiser le suivi des projets
+    \item centraliser les informations
+    \item améliorer l'expérience des membres, y compris les moins à l’aise avec le numérique
+    \item simplifier les démarches administratives
+    \item automatiser les tâches récurrentes
+    \item renforcer la fluidité des processus internes en développant des fonctionnalités adaptées
 \end{itemize}
 
-\textbf{Votre pitch QQOQCP :} \textit{[Rédigez votre propre pitch en suivant cette structure]}
-\end{exemple}
+Le besoin métier principal consiste donc à mettre en place un outil simple, cohérent et efficace, capable d’accompagner la gestion quotidienne du club dans un environnement associatif exigeant mais limité en ressources.
 
-\begin{conseil}
-\textbf{Ce que le jury attend dans cette section :}
+\vspace{0.5cm}
+
+
+
+\textbf{Durée et planning :} J'ai démarré mon alternance le 1\textsuperscript{er} septembre 2025, à raison de trois jours en entreprise (lundi, mardi, mercredi) et deux jours en formation (jeudi et vendredi). Ce dossier a été rédigé durant la phase de conception du projet, de septembre à décembre 2025.
+
+
+\vspace{0.5cm}
+
+
+\textbf{Planning du projet \textit{Diving O Club} :}
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{|>{\centering\arraybackslash}m{3.2cm}|>{\centering\arraybackslash}m{11cm}|}
+\hline
+\textbf{Période} & \textbf{Objectifs clés} \\ \hline
+
+25 sept. --- 20 déc. 2025 & \textbf{Conception et cadrage} : deux phases d'idéation, analyse des besoins, modèles UML, MCD/MLD, wireframes, maquettes, backlog, choix techniques. \\ \hline
+
+8 janv. --- 17 janv. 2026 & \textbf{POC} : validation de l’architecture (Next.js / Nest.js / PostgreSQL), mise en place de l'environnement Docker, affichage d’un club test avec membres et événements seedés. \\ \hline
+
+22 janv. --- 14 fév. 2026 & \textbf{MVP} : création de compte, connexion, recherche du club test, consultation des membres et événements. \\ \hline
+
+19 fév. --- 25 avril 2026 & \textbf{Version Bêta} : profils utilisateurs, certificats médicaux, calendrier, inscriptions, rôles (admin/moniteur/adhérent), gestion des membres et événements. \\ \hline
+
+30 avril --- 6 juin 2026 & \textbf{Version 1} : multi-clubs, création et validation de club, invitations par email, demandes d’adhésion, paiements HelloAsso, tableaux de bord. \\ \hline
+
+\end{tabular}
+\end{table}
+
+\textbf{QQOQCP :}
+
+\vspace{0.2cm}
+
 \begin{itemize}
-    \item Une présentation claire de votre rôle et de vos responsabilités
-    \item Une explication du contexte métier et des enjeux
-    \item Une justification de la pertinence du projet
-    \item Un pitch QQOQCP synthétique et percutant
-    \item Des indicateurs de succès mesurables
+    \item \textbf{Quoi :} Application web unifiée permettant de gérer un club de plongée associatif : adhérents, certificats médicaux, événements, inscriptions, rôles, paiements et administration.
+    \item \textbf{Qui :} Clubs FFESSM et associations subaquatiques reposant majoritairement sur le bénévolat, avec un public adulte et une aisance numérique très hétérogène.
+    \item \textbf{Où :} Application web mobile-first, accessible également sur ordinateur et tablette, déployée d’abord dans un club pilote (Aquaclub21).
+    \item \textbf{Quand :} Projet développé du 25 septembre 2025 au 6 juin 2026 (POC $\rightarrow$ MVP $\rightarrow$ Bêta $\rightarrow$ V1).
+    \item \textbf{Comment :} Architecture 3-tiers \textit{(Next.js - Nest.js - PostgreSQL + MongoDB)} avec intégration HelloAsso en V1 et pilotage via GitHub Projects.
+    \item \textbf{Pourquoi :} Remplacer la fragmentation des outils actuels par une solution unique, simple et accessible, afin de réduire la charge administrative et d’améliorer l’expérience des adhérents.
 \end{itemize}
 
-\textbf{Conseils de rédaction :}
-\begin{itemize}
-    \item Soyez précis sur votre fonction (évitez les généralités)
-    \item Montrez votre compréhension des enjeux métier
-    \item Justifiez le choix de votre projet
-    \item Utilisez des chiffres et des métriques quand c'est possible
-\end{itemize}
-\end{conseil}
+\vspace{0.5cm}
 
-\begin{jury}
-\begin{itemize}
-    \item Pouvez-vous présenter votre rôle précis dans ce projet ?
-    \item Quel est le contexte métier de votre entreprise ?
-    \item Quels sont les enjeux techniques principaux ?
-    \item Comment mesurez-vous le succès de votre projet ?
-    \item Quelles sont les contraintes temporelles et budgétaires ?
-\end{itemize}
-\end{jury}
+\textbf{Pitch QQOQCP :} 
+Je développe une application web mobile-first destinée aux clubs associatifs de plongée pour centraliser la gestion des adhérents, des certificats médicaux, des événements, des inscriptions, des rôles et des paiements.
 
+L’application repose sur une architecture 3-tiers \textit{(Next.js - Nest.js - PostgreSQL + MongoDB)} et sera testée en conditions réelles dans un club pilote (Aquaclub21) avant une version finale début juin 2026.
+
+L’objectif est de remplacer la multiplicité des outils actuels par une solution unique, fiable et simple d’usage, afin de réduire la charge administrative des bénévoles et d’améliorer l’expérience des adhérents lors de l'utilisation de l'application.
+\vspace{0.5cm}
 \section{Problématique et objectifs SMART}
 
-Dans cette section, vous devez identifier clairement la problématique que votre projet résout et définir des objectifs SMART mesurables. Le jury attend une analyse précise des enjeux et des bénéfices attendus.
+\noindent\textbf{Problématique centrale :}\\[0.2cm]
+\textit{Comment accompagner efficacement un public majoritairement adulte et peu technophile, tout en réduisant significativement la charge administrative des clubs, dans un contexte où les outils actuels sont fragmentés, peu ergonomiques et insuffisamment adaptés aux processus associatifs réels ?}
 
-\textbf{Problématique identifiée :} \textit{[Décrivez le problème métier ou technique que votre projet résout. Soyez spécifique sur les impacts négatifs actuels]}
-
-\textbf{Objectifs SMART :} \textit{[Définissez 3 à 5 objectifs spécifiques, mesurables, atteignables, pertinents et temporellement définis]}
-
-\textbf{Bénéfices attendus :} \textit{[Listez les améliorations concrètes que votre projet apportera]}
-
-\begin{exemple}
-\textbf{Exemple d'objectifs SMART :}
+\vspace{0.5cm}
+La gestion quotidienne d’un club associatif de plongée repose aujourd’hui sur une multitude d’outils hétérogènes : VPDive, tableurs, formulaires externes, Google Drive, messageries, documents papier.
+Cette fragmentation génère :
 \begin{itemize}
-    \item \textbf{Spécifique :} Développer une plateforme unifiée de gestion de projet
-    \item \textbf{Mesurable :} Réduire de 40\% le temps de reporting hebdomadaire
-    \item \textbf{Atteignable :} Livrer la v1 en 6 mois avec l'équipe actuelle
-    \item \textbf{Pertinent :} Aligner les outils sur la stratégie digitale
-    \item \textbf{Temporel :} Déploiement complet avant fin d'année 2025
+    \item une navigation complexe pour un public majoritairement adulte et peu technophile.
+    \item des manipulations manuelles répétitives,
+    \item une perte ou duplication d’informations,
+    \item un risque d’erreur élevé,
+    \item une surcharge administrative estimée entre 1 et 3 heures par semaine pour les bénévoles du comité,
 \end{itemize}
 
-\textbf{Vos objectifs SMART :} \textit{[Rédigez vos propres objectifs en suivant cette structure]}
+Au sein du club pilote (Aquaclub21), 64{,}6\,\% des adhérents ont plus de 46 ans dont 27{,}1\,\% plus de 61 ans, ce qui renforce le besoin d’une interface simple, lisible et guidée.
 
-\textbf{Exemple de diagramme de contexte :}
-\begin{verbatim}
-                    +=================================+
-                    |        VOTRE PROJET CDA         |
-                    |                                 |
-                    +=================================+
-                                      |
-                    +-----------------+-----------------+
-                    |                 |                 |
-            +-------+-------+   +-------+-------+   +-------+-------+
-            | Équipe       |   | Direction     |   | Utilisateurs |
-            | technique    |   | métier        |   | finaux       |
-            +---------------+   +---------------+   +---------------+
-                    |                 |                 |
-                    +-----------------+-----------------+
-                                      |
-                              +-------+-------+
-                              | Systèmes      |
-                              | externes      |
-                              +---------------+
-\end{verbatim}
-
-\textbf{Votre diagramme de contexte :} \textit{[Créez un diagramme montrant les acteurs et leurs interactions avec votre projet]}
-\end{exemple}
-
-\begin{conseil}
-\textbf{Ce que le jury attend dans cette section :}
+Ces difficultés impactent :
 \begin{itemize}
-    \item Une problématique clairement identifiée et justifiée
-    \item Des objectifs SMART précis et mesurables
-    \item Une compréhension des enjeux métier
-    \item Des indicateurs de succès quantifiés
-    \item Un diagramme de contexte montrant les acteurs
+    \item l’expérience utilisateur,
+    \item la satisfaction globale des adhérents,
+    \item la qualité du suivi administratif (certificats, paiements, inscriptions),
+    \item la sécurité (certificats non valides),
+    \item la participation aux activités (mauvaises informations, pertes d’inscriptions),
 \end{itemize}
 
-\textbf{Conseils de rédaction :}
-\begin{itemize}
-    \item Soyez spécifique sur les impacts négatifs actuels
-    \item Quantifiez vos objectifs (pourcentages, délais, volumes)
-    \item Montrez la pertinence métier de votre projet
-    \item Utilisez des diagrammes pour clarifier les interactions
-\end{itemize}
-\end{conseil}
+\vspace{0.5cm}
+En tant que membre du comité, je suis confronté directement à ces problèmes, ce qui m’a permis d’identifier avec précision les points de friction, leurs impacts et les besoins concrets du terrain.
 
-\begin{jury}
-\textbf{Questions de contrôle du jury :}
+
+\vspace{0.5cm}
+
+\subsection*{Objectifs SMART}
+
+\noindent{Les objectifs du projet ont été formalisés selon la méthode SMART
+(Spécifique, Mesurable, Atteignable, Réaliste et Temporellement défini)
+afin de garantir un pilotage précis et vérifiable.}
+
+\vspace{0.3cm}
+
+\subsection*{Indicateurs de succès quantifiés (KPIs)}
+
+Afin d’évaluer objectivement la réussite globale du projet, trois indicateurs clés (KPIs) ont été définis, chacun associé à une valeur cible et à un mode de mesure :
+
 \begin{itemize}
-    \item Pouvez-vous expliquer clairement la problématique que votre projet résout ?
-    \item Vos objectifs sont-ils vraiment SMART (spécifiques, mesurables, atteignables, pertinents, temporels) ?
-    \item Comment mesurez-vous le succès de votre projet ?
-    \item Quels sont les bénéfices attendus pour l'entreprise ?
-    \item Pouvez-vous présenter un diagramme de contexte de votre projet ?
-    \item Quelles sont les contraintes temporelles et budgétaires ?
+    \item \textbf{Taux d’adoption} : au moins \textbf{20 utilisateurs actifs} durant la phase bêta.
+    \textit{Mesure : analyse des logs de connexion et du nombre de comptes actifs.}
+
+    \item \textbf{Gain de temps et réduction des relances} : diminuer d’au moins \textbf{50\%} le volume de relances manuelles sous 2 mois.
+    \textit{Mesure : comptage hebdomadaire des relances manuelles réalisées par le comité.}
+
+    \item \textbf{Satisfaction utilisateur} : atteindre \textbf{90\% de satisfaction} en fin de phase bêta.
+    \textit{Mesure : questionnaire anonyme envoyé aux adhérents du club pilote.}
 \end{itemize}
-\end{jury}
+
+\vspace{0.5cm}
+
+
+\noindent\textbf{Objectif SMART 1 — Accessibilité des adhérents non technophiles}
+
+\noindent\textbf{Indicateur de réussite :} 80\% des adhérents complètent l’inscription sans assistance, mesuré via le taux de complétion et le nombre de demandes d’aide (objectif $<$ 10 demandes).
+
+\begin{itemize}
+  \item \textbf{Spécifique :} Simplifier l’usage de la plateforme pour les adhérents peu à l’aise avec le numérique.
+  \item \textbf{Mesurable :} Atteindre \textbf{80\% de parcours complets} réalisés sans assistance, mesurés via le taux de complétion et le nombre de demandes d’aide.
+  \item \textbf{Atteignable :} Parcours guidé, interface mobile-first, formulaires simplifiés, notifications claires.
+  \item \textbf{Réaliste :} Besoin confirmé par l’analyse utilisateurs du club (moyenne d’âge 48+ ans).
+  \item \textbf{Temporel :} Mesuré pendant la phase bêta (\textbf{février $\rightarrow$ avril 2026}).
+\end{itemize}
+
+\vspace{0.5cm}
+
+\noindent\textbf{Objectif SMART 2 — Réduction de la charge administrative}
+
+\noindent\textbf{Indicateur de réussite :} Temps de gestion réduit à moins de 60 minutes/semaine, mesuré via un suivi hebdomadaire du temps passé par les bénévoles.
+
+\begin{itemize}
+  \item \textbf{Spécifique :} Réduire le temps consacré aux relances et au suivi manuel (certificats, inscriptions).
+  \item \textbf{Mesurable :} Réduire le temps administratif de \textbf{1--3 h/semaine à 30--60 min/semaine}, mesuré via le suivi du temps passé et les relances automatiques vs manuelles.
+  \item \textbf{Atteignable :} Automatisation des relances, centralisation des données, flux simplifiés.
+  \item \textbf{Réaliste :} Charge actuelle estimée à 1--3 h/semaine par bénévole.
+  \item \textbf{Temporel :} Mesure effectuée entre \textbf{février $\rightarrow$ avril 2026}.
+\end{itemize}
+
+\vspace{0.5cm}
+
+\noindent\textbf{Objectif SMART 3 — Adoption de la Bêta par le club pilote}
+
+\noindent\textbf{Indicateur de réussite :} Au moins 20 utilisateurs actifs et 20 inscriptions à des événements dans le mois suivant le déploiement de la bêta.
+
+\begin{itemize}
+  \item \textbf{Spécifique :} Déployer une version fonctionnelle couvrant profil, certificats, événements et inscriptions.
+  \item \textbf{Mesurable :} Atteindre \textbf{$\geq$ 20 utilisateurs actifs} et \textbf{$\geq$ 20 inscriptions}, mesurés via logs de connexion et statistiques.
+  \item \textbf{Atteignable :} Périmètre MVP limité et validé.
+  \item \textbf{Réaliste :} Technologies maîtrisées (Next.js / Nest.js / PostgreSQL).
+  \item \textbf{Temporel :} Objectif mesuré entre \textbf{février $\rightarrow$ avril 2026}.
+\end{itemize}
+
+\vspace{0.5cm}
+
+\noindent\textbf{Objectif SMART 4 — Performance et stabilité de l’API}
+
+\noindent\textbf{Indicateur de réussite :} 95\% des requêtes serveur sous 300\,ms, mesuré via l’outil de monitoring en production.
+
+\begin{itemize}
+  \item \textbf{Spécifique :} Garantir une API performante et stable pour une expérience fluide.
+  \item \textbf{Mesurable :} Assurer que \textbf{95\% des requêtes} répondent en moins de \textbf{300\,ms}.
+  \item \textbf{Atteignable :} Optimisation des endpoints, mise en cache, bonnes pratiques Nest.js.
+  \item \textbf{Réaliste :} Aligné avec les standards des architectures 3-tiers.
+  \item \textbf{Temporel :} Mesuré en continu à partir de la \textbf{Bêta (février 2026)}.
+\end{itemize}
+
+\vspace{0.5cm}
+
+\noindent\textbf{Objectif SMART 5 — Sécurisation des données et conformité RGPD}
+
+\noindent\textbf{Indicateur de réussite :} 100\% des routes sensibles protégées et aucun incident de sécurité durant la phase bêta.
+
+\begin{itemize}
+  \item \textbf{Spécifique :} Protéger les données personnelles des adhérents.
+  \item \textbf{Mesurable :} Vérifier que \textbf{100\% des routes sensibles} sont protégées (JWT + RBAC), via audit interne.
+  \item \textbf{Atteignable :} Cookies HttpOnly, RBAC, validation stricte des schémas.
+  \item \textbf{Réaliste :} Aligné avec les exigences légales du RGPD.
+  \item \textbf{Temporel :} Implémenté pour la \textbf{Bêta Release (avril 2026)}.
+\end{itemize}
+
+
+\textbf{Bénéfices attendus :}
+L’application a pour objectif de centraliser l’ensemble des opérations nécessaires à la gestion d’un club de plongée dans un seul outil, afin de simplifier le travail des encadrants et d’améliorer l’expérience des adhérents. Elle remplace plusieurs outils dispersés par une plateforme unique, intuitive et maintenable dans le temps. La gestion des adhérents, des événements, des certificats et des inscriptions est unifiée, ce qui réduit les risques d’erreur et de perte d’information. Grâce à une interface adaptée aux publics peu familiers du numérique, l’application fluidifie la participation aux activités et diminue les frictions administratives. Enfin, la solution pourra évoluer à l’échelle fédérale afin d’assurer une cohérence numérique au sein des structures FFESSM.
+
+
+
+\textbf{Diagramme de contexte :}
+
+\vspace{0.5cm}
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[height=14cm, keepaspectratio]{assets/diagramme_contexte_doc.png}
+    \caption{Diagramme de contexte du projet}
+\end{figure}
+
 
 \section{Liens utiles}
 
@@ -139,4 +232,9 @@ Dans cette section, vous devez identifier clairement la problématique que votre
     \item Project Management Institute: \url{https://www.pmi.org/}
     \item Agile Manifesto: \url{https://agilemanifesto.org/}
     \item Business Model Canvas: \url{https://bit.ly/business-model-canvas}
-\end{itemize}
+    \item FFESSM — Bilan à 700 jours (paragraphe "Amélioration de notre système informatique")
+\url{https://ffessm.fr/actualites/bilan-de-la-ffessm-a-700-jours}
+\item Nombre de clubs de plongée en France: \url{https://ffessm.fr/actualites/un-ete-immersif-pour-les-francais}
+    \item Données sur l'âge des plongeurs en 2002 page 18: \url{https://ffessm.fr/uploads/media/docs/0001/02/9b74472404c10cd0bd3c09bf15f1a9b217159689.pdf}
+    \item Données sur l'âge des plongeurs en 2020 page 11: \url{https://www.dirm.mediterranee.developpement-durable.gouv.fr/IMG/pdf/mnca_2019_etudeplongee_version_finale.pdf}
+  \end{itemize}
