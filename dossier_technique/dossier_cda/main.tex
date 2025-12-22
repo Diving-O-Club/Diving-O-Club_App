@@ -25,6 +25,52 @@
 \usepackage{amsmath}
 \usepackage{amsfonts}
 \usepackage{amssymb}
+\usepackage{array}
+\usepackage{float}
+\usepackage{tabularx}
+\usepackage{unicode-math}
+\usepackage{soul}
+\usepackage{ulem}
+\usepackage[table]{xcolor}
+\usepackage{array}
+\usepackage{colortbl}
+\usepackage{booktabs}
+
+\usepackage{listings}
+
+
+\lstdefinelanguage{TypeScript}{
+  keywords={typeof, new, true, false, catch, function, return, null, catch, switch, var, let, const, if, in, while, for, break, class, export, extends, import, from, async, await},
+  keywordstyle=\color{blue}\bfseries,
+  ndkeywords={boolean, number, string, void, Promise},
+  ndkeywordstyle=\color{teal}\bfseries,
+  identifierstyle=\color{black},
+  commentstyle=\color{gray}\ttfamily,
+  stringstyle=\color{orange}\ttfamily,
+  sensitive=true
+}
+
+% Palette RAG
+\definecolor{riskLow}{HTML}{DFF0D8}     % vert pâle
+\definecolor{riskMed}{HTML}{FCF8E3}     % jaune pâle
+\definecolor{riskHigh}{HTML}{F2DEDE}    % rouge pâle
+
+% Règle de coloration par score (1–4 vert, 5–9 jaune, 10–25 rouge)
+\newcommand{\riskcell}[1]{%
+  \begingroup
+  \def\score{#1}%
+  \ifnum\score<5 \cellcolor{riskLow}\else
+    \ifnum\score<10 \cellcolor{riskMed}\else
+      \cellcolor{riskHigh}\fi
+  \fi \textbf{#1}%
+  \endgroup
+}
+\usepackage{tabularx,booktabs,array}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+
+% Légendes d’échelle
+% Probabilité et Impact: 1 Très faible, 2 Faible, 3 Moyenne, 4 Élevé, 5 Très élevé
+
 
 % Configuration de la page
 \geometry{
@@ -165,11 +211,11 @@
 }
 
 % Commandes personnalisées
-\newcommand{\ProjetTitre}{[Titre du Projet]}
-\newcommand{\CandidatNom}{[Nom du Candidat]}
-\newcommand{\Promotion}{[Promotion]}
-\newcommand{\Entreprise}{[Nom de l'Entreprise]}
-\newcommand{\Tuteur}{[Nom du Tuteur]}
+\newcommand{\ProjetTitre}{Diving O Club}
+\newcommand{\CandidatNom}{Lavier Kevin}
+\newcommand{\Promotion}{3ème année Programmation informatique}
+\newcommand{\Entreprise}{Colint School}
+\newcommand{\Tuteur}{Kwame Yamgnane}
 \newcommand{\DateDoc}{\DTMdisplaydate{\year}{\month}{\day}{-}}
 
 % Commandes pour remplacer les caractères Unicode problématiques
