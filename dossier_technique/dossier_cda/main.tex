@@ -1,0 +1,365 @@
+%!TEX program = xelatex
+%!TEX encoding = UTF-8 Unicode
+
+\documentclass[11pt,a4paper]{book}
+
+% Packages essentiels
+\usepackage{fontspec}
+\usepackage[utf8]{inputenc}
+\usepackage[french]{babel}
+\usepackage{geometry}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{tcolorbox}
+\usepackage{enumitem}
+\usepackage{longtable}
+\usepackage{booktabs}
+\usepackage{listings}
+\usepackage{pifont}
+\usepackage{csquotes}
+\usepackage{tocloft}
+\usepackage{datetime2}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+
+% Configuration de la page
+\geometry{
+    left=2.5cm,
+    right=2.5cm,
+    top=2.5cm,
+    bottom=2.5cm,
+    headheight=15pt
+}
+
+% Configuration des polices - Utilisation d'une police système
+\setmainfont{Helvetica}[
+    BoldFont=Helvetica-Bold,
+    ItalicFont=Helvetica-Oblique,
+    BoldItalicFont=Helvetica-BoldOblique
+]
+
+% Définition des couleurs Colint.school
+\definecolor{colintYellow}{HTML}{FFD700}
+\definecolor{colintBlack}{HTML}{101820}
+\definecolor{colintWhite}{HTML}{FFFFFF}
+\definecolor{colintDark}{HTML}{333A40}
+
+% Configuration des liens hypertexte
+\hypersetup{
+    colorlinks=true,
+    linkcolor=colintDark,
+    urlcolor=colintYellow,
+    citecolor=colintDark,
+    pdfborder={0 0 0}
+}
+
+% Configuration des en-têtes et pieds de page
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\leftmark}
+\fancyhead[R]{\thepage}
+\fancyfoot[L]{\ProjetTitre{}}
+\fancyfoot[R]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+% Configuration des titres de chapitres
+\titleformat{\chapter}[display]
+{\normalfont\huge\bfseries\color{colintBlack}}
+{\chaptertitlename\ \thechapter}{5pt}{\Huge\color{colintDark}}
+
+\titleformat{\section}
+{\normalfont\Large\bfseries\color{colintDark}}
+{\thesection}{1em}{}
+
+\titleformat{\subsection}
+{\normalfont\large\bfseries\color{colintDark}}
+{\thesubsection}{1em}{}
+
+% Réduction des espacements avant les titres
+\titlespacing*{\chapter}{0pt}{2pt plus 1pt minus 1pt}{5pt plus 1pt minus 1pt}
+\titlespacing*{\section}{0pt}{10pt plus 2pt minus 2pt}{8pt plus 2pt minus 2pt}
+\titlespacing*{\subsection}{0pt}{8pt plus 2pt minus 2pt}{6pt plus 2pt minus 2pt}
+
+% Paramètres pour éviter les pages vides
+\raggedbottom
+\setlength{\topskip}{1\topskip plus 2pt minus 2pt}
+\setlength{\topsep}{0pt}
+\setlength{\partopsep}{0pt}
+\setlength{\parsep}{0pt}
+\setlength{\itemsep}{0pt}
+
+% Éviter les coupures de page au milieu des sections importantes
+% \newcommand{\sectionbreak}{\clearpage}
+% \newcommand{\subsectionbreak}{\clearpage}
+
+% Environnements tcolorbox personnalisés
+\newtcolorbox{conseil}{
+    colback=gray!10,
+    colframe=colintYellow,
+    colbacktitle=gray!15,
+    coltitle=colintBlack,
+    boxrule=1pt,
+    arc=3pt,
+    left=3pt,
+    right=3pt,
+    top=3pt,
+    bottom=3pt,
+    fonttitle=\bfseries,
+    title=À FAIRE / À VÉRIFIER,
+    before skip=0pt,
+    after skip=0pt
+}
+
+\newtcolorbox{jury}{
+    colback=colintWhite,
+    colframe=colintBlack,
+    colbacktitle=colintDark,
+    coltitle=colintWhite,
+    boxrule=2pt,
+    arc=3pt,
+    left=3pt,
+    right=3pt,
+    top=3pt,
+    bottom=3pt,
+    fonttitle=\bfseries,
+    title=Contrôles Jury CDA,
+    before skip=0pt,
+    after skip=0pt
+}
+
+\newtcolorbox{exemple}{
+    colback=colintYellow!20,
+    colframe=colintYellow,
+    colbacktitle=colintYellow!30,
+    coltitle=colintBlack,
+    boxrule=1pt,
+    arc=3pt,
+    left=3pt,
+    right=3pt,
+    top=3pt,
+    bottom=3pt,
+    fonttitle=\bfseries,
+    title=Exemple,
+    before skip=0pt,
+    after skip=0pt
+}
+
+\newtcolorbox{focusgithub}{
+    colback=colintDark!5,
+    colframe=colintDark,
+    colbacktitle=colintDark,
+    coltitle=colintWhite,
+    boxrule=1pt,
+    arc=3pt,
+    left=5pt,
+    right=5pt,
+    top=5pt,
+    bottom=5pt,
+    fonttitle=\bfseries,
+    title=Focus GitHub
+}
+
+% Commandes personnalisées
+\newcommand{\ProjetTitre}{[Titre du Projet]}
+\newcommand{\CandidatNom}{[Nom du Candidat]}
+\newcommand{\Promotion}{[Promotion]}
+\newcommand{\Entreprise}{[Nom de l'Entreprise]}
+\newcommand{\Tuteur}{[Nom du Tuteur]}
+\newcommand{\DateDoc}{\DTMdisplaydate{\year}{\month}{\day}{-}}
+
+% Commandes pour remplacer les caractères Unicode problématiques
+\newcommand{\mycheckmark}{\ding{51}}
+\newcommand{\mywarning}{\ding{26}}
+\newcommand{\myarrow}{\ding{43}}
+\newcommand{\mycross}{\ding{55}}
+\newcommand{\treecorner}{\ding{192}}
+\newcommand{\treecornerdown}{\ding{193}}
+\newcommand{\treehoriz}{\ding{196}}
+\newcommand{\treevert}{\ding{179}}
+\newcommand{\treecornerup}{\ding{194}}
+\newcommand{\treecornerright}{\ding{195}}
+\newcommand{\treecornerleft}{\ding{191}}
+
+% Configuration des listes
+\setlist[itemize]{leftmargin=*,topsep=0pt,itemsep=0pt}
+\setlist[enumerate]{leftmargin=*,topsep=0pt,itemsep=0pt}
+
+% Configuration du code
+\lstset{
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    frame=none,
+    backgroundcolor=\color{gray!5},
+    commentstyle=\color{gray},
+    keywordstyle=\color{blue},
+    stringstyle=\color{red},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    stepnumber=1,
+    numbersep=8pt,
+    xleftmargin=0pt,
+    xrightmargin=0pt,
+    tabsize=2
+}
+
+% Définition des langages manquants
+\lstdefinelanguage{JavaScript}{
+    keywords={typeof, new, true, false, catch, function, return, null, catch, switch, var, if, in, while, do, else, case, break},
+    keywordstyle=\color{blue}\bfseries,
+    ndkeywords={class, export, boolean, throw, implements, import, this},
+    ndkeywordstyle=\color{blue}\bfseries,
+    identifierstyle=\color{black},
+    sensitive=false,
+    comment=[l]{//},
+    morecomment=[s]{/*}{*/},
+    commentstyle=\color{gray}\ttfamily,
+    stringstyle=\color{red}\ttfamily,
+    morestring=[b]',
+    morestring=[b]"
+}
+
+\lstdefinelanguage{YAML}{
+    keywords={true,false,null,yes,no},
+    keywordstyle=\color{blue}\bfseries,
+    sensitive=false,
+    comment=[l]{\#},
+    commentstyle=\color{gray}\ttfamily,
+    stringstyle=\color{red}\ttfamily,
+    morestring=[b]',
+    morestring=[b]"
+}
+
+\lstdefinelanguage{Dockerfile}{
+    keywords={FROM, RUN, CMD, LABEL, MAINTAINER, EXPOSE, ENV, ADD, COPY, ENTRYPOINT, VOLUME, USER, WORKDIR, ARG, ONBUILD, STOPSIGNAL, HEALTHCHECK},
+    keywordstyle=\color{blue}\bfseries,
+    sensitive=false,
+    comment=[l]{\#},
+    commentstyle=\color{gray}\ttfamily,
+    stringstyle=\color{red}\ttfamily,
+    morestring=[b]',
+    morestring=[b]"
+}
+
+\lstdefinelanguage{Markdown}{
+    keywords={},
+    keywordstyle=\color{blue}\bfseries,
+    sensitive=false,
+    comment=[l]{\#},
+    commentstyle=\color{gray}\ttfamily,
+    stringstyle=\color{red}\ttfamily,
+    morestring=[b]',
+    morestring=[b]"
+}
+
+\lstdefinelanguage{JSON}{
+    keywords={true,false,null},
+    keywordstyle=\color{blue}\bfseries,
+    sensitive=false,
+    comment=[l]{\#},
+    commentstyle=\color{gray}\ttfamily,
+    stringstyle=\color{red}\ttfamily,
+    morestring=[b]',
+    morestring=[b]"
+}
+
+% Configuration de la table des matières
+\setlength{\cftbeforechapskip}{2pt}
+\setlength{\cftbeforesecskip}{1pt}
+\setlength{\cftbeforesubsecskip}{1pt}
+\renewcommand{\cftchapfont}{\bfseries\color{colintDark}}
+\renewcommand{\cftsecfont}{\color{colintDark}}
+
+% Début du document
+\begin{document}
+
+% Page de garde professionnelle
+\begin{titlepage}
+    \thispagestyle{empty}
+
+    % En-tête avec logo et informations
+    \begin{tabular}{@{}p{0.2\textwidth}@{\hfill}p{0.75\textwidth}@{}}
+        \raisebox{-0.3\height}{\includegraphics[width=3.5cm]{./assets/image.png}} &
+        \raggedleft
+        {\large\color{colintDark} Colint School}\\[0.2cm]
+        {\small\color{colintDark} Formation CDA 2025}\\[0.1cm]
+        {\small\color{colintDark} Concepteur Développeur d'Applications}\\[0.1cm]
+        {\small\color{colintDark} RNCP37873}\\[0.1cm]
+        {\small\color{colintDark} 54 Rue d'Autun, 71100 Chalon-sur-Sa\^one}
+    \end{tabular}
+
+    \vspace{3cm}
+
+    % Titre principal centré
+    \centering
+    {\Huge\bfseries\color{colintBlack} \ProjetTitre{}}
+
+    \vspace{0.5cm}
+
+    % Sous-titre avec ligne décorative
+    \rule{8cm}{2pt}\\[0.5cm]
+    {\Large\color{colintDark} Dossier de Projet CDA}\\
+    {\large\color{colintDark} Présentation et Défense}\\
+    \rule{8cm}{2pt}
+
+    \vspace{2cm}
+
+    % Bloc identités dans un cadre élégant
+    \begin{tcolorbox}[
+        colback=colintWhite,
+        colframe=colintYellow,
+        boxrule=2pt,
+        arc=8pt,
+        width=0.8\textwidth,
+        center
+    ]
+        \centering
+        {\Large\bfseries\color{colintBlack} Informations du Projet}\\[0.5cm]
+
+        \begin{tabular}{p{3.5cm}p{7.5cm}}
+            \textbf{Candidat :} & \CandidatNom{} \\[0.3cm]
+            \textbf{Promotion :} & \Promotion{} \\[0.3cm]
+            \textbf{\mbox{Soutenance} :} & [Date] \\[0.3cm]
+        \end{tabular}
+    \end{tcolorbox}
+
+    \vfill
+
+    % Pied de page avec informations complémentaires
+    \begin{minipage}[b]{\textwidth}
+        \centering
+        {\small\color{colintDark}
+        Ce dossier présente le projet réalisé dans le cadre de la formation\\
+        Concepteur Développeur d'Applications (CDA) de Colint School\\
+        \vspace{0.2cm}
+        \rule{6cm}{0.5pt}\\
+        \textbf{Année académique 2025-2026}
+        }
+    \end{minipage}
+
+    \vspace{1cm}
+\end{titlepage}
+
+% Table des matières
+\tableofcontents
+\newpage
+
+
+% Corps du document
+\input{chapters/chapitre_I}
+\input{chapters/chapitre_II}
+\input{chapters/chapitre_III}
+\input{chapters/chapitre_IV}
+\input{chapters/chapitre_V}
+\input{chapters/chapitre_VI}
+\input{chapters/chapitre_VII}
+\input{chapters/chapitre_VIII}
+\input{chapters/chapitre_IX}
+\input{chapters/chapitre_X}
+\input{chapters/chapitre_XI}
+
+\end{document}

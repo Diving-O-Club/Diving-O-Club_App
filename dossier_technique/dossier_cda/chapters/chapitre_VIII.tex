@@ -1,0 +1,533 @@
+\chapter{Déploiement et CI/CD}
+
+\section{Containerisation avec Docker}
+
+La containerisation Docker standardise l'environnement de développement et de production, garantissant la reproductibilité des déploiements. Le Dockerfile multi-stage optimise la taille des images en séparant les phases de build et de runtime. Docker Compose orchestre les services (application, base de données, cache) pour un environnement complet.
+
+Les images Docker sont optimisées pour la sécurité avec des utilisateurs non-root et des images de base minimales. Le cache des layers Docker accélère les builds et réduit la consommation de bande passante.
+
+\begin{exemple}
+\textbf{Dockerfile multi-stage :}
+\begin{lstlisting}[language=dockerfile]
+\# Stage 1: Build
+FROM node:18-alpine AS builder
+
+WORKDIR /app
+
+\# Copier les fichiers de dépendances
+COPY package*.json ./
+RUN npm ci --only=production
+
+\# Copier le code source
+COPY . .
+
+\# Build de l'application
+RUN npm run build
+
+\# Stage 2: Production
+FROM node:18-alpine AS production
+
+\# Créer un utilisateur non-root
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S nextjs -u 1001
+
+WORKDIR /app
+
+\# Copier les dépendances de production
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/package*.json ./
+
+\# Changer le propriétaire des fichiers
+RUN chown -R nextjs:nodejs /app
+USER nextjs
+
+\# Exposer le port
+EXPOSE 3000
+
+\# Variables d'environnement
+ENV NODE_ENV=production
+ENV PORT=3000
+
+\# Commande de démarrage
+CMD ["node", "dist/index.js"]
+\end{lstlisting}
+
+\textbf{Docker Compose pour l'environnement complet (1/2) :}
+\begin{lstlisting}[language=yaml]
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://user:pass@postgres:5432/projectdb
+      - MONGODB_URI=mongodb://mongo:27017/projectlogs
+    depends_on:
+      - postgres
+      - mongo
+      - redis
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=projectdb
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=pass
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+\end{lstlisting}
+\end{exemple}
+
+\begin{exemple}
+\textbf{Docker Compose pour l'environnement complet (2/2) :}
+\begin{lstlisting}[language=yaml]
+  mongo:
+    image: mongo:6
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=password
+    volumes:
+      - mongo_data:/data/db
+    ports:
+      - "27017:27017"
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  mongo_data:
+\end{lstlisting}
+\end{exemple}
+
+\begin{conseil}
+\begin{itemize}
+    \item Utiliser des Dockerfiles multi-stage pour optimiser les images
+    \item Créer des utilisateurs non-root pour la sécurité
+    \item Organiser les services avec Docker Compose
+    \item Optimiser le cache des layers Docker
+    \item Surveiller la taille et la sécurité des images
+\end{itemize}
+\end{conseil}
+
+\begin{jury}
+\begin{itemize}
+    \item Pourquoi utiliser Docker pour votre application ?
+    \item Comment optimisez-vous vos images Docker ?
+    \item Votre Dockerfile est-il sécurisé ?
+    \item Comment gérez-vous les secrets dans Docker ?
+    \item Avez-vous testé vos conteneurs en production ?
+\end{itemize}
+\end{jury}
+
+\section{Pipeline CI/CD avec GitHub Actions}
+
+Le pipeline CI/CD automatise les étapes de linting, build, test, scan de sécurité et déploiement. GitHub Actions exécute ces étapes à chaque push et Pull Request, garantissant la qualité du code avant intégration. Les secrets et variables d'environnement sécurisent les informations sensibles.
+
+Le déploiement automatique vers les environnements de staging et production suit une approche blue-green pour minimiser les risques. Les rollbacks automatiques sont déclenchés en cas de détection d'anomalies.
+
+\begin{exemple}
+\textbf{Workflow GitHub Actions complet (1/3) :}
+\begin{lstlisting}[language=yaml]
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  NODE_VERSION: '18'
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # Job 1: Lint et tests
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run linter
+        run: npm run lint
+
+      - name: Run type checking
+        run: npm run type-check
+
+      - name: Run tests
+        run: npm test -- --coverage
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+\end{lstlisting}
+\end{exemple}
+
+\begin{exemple}
+\textbf{Workflow GitHub Actions complet (2/3) :}
+\begin{lstlisting}[language=yaml]
+  # Job 2: Build et scan de sécurité
+  build-and-scan:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t ${{ env.IMAGE_NAME }}:${{ github.sha }} .
+
+      - name: Run Trivy security scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.IMAGE_NAME }}:${{ github.sha }}
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-results.sarif'
+\end{lstlisting}
+\end{exemple}
+
+\begin{exemple}
+\textbf{Workflow GitHub Actions complet (3/3) :}
+\begin{lstlisting}[language=yaml]
+  # Job 3: Déploiement staging
+  deploy-staging:
+    runs-on: ubuntu-latest
+    needs: build-and-scan
+    if: github.ref == 'refs/heads/develop'
+    environment: staging
+    steps:
+      - name: Deploy to staging
+        run: |
+          echo "Deploying to staging environment"
+          # Script de déploiement staging
+          ./scripts/deploy.sh staging
+
+  # Job 4: Déploiement production
+  deploy-production:
+    runs-on: ubuntu-latest
+    needs: build-and-scan
+    if: github.ref == 'refs/heads/main'
+    environment: production
+    steps:
+      - name: Deploy to production
+        run: |
+          echo "Deploying to production environment"
+          # Script de déploiement production
+          ./scripts/deploy.sh production
+
+      - name: Run smoke tests
+        run: |
+          echo "Running smoke tests"
+          npm run test:smoke
+
+      - name: Notify team
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          channel: '\#deployments'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+\end{lstlisting}
+\end{exemple}
+
+\begin{exemple}
+\textbf{Script de déploiement (1/2) :}
+\begin{lstlisting}[language=bash]
+#!/bin/bash
+# scripts/deploy.sh
+
+set -e
+
+ENVIRONMENT=$1
+IMAGE_TAG=${2:-latest}
+
+echo "Deploying to $ENVIRONMENT environment with tag $IMAGE_TAG"
+
+# Mise à jour des images Docker
+docker-compose -f docker-compose.$ENVIRONMENT.yml pull
+\end{lstlisting}
+\end{exemple}
+
+\begin{exemple}
+\textbf{Script de déploiement (2/2) :}
+\begin{lstlisting}[language=bash]
+# Déploiement blue-green
+if [ "$ENVIRONMENT" = "production" ]; then
+    # Déploiement en blue-green
+    docker-compose -f docker-compose.prod.yml up -d --scale app=2
+    sleep 30
+    docker-compose -f docker-compose.prod.yml up -d --scale app=1
+else
+    # Déploiement simple pour staging
+    docker-compose -f docker-compose.staging.yml up -d
+fi
+
+# Vérification de santé
+echo "Checking application health..."
+curl -f http://localhost:3000/health || exit 1
+
+echo "Deployment to $ENVIRONMENT completed successfully"
+\end{lstlisting}
+\end{exemple}
+
+\begin{focusgithub}
+\textbf{Pipeline CI/CD GitHub Actions :}
+\begin{itemize}
+    \item \textbf{Lint :} ESLint, Prettier, TypeScript
+    \item \textbf{Tests :} Unit, Integration, E2E
+    \item \textbf{Sécurité :} Trivy, CodeQL, Snyk
+    \item \textbf{Build :} Docker multi-stage
+    \item \textbf{Deploy :} Blue-green, rollback auto
+\end{itemize}
+
+\textbf{Environnements et secrets :}
+\begin{itemize}
+    \item \textbf{Staging :} Auto-deploy depuis develop
+    \item \textbf{Production :} Auto-deploy depuis main
+    \item \textbf{Secrets :} DATABASE\_URL, JWT\_SECRET, API\_KEYS
+    \item \textbf{Variables :} NODE\_ENV, PORT, LOG\_LEVEL
+\end{itemize}
+
+\textbf{Métriques de pipeline :}
+\begin{itemize}
+    \item \textbf{Durée moyenne :} 8 minutes
+    \item \textbf{Taux de succès :} 95\%
+    \item \textbf{Temps de déploiement :} 3 minutes
+    \item \textbf{Rollbacks :} 2\% des déploiements
+\end{itemize}
+\end{focusgithub}
+
+\begin{conseil}
+\begin{itemize}
+    \item Automatiser tous les aspects du pipeline CI/CD
+    \item Séparer les environnements de staging et production
+    \item Implémenter des tests de non-régression automatisés
+    \item Configurer des alertes en cas d'échec de déploiement
+    \item Documenter les procédures de rollback
+\end{itemize}
+\end{conseil}
+
+\begin{jury}
+\begin{itemize}
+    \item Votre pipeline CI/CD est-il complet ?
+    \item Comment gérez-vous les secrets et variables ?
+    \item Avez-vous prévu les rollbacks automatiques ?
+    \item Comment testez-vous vos déploiements ?
+    \item Votre pipeline respecte-t-il les bonnes pratiques ?
+\end{itemize}
+\end{jury}
+
+\section{Documentation et monitoring}
+
+La documentation technique couvre l'API avec Swagger/OpenAPI, les procédures opérationnelles dans un runbook, et le monitoring avec des dashboards temps réel. Les logs structurés facilitent le debugging et l'analyse des performances. Les alertes automatiques notifient l'équipe en cas d'anomalie.
+
+Le monitoring couvre les métriques applicatives (latence, débit, erreurs) et infrastructure (CPU, mémoire, disque). Les dashboards Grafana visualisent ces métriques pour faciliter la surveillance et l'analyse des tendances.
+
+\begin{exemple}
+\textbf{Documentation API Swagger :}
+\begin{lstlisting}[language=yaml]
+openapi: 3.0.0
+info:
+  title: Project Management API
+  version: 1.0.0
+
+paths:
+  /projects:
+    get:
+      summary: Liste des projets
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+      responses:
+        '200':
+          description: Liste des projets
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '\#/components/schemas/Project'
+    post:
+      summary: Créer un projet
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '\#/components/schemas/ProjectInput'
+      responses:
+        '201':
+          description: Projet créé
+
+components:
+  schemas:
+    Project:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        description: { type: string }
+        createdAt: { type: string, format: date-time }
+    ProjectInput:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string, minLength: 1 }
+        description: { type: string }
+\end{lstlisting}
+\end{exemple}
+
+\begin{exemple}
+\textbf{Runbook opérationnel (1/3) :}
+\begin{lstlisting}[language=markdown]
+# Runbook - Project Management Application
+
+## Procédures de démarrage
+
+### Démarrage de l'application
+```bash
+# Environnement de développement
+docker-compose up -d
+
+# Environnement de production
+docker-compose -f docker-compose.prod.yml up -d
+```
+
+### Vérification de santé
+```bash
+curl -f http://localhost:3000/health
+```
+\end{lstlisting}
+\end{exemple}
+
+\begin{exemple}
+\textbf{Runbook opérationnel (2/3) :}
+\begin{lstlisting}[language=markdown]
+## Procédures de maintenance
+
+### Sauvegarde des données
+```bash
+# PostgreSQL
+pg_dump -h localhost -U user projectdb > backup_$(date +%Y%m%d).sql
+
+# MongoDB
+mongodump --host localhost:27017 --db projectlogs --out backup_mongo_$(date +%Y%m%d)
+```
+
+### Mise à jour de l'application
+```bash
+# Pull de la nouvelle image
+docker-compose pull
+
+# Redémarrage avec la nouvelle image
+docker-compose up -d
+```
+\end{lstlisting}
+\end{exemple}
+
+\begin{exemple}
+\textbf{Configuration de monitoring :}
+\begin{lstlisting}[language=yaml]
+\# docker-compose.monitoring.yml
+version: '3.8'
+
+services:
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+
+  node-exporter:
+    image: prom/node-exporter
+    ports:
+      - "9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+
+volumes:
+  grafana_data:
+\end{lstlisting}
+\end{exemple}
+
+\begin{conseil}
+\begin{itemize}
+    \item Documenter l'API avec OpenAPI/Swagger
+    \item Créer un runbook opérationnel complet
+    \item Implémenter un monitoring proactif
+    \item Configurer des alertes automatiques
+    \item Former l'équipe aux procédures opérationnelles
+\end{itemize}
+\end{conseil}
+
+\begin{jury}
+\begin{itemize}
+    \item Votre API est-elle documentée ?
+    \item Avez-vous un runbook opérationnel ?
+    \item Comment surveillez-vous votre application ?
+    \item Vos alertes sont-elles configurées ?
+    \item L'équipe connaît-elle les procédures d'urgence ?
+\end{itemize}
+\end{jury}
+
+\section{Liens utiles}
+
+\begin{itemize}
+    \item Dockerfile reference: \url{https://docs.docker.com/reference/dockerfile/}
+    \item Docker Compose: \url{https://docs.docker.com/compose/}
+    \item GitHub Actions: \url{https://docs.github.com/actions}
+    \item Postman: \url{https://learning.postman.com/docs/getting-started/introduction/}
+    \item Prometheus: \url{https://prometheus.io/docs/}
+\end{itemize}

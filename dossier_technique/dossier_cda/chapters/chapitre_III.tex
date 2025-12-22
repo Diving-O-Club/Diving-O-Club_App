@@ -1,0 +1,256 @@
+\chapter{Méthodologie et organisation}
+
+\section{Gestion de projet avec GitHub}
+
+Dans cette section, vous devez présenter votre approche de gestion de projet entièrement centralisée sur GitHub. Le jury attend une démonstration de votre maîtrise des outils GitHub pour la planification, le suivi et la réalisation de votre projet.
+
+\textbf{Votre approche GitHub :} \textit{[Décrivez comment vous utilisez GitHub pour gérer votre projet]}
+
+\subsection{User Stories et estimation de temps}
+
+Dans cette sous-section, vous devez détailler vos user stories avec des estimations de temps réalistes. Chaque user story doit être liée à des commits et des milestones GitHub pour un suivi précis de l'avancement.
+
+\textbf{Vos user stories avec estimations :} \textit{[Créez vos user stories avec temps estimés]}
+
+\begin{exemple}
+\textbf{Schéma des rituels Scrum :}
+\begin{verbatim}
+Sprint Planning ---> Daily Standup ---> Sprint Review
+     |                    |                |
+     |                    |                |
+     v                    v                v
+Sprint Retrospective ---> Sprint ---> Sprint Demo
+\end{verbatim}
+
+\textbf{Colonnes du tableau Kanban :}
+\begin{itemize}
+    \item \textbf{Backlog :} Fonctionnalités à développer
+    \item \textbf{To Do :} Tâches prêtes pour le sprint
+    \item \textbf{In Progress :} Tâches en cours (WIP limit: 3)
+    \item \textbf{Review :} Code en attente de validation
+    \item \textbf{Done :} Fonctionnalités livrées
+\end{itemize}
+\end{exemple}
+
+\begin{conseil}
+\textbf{Ce que le jury attend dans cette section :}
+\begin{itemize}
+    \item Une justification claire du choix méthodologique
+    \item Une description des rituels et de leur utilité
+    \item Une adaptation de la méthode au contexte projet
+    \item Des métriques de suivi et d'amélioration continue
+    \item Une organisation claire des responsabilités
+\end{itemize}
+
+\textbf{Conseils de rédaction :}
+\begin{itemize}
+    \item Expliquez pourquoi cette méthode convient à votre projet
+    \item Montrez comment vous mesurez l'efficacité de votre approche
+    \item Décrivez les adaptations nécessaires à votre contexte
+    \item Utilisez des diagrammes pour illustrer vos processus
+\end{itemize}
+\end{conseil}
+
+\begin{jury}
+\begin{itemize}
+    \item Pourquoi avez-vous choisi cette méthode Agile ?
+    \item Comment mesurez-vous l'efficacité de vos rituels ?
+    \item Quels sont vos indicateurs de performance ?
+    \item Comment gérez-vous les imprévus dans vos sprints ?
+    \item Avez-vous adapté la méthode à votre contexte ?
+\end{itemize}
+\end{jury}
+
+\section{Versioning GitHub et conventions}
+
+Le versioning GitHub suit le modèle Git Flow avec des branches spécialisées pour chaque type de développement. Les conventions de nommage et de commit facilitent la traçabilité et la collaboration. Les Pull Requests permettent la revue de code systématique et la validation des fonctionnalités avant intégration.
+
+Les conventions établies couvrent le nommage des branches, le format des messages de commit, et les templates de Pull Request. Cette standardisation améliore la qualité du code et accélère l'onboarding de nouveaux développeurs.
+
+\begin{exemple}
+\textbf{Schéma Git Flow :}
+\begin{verbatim}
+main -----------------------------------------------
+  |
+  +-- develop --------------------------------------
+       |
+       +-- feature/user-authentication
+       +-- feature/project-management
+       +-- hotfix/critical-bug-fix
+\end{verbatim}
+
+\textbf{Conventions de commit :}
+\begin{lstlisting}
+feat: add user authentication system
+fix: resolve login validation issue
+docs: update API documentation
+test: add unit tests for user service
+refactor: improve code structure
+\end{lstlisting}
+\end{exemple}
+
+\begin{conseil}
+\begin{itemize}
+    \item Définir des conventions de nommage claires
+    \item Utiliser des messages de commit descriptifs
+    \item Mettre en place des templates de Pull Request
+    \item Configurer des règles de protection des branches
+    \item Documenter les conventions dans un CONTRIBUTING.md
+\end{itemize}
+\end{conseil}
+
+\begin{jury}
+\begin{itemize}
+    \item Quelles sont vos conventions de versioning ?
+    \item Comment gérez-vous les conflits de merge ?
+    \item Vos Pull Requests sont-elles systématiquement revues ?
+    \item Comment assurez-vous la qualité du code ?
+    \item Avez-vous des règles de protection des branches ?
+\end{itemize}
+\end{jury}
+
+\section{Planification et outils de suivi}
+
+La planification combine une roadmap GitHub pour la vision macro et GitHub Projects pour le suivi opérationnel. La roadmap GitHub visualise les dépendances et les jalons critiques, tandis que le Kanban GitHub Projects offre une vue détaillée des tâches en cours. Cette approche dual optimise la coordination entre la planification stratégique et l'exécution tactique.
+
+La roadmap GitHub permet de communiquer la vision produit et les priorités à long terme. Les milestones et les dépendances facilitent la coordination entre les différentes équipes et la gestion des risques de planning.
+
+\begin{exemple}
+\textbf{Extrait de roadmap GitHub :}
+\begin{verbatim}
+Phase 1: Conception (4 semaines)
++-- Analyse des besoins (1 semaine)
++-- Conception technique (2 semaines)
++-- Validation architecture (1 semaine)
+
+Phase 2: Développement MVP (8 semaines)
++-- Backend API (4 semaines)
++-- Frontend React (4 semaines)
++-- Tests intégration (2 semaines)
+\end{verbatim}
+
+\textbf{Configuration GitHub Projects :}
+\begin{itemize}
+    \item \textbf{Colonnes :} Backlog, To Do, In Progress, Review, Done
+    \item \textbf{WIP Limits :} 3 tâches max en cours par développeur
+    \item \textbf{Policies :} PR obligatoire pour merge en develop
+    \item \textbf{Automation :} Mise à jour automatique des statuts
+\end{itemize}
+\end{exemple}
+
+\begin{focusgithub}
+\textbf{Git Flow et conventions :}
+\begin{itemize}
+    \item \textbf{Branches :} main, develop, feature/*, release/*, hotfix/*
+    \item \textbf{PR Template :} Description, tests, checklist
+    \item \textbf{CODEOWNERS :} Validation obligatoire par senior dev
+    \item \textbf{Protection Rules :} Pas de push direct sur main/develop
+\end{itemize}
+
+\textbf{GitHub Projects Kanban :}
+\begin{itemize}
+    \item \textbf{Colonnes :} Backlog, Sprint Planning, In Progress, Review, Done
+    \item \textbf{WIP Limits :} 2 features max en développement
+    \item \textbf{Automation :} Mise à jour statut via labels
+    \item \textbf{Metrics :} Cycle time, lead time, throughput
+\end{itemize}
+
+\textbf{Roadmap et milestones :}
+\begin{itemize}
+    \item \textbf{Milestones :} v1.0 (Q2), v1.1 (Q3), v2.0 (Q4)
+    \item \textbf{Dependencies :} Backend \myarrow Frontend \myarrow Tests
+    \item \textbf{Risks :} Intégration externe, performance
+    \item \textbf{Success Metrics :} Velocity, quality gates
+\end{itemize}
+\end{focusgithub}
+
+\begin{conseil}
+\begin{itemize}
+    \item Créer une roadmap GitHub réaliste avec marges
+    \item Configurer GitHub Projects selon vos besoins
+    \item Définir des milestones et jalons clairs
+    \item Prévoir des buffers pour les imprévus
+    \item Communiquer régulièrement sur l'avancement
+\end{itemize}
+\end{conseil}
+
+\begin{jury}
+\begin{itemize}
+    \item Votre planification est-elle réaliste ?
+    \item Comment gérez-vous les retards ?
+    \item Quels outils utilisez-vous pour le suivi ?
+    \item Comment communiquez-vous l'avancement ?
+    \item Avez-vous identifié les risques de planning ?
+\end{itemize}
+\end{jury}
+
+\section{Estimation de temps et planification}
+
+Dans cette section, vous devez présenter votre estimation de temps pour chaque fonctionnalité et expliquer comment vous planifiez votre projet. Le jury attend une approche réaliste et méthodique de la gestion du temps.
+
+\textbf{Votre estimation globale :} \textit{[Décrivez votre estimation de temps totale et par phase]}
+
+L'analyse des temps permet de valider la faisabilité du projet et d'optimiser la planification selon les contraintes disponibles. Cette approche pragmatique démontre votre capacité à prendre en compte les contraintes temporelles dans les décisions techniques.
+
+\begin{exemple}
+\textbf{Estimation de temps par fonctionnalité :}
+\begin{longtable}{p{2cm}p{3.2cm}p{0.9cm}p{0.6cm}p{1.6cm}p{1.7cm}}
+\toprule
+\textbf{Fonctionnalité} & \textbf{Description} & \textbf{Unité} & \textbf{Qty} & \textbf{Temps estimé} & \textbf{Total} \\
+\midrule
+Authentification & Login/Register & jours & 3 & 2 & 6 \\
+Gestion projets & CRUD projets & jours & 5 & 3 & 15 \\
+Tableaux de bord & Dashboard & jours & 2 & 4 & 8 \\
+Tests & Tests unitaires & jours & 10 & 1 & 10 \\
+Déploiement & CI/CD & jours & 3 & 2 & 6 \\
+\midrule
+\multicolumn{5}{r}{\textbf{Total estimé}} & \textbf{45 jours} \\
+\bottomrule
+\end{longtable}
+
+\textbf{Votre estimation :} \textit{[Créez votre propre estimation de temps avec vos fonctionnalités]}
+\end{exemple}
+
+\begin{conseil}
+\textbf{Ce que le jury attend dans cette section :}
+\begin{itemize}
+    \item Une estimation de temps réaliste et justifiée
+    \item Une répartition claire par fonctionnalité
+    \item Une prise en compte des phases de test et déploiement
+    \item Une marge de sécurité pour les imprévus
+    \item Un lien avec les user stories et milestones GitHub
+\end{itemize}
+
+\textbf{Conseils de rédaction :}
+\begin{itemize}
+    \item Basez-vous sur votre expérience et la complexité technique
+    \item Ajoutez 20\% de marge pour les imprévus
+    \item Décomposez les grosses fonctionnalités en sous-tâches
+    \item Justifiez vos estimations par des arguments techniques
+    \item Montrez la cohérence avec votre roadmap GitHub
+\end{itemize}
+\end{conseil}
+
+\begin{jury}
+\textbf{Questions de contrôle du jury :}
+\begin{itemize}
+    \item Comment avez-vous estimé le temps pour chaque fonctionnalité ?
+    \item Avez-vous pris en compte les phases de test et déploiement ?
+    \item Comment gérez-vous les dépassements de temps ?
+    \item Quelle marge de sécurité avez-vous prévue ?
+    \item Comment liez-vous cette estimation à vos milestones GitHub ?
+    \item Que faites-vous si une fonctionnalité prend plus de temps que prévu ?
+\end{itemize}
+\end{jury}
+
+\section{Liens utiles}
+
+\begin{itemize}
+    \item GitHub Flow/PRs: \url{https://docs.github.com/pull-requests}
+    \item Git Flow: \url{https://bit.ly/gitflow-atlassian}
+    \item GitHub Projects: \url{https://bit.ly/github-projects}
+    \item GitHub Roadmap: \url{https://bit.ly/github-roadmap}
+    \item GitHub Milestones: \url{https://bit.ly/github-milestones}
+    \item User Stories: \url{https://www.mountaingoatsoftware.com/agile/user-stories}
+    \item Estimation de temps: \url{https://bit.ly/time-estimation}
+\end{itemize}

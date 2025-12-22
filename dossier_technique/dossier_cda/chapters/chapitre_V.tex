@@ -1,0 +1,505 @@
+\chapter{Architecture 3 tiers}
+
+\section{Architecture 3 tiers}
+
+Dans cette section, vous devez présenter votre architecture 3 tiers et expliquer la répartition des responsabilités entre les couches. Le jury attend une compréhension claire de la séparation physique des composants.
+
+\textbf{Votre architecture 3 tiers :} \textit{[Décrivez votre architecture et la répartition des responsabilités]}
+
+\subsection{Couche Présentation (Frontend)}
+
+Dans cette sous-section, vous devez détailler la couche présentation de votre application. Le jury attend une explication claire des technologies et de l'organisation du code.
+
+\textbf{Votre couche présentation :} \textit{[Décrivez votre stack frontend et son organisation]}
+
+\begin{exemple}
+\textbf{Technologies de présentation :}
+\begin{itemize}
+    \item \textbf{Framework :} React 18 avec hooks et context
+    \item \textbf{État :} Redux Toolkit pour la gestion d'état globale
+    \item \textbf{Routing :} React Router pour la navigation
+    \item \textbf{UI :} Material-UI pour les composants
+    \item \textbf{HTTP :} Axios pour les appels API
+\end{itemize}
+
+\textbf{Structure des composants :}
+\begin{verbatim}
+src/
++-- components/                    # Composants réutilisables
+|   +-- common/
+|   |   +-- Button.tsx
+|   |   +-- Modal.tsx
+|   |   +-- LoadingSpinner.tsx
+|   +-- projects/                  # Fonctionnalité projets
+|   |   +-- ProjectList.tsx
+|   |   +-- ProjectCard.tsx
+|   |   +-- ProjectForm.tsx
+|   +-- tasks/                     # Fonctionnalité tâches
+|       +-- TaskList.tsx
+|       +-- TaskItem.tsx
++-- hooks/                         # Hooks personnalisés
++-- services/                      # Appels API
++-- utils/                         # Fonctions utilitaires
+\end{verbatim}
+\end{exemple}
+
+\subsection{Couche Logique Métier (Backend)}
+
+Dans cette sous-section, vous devez présenter la couche logique métier de votre application. Le jury attend une explication de l'architecture et de l'organisation du code.
+
+\textbf{Votre couche logique métier :} \textit{[Décrivez votre stack backend et son organisation]}
+
+\subsubsection{Controller}
+
+\textbf{Vos contrôleurs :} \textit{[Décrivez vos contrôleurs et leur rôle]}
+
+\begin{exemple}
+\textbf{Exemple de contrôleur :}
+\begin{lstlisting}[language=JavaScript]
+// ProjectController.js
+class ProjectController {
+  async createProject(req, res) {
+    try {
+      const projectData = req.body;
+      const project = await this.projectService.create(projectData);
+      res.status(201).json(project);
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  }
+}
+\end{lstlisting}
+\end{exemple}
+
+\subsubsection{Service}
+
+\textbf{Vos services :} \textit{[Décrivez vos services et la logique métier]}
+
+\begin{exemple}
+\textbf{Exemple de service :}
+\begin{lstlisting}[language=JavaScript]
+// ProjectService.js
+class ProjectService {
+  async create(projectData) {
+    // Validation des données
+    this.validateProjectData(projectData);
+
+    // Logique métier
+    const project = await this.projectRepository.create(projectData);
+
+    // Notifications
+    await this.notificationService.notifyTeam(project);
+
+    return project;
+  }
+}
+\end{lstlisting}
+\end{exemple}
+
+\subsubsection{Repository (DAO)}
+
+\textbf{Vos repositories :} \textit{[Décrivez vos repositories et l'accès aux données]}
+
+\begin{exemple}
+\textbf{Exemple de repository :}
+\begin{lstlisting}[language=JavaScript]
+// ProjectRepository.js
+class ProjectRepository {
+  async create(projectData) {
+    const query = 'INSERT INTO projects (name, description) VALUES ($1, $2) RETURNING *';
+    const values = [projectData.name, projectData.description];
+    const result = await this.db.query(query, values);
+    return result.rows[0];
+  }
+}
+\end{lstlisting}
+\end{exemple}
+
+\subsection{Couche Données (Database)}
+
+Dans cette sous-section, vous devez présenter la couche de données de votre application. Le jury attend une explication de l'architecture des données et des choix techniques.
+
+\textbf{Votre couche données :} \textit{[Décrivez votre architecture de données]}
+
+\begin{exemple}
+\textbf{Architecture des données :}
+\begin{itemize}
+    \item \textbf{PostgreSQL :} Données transactionnelles et relations
+    \item \textbf{MongoDB :} Logs, rapports et données non-structurées
+    \item \textbf{Redis :} Cache et sessions utilisateur
+    \item \textbf{ORM :} Prisma pour PostgreSQL, Mongoose pour MongoDB
+\end{itemize}
+
+\textbf{Exemple de repository PostgreSQL :}
+\begin{lstlisting}[language=JavaScript]
+class ProjectRepository {
+  async create(projectData) {
+    return await prisma.project.create({
+      data: {
+        name: projectData.name,
+        description: projectData.description,
+        userId: projectData.userId
+      },
+      include: {
+        tasks: true,
+        user: { select: { id: true, email: true } }
+      }
+    });
+  }
+}
+\end{lstlisting}
+\end{exemple}
+
+\subsection{Communication entre les tiers}
+
+Dans cette sous-section, vous devez expliquer comment les différents tiers communiquent entre eux. Le jury attend une compréhension claire des flux de données et des protocoles utilisés.
+
+\textbf{Vos flux de communication :} \textit{[Décrivez comment vos tiers communiquent]}
+
+\begin{exemple}
+\textbf{Flux de communication 3 tiers :}
+\begin{verbatim}
+    +===============================================================+
+    |                    ARCHITECTURE 3 TIERS                       |
+    +===============================================================+
+
+    +-------------------+    HTTP/HTTPS     +-------------------+
+    |   TIER 1           | <--------------> |   TIER 2           |
+    |   PRESENTATION     |     JSON/REST     |   LOGIQUE METIER   |
+    |                   |                   |                   |
+    |   +-------------+ |                   |   +-------------+ |
+    |   |   React     | |                   |   |   Node.js   | |
+    |   |   Frontend  | |                   |   |   Express   | |
+    |   +-------------+ |                   |   +-------------+ |
+    +-------------------+                   +-------------------+
+                                                      |
+                                                      | SQL/NoSQL
+                                                      | Transactions
+                                                      v
+                                            +-------------------+
+                                            |   TIER 3           |
+                                            |   DONNEES          |
+                                            |                   |
+                                            |   +-------------+ |
+                                            |   | PostgreSQL  | |
+                                            |   | MongoDB     | |
+                                            |   +-------------+ |
+                                            +-------------------+
+\end{verbatim}
+\end{exemple}
+
+\subsection{Avantages de l'architecture 3 tiers}
+
+Dans cette sous-section, vous devez expliquer les avantages de votre architecture 3 tiers. Le jury attend une justification claire des choix architecturaux.
+
+\textbf{Avantages de votre architecture :} \textit{[Justifiez les bénéfices de votre approche]}
+
+\begin{exemple}
+\textbf{Avantages de l'architecture 3 tiers :}
+\begin{itemize}
+    \item \textbf{Séparation des responsabilités :} Chaque tier a un rôle défini
+    \item \textbf{Scalabilité :} Possibilité de scaler chaque tier indépendamment
+    \item \textbf{Maintenabilité :} Modifications isolées par tier
+    \item \textbf{Tests :} Tests unitaires par tier facilités
+    \item \textbf{Sécurité :} Contrôle d'accès par tier
+    \item \textbf{Performance :} Optimisation possible par tier
+\end{itemize}
+\end{exemple}
+
+\begin{conseil}
+\begin{itemize}
+    \item Séparer clairement les responsabilités par tier
+    \item Documenter les interfaces entre les tiers
+    \item Prévoir la scalabilité de chaque tier
+    \item Implémenter des tests par tier
+    \item Gérer les erreurs et exceptions de manière cohérente
+    \item Optimiser les performances par tier
+\end{itemize}
+\end{conseil}
+
+\begin{jury}
+\begin{itemize}
+    \item Comment justifiez-vous votre architecture 3 tiers ?
+    \item Quels sont les avantages de votre approche ?
+    \item Comment gérez-vous la communication entre les tiers ?
+    \item Votre architecture est-elle scalable ?
+    \item Comment testez-vous chaque tier ?
+    \item Quels sont les points de performance de votre architecture ?
+\end{itemize}
+\end{jury}
+
+\section{Développement Frontend}
+
+Dans cette section, vous devez présenter votre approche de développement frontend et expliquer vos choix techniques. Le jury attend une compréhension claire de votre architecture frontend et des bonnes pratiques appliquées.
+
+\textbf{Technologies choisies :} \textit{[React, Vue, Angular, ou autre ? Justifiez votre choix]}
+
+\textbf{Architecture des composants :} \textit{[Décrivez votre organisation des composants et leur réutilisabilité]}
+
+\textbf{Accessibilité et UX :} \textit{[Expliquez comment vous respectez les standards RGAA/WCAG et utilisez Lighthouse pour mesurer les performances]}
+
+\begin{exemple}
+\textbf{Structure des composants :}
+\begin{verbatim}
+src/
++-- components/                    # Composants réutilisables
+|   +-- common/
+|   |   +-- Button.tsx
+|   |   +-- Modal.tsx
+|   |   +-- LoadingSpinner.tsx
+|   +-- projects/                  # Fonctionnalité projets
+|   |   +-- ProjectList.tsx
+|   |   +-- ProjectCard.tsx
+|   |   +-- ProjectForm.tsx
+|   +-- tasks/                     # Fonctionnalité tâches
+|       +-- TaskList.tsx
+|       +-- TaskItem.tsx
++-- hooks/                         # Hooks personnalisés
++-- services/                      # Appels API
++-- utils/                         # Fonctions utilitaires
+\end{verbatim}
+\end{exemple}
+
+\textbf{Exemple de composant accessible :}
+\begin{lstlisting}[language=JavaScript]
+const ProjectCard = ({ project, onEdit }) => {
+  return (
+    <div
+      className="project-card"
+      role="article"
+      aria-labelledby={`project-${project.id}-title`}
+    >
+      <h3 id={`project-${project.id}-title`}>
+        {project.name}
+      </h3>
+      <p>{project.description}</p>
+      <button
+        onClick={() => onEdit(project.id)}
+        aria-label={`Modifier le projet ${project.name}`}
+      >
+        Modifier
+      </button>
+    </div>
+  );
+};
+\end{lstlisting}
+
+\begin{exemple}
+\textbf{Exemple de rapport Lighthouse (1/2) :}
+\begin{lstlisting}[language=json]
+{
+  "categories": {
+    "performance": { "score": 0.92 },
+    "accessibility": { "score": 0.95 },
+    "best-practices": { "score": 0.88 },
+    "seo": { "score": 0.90 }
+  }
+}
+\end{lstlisting}
+\end{exemple}
+
+\begin{exemple}
+\textbf{Exemple de rapport Lighthouse (2/2) :}
+\begin{lstlisting}[language=json]
+  "audits": {
+    "first-contentful-paint": { "score": 0.95 },
+    "largest-contentful-paint": { "score": 0.88 },
+    "color-contrast": { "score": 1.0 },
+    "aria-allowed-attr": { "score": 1.0 }
+  }
+}
+\end{lstlisting}
+\end{exemple}
+
+\begin{conseil}
+\begin{itemize}
+    \item Organiser les composants par fonctionnalité métier
+    \item Respecter les standards d'accessibilité RGAA/WCAG
+    \item Utiliser Lighthouse pour mesurer les performances et l'accessibilité
+    \item Implémenter la protection XSS avec React
+    \item Utiliser TypeScript pour la sécurité des types
+    \item Tester les composants avec Jest et React Testing Library
+\end{itemize}
+\end{conseil}
+
+\begin{jury}
+\begin{itemize}
+    \item Comment organisez-vous votre code frontend ?
+    \item Vos composants respectent-ils l'accessibilité ?
+    \item Quels sont vos scores Lighthouse pour les performances et l'accessibilité ?
+    \item Comment protégez-vous contre les attaques XSS ?
+    \item Utilisez-vous TypeScript ? Pourquoi ?
+    \item Comment testez-vous vos composants ?
+\end{itemize}
+\end{jury}
+
+\section{Développement Backend}
+
+Le backend implémente une API REST avec Express.js suivant le pattern Controller/Service/Repository pour séparer les responsabilités. La validation des données utilise Joi ou Zod pour garantir la cohérence des entrées. La gestion d'erreur centralisée assure des réponses API cohérentes et facilite le debugging.
+
+L'authentification JWT sécurise les endpoints sensibles avec des middlewares de vérification. La documentation OpenAPI/Swagger facilite l'intégration frontend et la maintenance de l'API.
+
+\begin{exemple}
+\textbf{Structure backend :}
+\begin{verbatim}
+src/
++-- controllers/                   # Gestion des requêtes HTTP
+|   +-- projectController.js
+|   +-- taskController.js
++-- services/                      # Logique métier
+|   +-- projectService.js
+|   +-- taskService.js
++-- repositories/                  # Accès aux données
+|   +-- projectRepository.js
+|   +-- taskRepository.js
++-- middleware/                    # Middlewares Express
+|   +-- auth.js
+|   +-- validation.js
+|   +-- errorHandler.js
++-- routes/                        # Définition des routes
+    +-- projects.js
+    +-- tasks.js
+\end{verbatim}
+
+\textbf{Exemple de contrôleur avec validation :}
+\begin{lstlisting}[language=JavaScript]
+const createProject = async (req, res, next) => {
+  try {
+    // Validation des données
+    const { error, value } = projectSchema.validate(req.body);
+    if (error) {
+      return res.status(400).json({
+        error: 'Données invalides',
+        details: error.details
+      });
+    }
+
+    // Appel du service métier
+    const project = await projectService.createProject(value, req.user.id);
+
+    // Log de l'action
+    await auditService.logAction('project_created', req.user.id, {
+      projectId: project.id
+    });
+
+    res.status(201).json(project);
+  } catch (error) {
+    next(error);
+  }
+};
+\end{lstlisting}
+\end{exemple}
+
+\begin{conseil}
+\begin{itemize}
+    \item Séparer clairement les responsabilités (Controller/Service/Repository)
+    \item Valider systématiquement les données d'entrée
+    \item Implémenter une gestion d'erreur centralisée
+    \item Documenter l'API avec OpenAPI/Swagger
+    \item Logger toutes les actions importantes
+\end{itemize}
+\end{conseil}
+
+\begin{jury}
+\begin{itemize}
+    \item Comment structurez-vous votre API REST ?
+    \item Quels middlewares utilisez-vous ?
+    \item Comment gérez-vous la validation des données ?
+    \item Avez-vous documenté votre API ?
+    \item Comment tracez-vous les erreurs ?
+\end{itemize}
+\end{jury}
+
+\section{Gestion des données}
+
+La couche données utilise un ORM (Prisma) pour PostgreSQL et le driver natif pour MongoDB. Les transactions garantissent la cohérence des données critiques, tandis que les requêtes optimisées avec des index améliorent les performances. Le pattern Repository abstrait l'accès aux données et facilite les tests.
+
+PostgreSQL gère les données transactionnelles avec des contraintes strictes, MongoDB stocke les logs et rapports avec des pipelines d'agrégation pour les analytics. Cette séparation optimise les performances selon le type d'opération.
+
+\begin{exemple}
+\textbf{Exemple de repository PostgreSQL :}
+\begin{lstlisting}[language=JavaScript]
+class ProjectRepository {
+  async create(projectData) {
+    return await prisma.project.create({
+      data: {
+        name: projectData.name,
+        description: projectData.description,
+        userId: projectData.userId
+      },
+      include: {
+        tasks: true,
+        user: { select: { id: true, email: true } }
+      }
+    });
+  }
+
+  async findByUser(userId) {
+    return await prisma.project.findMany({
+      where: { userId },
+      include: { tasks: true }
+    });
+  }
+}
+\end{lstlisting}
+
+\textbf{Exemple de pipeline MongoDB :}
+\begin{lstlisting}[language=JavaScript]
+// Pipeline d'agrégation pour les statistiques
+const getProjectStats = async (projectId, dateRange) => {
+  return await activityLogs.aggregate([
+    {
+      $match: {
+        'metadata.projectId': projectId,
+        timestamp: { $gte: dateRange.start, $lte: dateRange.end }
+      }
+    },
+    {
+      $group: {
+        _id: '$action',
+        count: { $sum: 1 },
+        uniqueUsers: { $addToSet: '$userId' }
+      }
+    },
+    {
+      $project: {
+        action: '$_id',
+        count: 1,
+        uniqueUsersCount: { $size: '$uniqueUsers' }
+      }
+    }
+  ]);
+};
+\end{lstlisting}
+\end{exemple}
+
+\begin{conseil}
+\begin{itemize}
+    \item Utiliser un ORM pour simplifier les requêtes SQL
+    \item Optimiser les requêtes avec des index appropriés
+    \item Implémenter des transactions pour la cohérence
+    \item Séparer les données transactionnelles et analytiques
+    \item Tester les requêtes avec des données réalistes
+\end{itemize}
+\end{conseil}
+
+\begin{jury}
+\begin{itemize}
+    \item Comment gérez-vous les transactions ?
+    \item Avez-vous optimisé vos requêtes avec des index ?
+    \item Pourquoi utiliser Prisma plutôt que du SQL brut ?
+    \item Comment gérez-vous la cohérence entre PostgreSQL et MongoDB ?
+    \item Avez-vous testé les performances de vos requêtes ?
+\end{itemize}
+\end{jury}
+
+\section{Liens utiles}
+
+\begin{itemize}
+    \item OpenAPI/Swagger: \url{https://swagger.io/specification/}
+    \item WCAG: \url{https://www.w3.org/WAI/standards-guidelines/wcag/}
+    \item Lighthouse: \url{https://developers.google.com/web/tools/lighthouse}
+    \item PostgreSQL Tutorial: \url{https://www.postgresql.org/docs/current/tutorial.html}
+    \item MongoDB Aggregation: \url{https://www.mongodb.com/docs/manual/aggregation/}
+    \item Prisma Documentation: \url{https://www.prisma.io/docs/}
+\end{itemize}

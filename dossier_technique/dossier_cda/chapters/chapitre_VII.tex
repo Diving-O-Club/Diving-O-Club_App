@@ -1,0 +1,430 @@
+\chapter{Tests et qualité logicielle}
+
+\section{Stratégie de tests}
+
+La stratégie de tests suit la pyramide de tests avec une base solide de tests unitaires, des tests d'intégration pour valider les interactions entre composants, et des tests end-to-end pour vérifier les parcours utilisateur complets. Cette approche garantit une couverture de code élevée tout en optimisant le temps d'exécution des tests.
+
+Les tests de performance mesurent la latence P95 et le débit de l'application sous charge. Les tests de sécurité automatisés détectent les vulnérabilités communes. La qualité du code est surveillée avec SonarQube pour maintenir un niveau de qualité constant.
+
+\begin{exemple}
+\textbf{Pyramide de tests :}
+\begin{verbatim}
+                    +===================================+
+                    |           TESTS E2E               |
+                    |        (Cypress/Playwright)       |
+                    |         Peu nombreux, lents       |
+                    |         Couverture globale        |
+                    +===================================+
+                              |
+                              |
+                    +===================================+
+                    |        TESTS D'INTEGRATION        |
+                    |        (Jest/Supertest)           |
+                    |         Nombre modere             |
+                    |         Interactions composants   |
+                    +===================================+
+                              |
+                              |
+                    +===================================+
+                    |         TESTS UNITAIRES           |
+                    |            (Jest)                 |
+                    |         Nombreux, rapides          |
+                    |         Couverture detaillee       |
+                    +===================================+
+\end{verbatim}
+
+\begin{exemple}
+\textbf{Exemple de test unitaire (1/2) :}
+\begin{lstlisting}[language=JavaScript]
+// Test unitaire pour le service de projet
+describe('ProjectService', () => {
+  let projectService;
+  let mockRepository;
+
+  beforeEach(() => {
+    mockRepository = {
+      create: jest.fn(),
+      findById: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn()
+    };
+    projectService = new ProjectService(mockRepository);
+  });
+\end{lstlisting}
+\end{exemple}
+
+\begin{exemple}
+\textbf{Exemple de test unitaire (2/2) :}
+\begin{lstlisting}[language=JavaScript]
+  describe('createProject', () => {
+    it('should create a project with valid data', async () => {
+      // Arrange
+      const projectData = {
+        name: 'Test Project',
+        description: 'Test Description',
+        userId: 'user123'
+      };
+      const expectedProject = { id: 'proj123', ...projectData };
+      mockRepository.create.mockResolvedValue(expectedProject);
+
+      // Act
+      const result = await projectService.createProject(projectData);
+
+      // Assert
+      expect(mockRepository.create).toHaveBeenCalledWith(projectData);
+      expect(result).toEqual(expectedProject);
+    });
+
+    it('should throw error for invalid project data', async () => {
+      // Arrange
+      const invalidData = { name: '' }; // Nom vide
+
+      // Act & Assert
+      await expect(projectService.createProject(invalidData))
+        .rejects.toThrow('Le nom du projet est requis');
+    });
+  });
+});
+\end{lstlisting}
+\end{exemple}
+
+\textbf{Exemple de test d'intégration :}
+\begin{lstlisting}[language=JavaScript]
+// Test d'intégration pour l'API
+describe('Project API Integration', () => {
+  let app;
+  let authToken;
+
+  beforeAll(async () => {
+    app = await createTestApp();
+    authToken = await getTestAuthToken();
+  });
+
+  describe('POST /api/projects', () => {
+    it('should create a project with authentication', async () => {
+      const projectData = {
+        name: 'Integration Test Project',
+        description: 'Test Description'
+      };
+
+      const response = await request(app)
+        .post('/api/projects')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send(projectData)
+        .expect(201);
+
+      expect(response.body).toMatchObject({
+        id: expect.any(String),
+        name: projectData.name,
+        description: projectData.description
+      });
+    });
+
+    it('should reject request without authentication', async () => {
+      const projectData = { name: 'Test Project' };
+
+      await request(app)
+        .post('/api/projects')
+        .send(projectData)
+        .expect(401);
+    });
+  });
+});
+\end{lstlisting}
+\end{exemple}
+
+\begin{conseil}
+\begin{itemize}
+    \item Implémenter la pyramide de tests (unitaires, intégration, E2E)
+    \item Maintenir une couverture de code élevée (>80\%)
+    \item Automatiser l'exécution des tests dans la CI/CD
+    \item Tester les cas d'erreur et les cas limites
+    \item Documenter les stratégies de test et les conventions
+\end{itemize}
+\end{conseil}
+
+\begin{jury}
+\begin{itemize}
+    \item Quelle est votre stratégie de tests ?
+    \item Quelle est votre couverture de code ?
+    \item Comment testez-vous les cas d'erreur ?
+    \item Vos tests sont-ils automatisés ?
+    \item Comment mesurez-vous la qualité de vos tests ?
+\end{itemize}
+\end{jury}
+
+\section{Tests de performance}
+
+Les tests de performance utilisent k6 pour simuler des charges réalistes et mesurer les métriques clés : latence P95, débit, et taux d'erreur. Les scénarios de test couvrent les parcours utilisateur critiques et les pics de charge prévus. L'optimisation s'appuie sur l'analyse des goulots d'étranglement identifiés.
+
+Le monitoring en production surveille les métriques de performance en temps réel avec des alertes automatiques. Les tests de charge réguliers valident la capacité de l'application à supporter la croissance du trafic.
+
+\begin{exemple}
+\textbf{Script de test de performance k6 (1/2) :}
+\begin{lstlisting}[language=JavaScript]
+import http from 'k6/http';
+import { check, sleep } from 'k6';
+import { Rate } from 'k6/metrics';
+
+// Métriques personnalisées
+const errorRate = new Rate('errors');
+
+export let options = {
+  stages: [
+    { duration: '2m', target: 10 }, // Montée en charge
+    { duration: '5m', target: 50 }, // Charge normale
+    { duration: '2m', target: 100 }, // Pic de charge
+    { duration: '5m', target: 50 },  // Retour à la normale
+    { duration: '2m', target: 0 },   // Descente
+  ],
+  thresholds: {
+    http_req_duration: ['p(95)<500'], // 95% des requêtes < 500ms
+    http_req_failed: ['rate<0.1'],    // Moins de 10% d'erreurs
+    errors: ['rate<0.1']
+  }
+};
+\end{lstlisting}
+\end{exemple}
+
+\begin{exemple}
+\textbf{Script de test de performance k6 (2/2) :}
+\begin{lstlisting}[language=JavaScript]
+export default function() {
+  // Test de connexion
+  let loginResponse = http.post('http://localhost:3000/api/auth/login', {
+    email: 'test@example.com',
+    password: 'password123'
+  });
+
+  check(loginResponse, {
+    'login status is 200': (r) => r.status === 200,
+    'login response time < 200ms': (r) => r.timings.duration < 200,
+  }) || errorRate.add(1);
+
+  if (loginResponse.status === 200) {
+    const token = loginResponse.json('token');
+
+    // Test de création de projet
+    let projectResponse = http.post('http://localhost:3000/api/projects',
+      JSON.stringify({
+        name: `Test Project ${__VU}`,
+        description: 'Performance test project'
+      }),
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    check(projectResponse, {
+      'project creation status is 201': (r) => r.status === 201,
+      'project creation time < 300ms': (r) => r.timings.duration < 300,
+    }) || errorRate.add(1);
+  }
+
+  sleep(1);
+}
+\end{lstlisting}
+\end{exemple}
+
+\begin{exemple}
+\textbf{Résultats de performance :}
+\begin{center}
+\begin{tabular}{|l|l|l|l|}
+\hline
+\textbf{Métrique} & \textbf{Objectif} & \textbf{Mesuré} & \textbf{Statut} \\
+\hline
+Latence P95 & < 500ms & 320ms & \mycheckmark \\
+Débit & > 100 req/s & 150 req/s & \mycheckmark \\
+Taux d'erreur & < 1\% & 0.2\% & \mycheckmark \\
+CPU & < 80\% & 65\% & \mycheckmark \\
+Mémoire & < 2GB & 1.2GB & \mycheckmark \\
+\hline
+\end{tabular}
+\end{center}
+\end{exemple}
+
+\begin{conseil}
+\begin{itemize}
+    \item Définir des objectifs de performance mesurables
+    \item Utiliser k6 pour les tests de charge automatisés
+    \item Surveiller les métriques en production
+    \item Optimiser les goulots d'étranglement identifiés
+    \item Planifier des tests de performance réguliers
+\end{itemize}
+\end{conseil}
+
+\begin{jury}
+\begin{itemize}
+    \item Quels sont vos objectifs de performance ?
+    \item Comment mesurez-vous les performances ?
+    \item Avez-vous identifié des goulots d'étranglement ?
+    \item Vos tests de charge sont-ils réalistes ?
+    \item Comment surveillez-vous les performances en production ?
+\end{itemize}
+\end{jury}
+
+\section{Qualité du code avec SonarQube}
+
+SonarQube analyse automatiquement la qualité du code, détecte les bugs, les vulnérabilités de sécurité, et les code smells. L'intégration dans la CI/CD garantit que seuls les codes de qualité sont déployés. Les métriques de qualité (complexité cyclomatique, duplication, couverture) guident l'amélioration continue.
+
+Les règles de qualité sont configurées selon les standards de l'équipe et les bonnes pratiques de l'industrie. Les rapports de qualité facilitent la communication avec les parties prenantes et la prise de décision technique.
+
+Lighthouse mesure automatiquement les performances, l'accessibilité, les bonnes pratiques et le SEO des applications web. L'intégration dans la CI/CD permet de surveiller ces métriques à chaque déploiement et d'alerter en cas de régression.
+
+\begin{exemple}
+\textbf{Configuration SonarQube :}
+\begin{lstlisting}[language=yaml]
+# sonar-project.properties
+sonar.projectKey=project-management-app
+sonar.projectName=Project Management Application
+sonar.projectVersion=1.0
+
+# Sources et tests
+sonar.sources=src
+sonar.tests=tests
+sonar.test.inclusions=tests/**/*.test.js
+
+# Exclusions
+sonar.exclusions=node_modules/**,dist/**,coverage/**
+
+# Métriques de qualité
+sonar.javascript.lcov.reportPaths=coverage/lcov.info
+sonar.coverage.exclusions=tests/**,**/*.test.js
+
+# Règles de qualité
+sonar.qualitygate.wait=true
+sonar.qualitygate.timeout=300
+\end{lstlisting}
+\end{exemple}
+
+\begin{exemple}
+\textbf{Rapport de qualité SonarQube :}
+\begin{center}
+\begin{tabular}{|l|l|l|l|}
+\hline
+\textbf{Métrique} & \textbf{Objectif} & \textbf{Actuel} & \textbf{Statut} \\
+\hline
+Couverture de code & > 80\% & 85\% & \mycheckmark \\
+Duplication & < 3\% & 1.2\% & \mycheckmark \\
+Complexité cyclomatique & < 10 & 7.3 & \mycheckmark \\
+Maintenabilité & A & A & \mycheckmark \\
+Fiabilité & A & A & \mycheckmark \\
+Sécurité & A & A & \mycheckmark \\
+\hline
+\end{tabular}
+\end{center}
+
+\textbf{Exemple de correction de code smell :}
+\begin{lstlisting}[language=JavaScript]
+// AVANT : Méthode trop longue
+const processUserData = (userData) => {
+  const validatedData = validateUserData(userData);
+  const processedData = transformUserData(validatedData);
+  const enrichedData = enrichWithExternalData(processedData);
+  const formattedData = formatForDatabase(enrichedData);
+  const savedData = saveToDatabase(formattedData);
+  const auditLog = createAuditLog(savedData);
+  const notification = sendNotification(auditLog);
+  return notification;
+};
+
+// APRÈS : Méthodes courtes et focalisées
+const processUserData = (userData) => {
+  const validatedData = validateUserData(userData);
+  const processedData = transformUserData(validatedData);
+  return saveUserData(processedData);
+};
+
+const saveUserData = (data) => {
+  const enrichedData = enrichWithExternalData(data);
+  const formattedData = formatForDatabase(enrichedData);
+  const savedData = saveToDatabase(formattedData);
+  auditUserAction(savedData);
+  return savedData;
+};
+\end{lstlisting}
+\end{exemple}
+
+\begin{focusgithub}
+\textbf{Intégration SonarQube dans GitHub Actions :}
+\begin{lstlisting}[language=yaml]
+name: Quality Gate
+on: [push, pull_request]
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test -- --coverage
+
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+\end{lstlisting}
+
+\textbf{Métriques de qualité GitHub :}
+\begin{itemize}
+    \item \textbf{Couverture :} 85\% (objectif: >80\%)
+    \item \textbf{Bugs :} 0 (objectif: 0)
+    \item \textbf{Vulnérabilités :} 0 (objectif: 0)
+    \item \textbf{Code smells :} 12 (objectif: <20)
+    \item \textbf{Duplication :} 1.2\% (objectif: <3\%)
+\end{itemize}
+
+\textbf{Métriques Lighthouse :}
+\begin{itemize}
+    \item \textbf{Performance :} 92/100 (objectif: >90)
+    \item \textbf{Accessibilité :} 95/100 (objectif: >90)
+    \item \textbf{Best Practices :} 88/100 (objectif: >85)
+    \item \textbf{SEO :} 90/100 (objectif: >85)
+\end{itemize}
+\end{focusgithub}
+
+\begin{conseil}
+\begin{itemize}
+    \item Intégrer SonarQube dans votre pipeline CI/CD
+    \item Intégrer Lighthouse CI pour surveiller les performances web
+    \item Définir des seuils de qualité appropriés
+    \item Corriger les code smells et vulnérabilités détectés
+    \item Surveiller les métriques de qualité dans le temps
+    \item Former l'équipe aux bonnes pratiques de qualité
+\end{itemize}
+\end{conseil}
+
+\begin{jury}
+\begin{itemize}
+    \item Comment mesurez-vous la qualité de votre code ?
+    \item Quels sont vos scores Lighthouse pour les performances et l'accessibilité ?
+    \item Vos métriques de qualité sont-elles satisfaisantes ?
+    \item Comment gérez-vous les code smells détectés ?
+    \item Avez-vous intégré la qualité dans votre CI/CD ?
+    \item Comment améliorez-vous la qualité en continu ?
+\end{itemize}
+\end{jury}
+
+\section{Liens utiles}
+
+\begin{itemize}
+    \item Jest Documentation: \url{https://jestjs.io/docs/getting-started}
+    \item Cypress Testing: \url{https://docs.cypress.io/}
+    \item SonarQube: \url{https://docs.sonarsource.com/sonarqube/latest/}
+    \item Lighthouse CI: \url{https://developers.google.com/web/tools/lighthouse-ci}
+    \item k6 Performance Testing: \url{https://k6.io/docs/}
+    \item Testing Best Practices: \url{https://testingjavascript.com/}
+\end{itemize}

@@ -1,0 +1,479 @@
+\chapter{Conception fonctionnelle et technique}
+
+\textbf{IMPORTANT :} Cette phase de conception est \textbf{CRUCIALE} et doit être \textbf{COMPLÈTEMENT TERMINÉE} avant de commencer le développement. Le jury attend une conception solide et documentée qui justifie tous vos choix techniques.
+
+Dans ce chapitre, vous devez présenter votre conception fonctionnelle et technique complète. Cette phase détermine la réussite de votre projet et doit être soigneusement planifiée et documentée.
+
+\textbf{Votre approche de conception :} \textit{[Décrivez votre méthodologie de conception et votre processus de validation]}
+
+\begin{conseil}
+\textbf{Pourquoi la conception est-elle si importante ?}
+\begin{itemize}
+    \item \textbf{Évite les refactorisations coûteuses} : Une bonne conception évite de reprendre le code
+    \item \textbf{Guide le développement} : Chaque développeur sait exactement quoi faire
+    \item \textbf{Facilite les tests} : Les cas d'usage définis permettent de créer des tests pertinents
+    \item \textbf{Réduit les risques} : Les problèmes sont identifiés avant le développement
+    \item \textbf{Améliore la communication} : Tous les acteurs comprennent le système
+\end{itemize}
+
+\textbf{Checklist de conception complète :}
+\begin{itemize}
+    \item \mycheckmark Diagrammes de cas d'usage (Use Cases) validés
+    \item \mycheckmark Diagrammes de séquence pour les flux principaux
+    \item \mycheckmark Modèle de données (MCD/MLD/MPD) défini
+    \item \mycheckmark Architecture technique choisie et justifiée
+    \item \mycheckmark User stories détaillées avec critères d'acceptation
+    \item \mycheckmark Maquettes et wireframes validés
+    \item \mycheckmark Charte graphique définie
+    \item \mycheckmark Plan de tests établi
+\end{itemize}
+\end{conseil}
+
+\section{Use Cases et diagrammes UML}
+
+Les Use Cases modélisent les interactions entre les acteurs et le système pour identifier les fonctionnalités essentielles. Cette approche centrée utilisateur garantit que le système répond aux besoins métier réels. Les diagrammes UML facilitent la communication entre les équipes techniques et métier, réduisant les risques d'incompréhension.
+
+La modélisation des cas d'usage permet d'identifier les flux principaux et alternatifs, ainsi que les cas d'erreur à gérer. Cette analyse préalable guide la conception technique et les tests d'acceptation.
+
+\begin{exemple}
+\textbf{Diagramme Use Case simplifié :}
+\begin{verbatim}
+                    +-------------------+
+                    |   Système de      |
+                    |   Gestion         |
+                    |   Projets         |
+                    +---------+---------+
+                              |
+        +---------------------+---------------------+
+        |                     |                     |
+   +----+----+            +----+----+            +----+----+
+   |Chef de  |            |Dévelop-|            |Manager |
+   |projet   |            |peur    |            |        |
+   +---------+            +---------+            +---------+
+        |                     |                     |
+        | Créer projet        | Mettre à jour       | Générer
+        | Assigner tâches     | statut             | rapport
+        | Suivre avancement   | Consulter          | Analyser
+                              | tâches             | performance
+\end{verbatim}
+\end{exemple}
+
+\begin{conseil}
+\begin{itemize}
+    \item Identifier tous les acteurs du système
+    \item Modéliser les cas d'usage principaux et alternatifs
+    \item Documenter les préconditions et postconditions
+    \item Prévoir les cas d'erreur et exceptions
+    \item Valider les Use Cases avec les utilisateurs métier
+\end{itemize}
+\end{conseil}
+
+\begin{jury}
+\begin{itemize}
+    \item Quels sont vos acteurs principaux ?
+    \item Avez-vous modélisé tous les cas d'usage critiques ?
+    \item Comment gérez-vous les cas d'erreur ?
+    \item Vos Use Cases sont-ils validés par les utilisateurs ?
+    \item Avez-vous prévu les flux alternatifs ?
+\end{itemize}
+\end{jury}
+
+\section{Diagrammes de séquence}
+
+Les diagrammes de séquence détaillent les interactions temporelles entre les différents composants du système pour chaque cas d'usage. Cette modélisation précise les responsabilités de chaque couche (présentation, logique métier, données) et facilite l'implémentation technique. Les diagrammes servent également de référence pour les tests d'intégration.
+
+La modélisation des séquences permet d'identifier les points de synchronisation, les appels asynchrones, et les mécanismes de gestion d'erreur. Cette analyse technique guide l'architecture et l'implémentation des APIs.
+
+\begin{exemple}
+\textbf{Diagramme de séquence - Création de projet :}
+\begin{verbatim}
+User    Frontend    Backend    Database
+ |         |          |           |
+ |--POST-->|          |           |
+ |         |--POST--> |           |
+ |         |          |--INSERT-> |
+ |         |          |<--OK------|
+ |         |<--201----|           |
+ |<--200---|          |           |
+\end{verbatim}
+
+\textbf{Exemple de séquence avec gestion d'erreur :}
+\begin{verbatim}
+User    Frontend    Backend    Database
+ |         |          |           |
+ |--POST-->|          |           |
+ |         |--POST--> |           |
+ |         |          |--INSERT-> |
+ |         |          |<--ERROR--|
+ |         |<--400----|           |
+ |<--400---|          |           |
+\end{verbatim}
+\end{exemple}
+
+\begin{conseil}
+\begin{itemize}
+    \item Modéliser les séquences pour chaque cas d'usage critique
+    \item Prévoir la gestion des erreurs et exceptions
+    \item Identifier les appels synchrones et asynchrones
+    \item Documenter les timeouts et retry policies
+    \item Valider les séquences avec l'équipe technique
+\end{itemize}
+\end{conseil}
+
+\begin{jury}
+\begin{itemize}
+    \item Avez-vous modélisé les séquences critiques ?
+    \item Comment gérez-vous les erreurs dans vos séquences ?
+    \item Vos diagrammes sont-ils cohérents avec l'architecture ?
+    \item Avez-vous prévu les cas de timeout ?
+    \item Comment validez-vous vos modèles de séquence ?
+\end{itemize}
+\end{jury}
+
+\section{Conception de l'interface graphique}
+
+La conception graphique s'appuie sur une charte graphique cohérente avec l'identité visuelle de l'entreprise. Le zoning et les wireframes définissent la structure des interfaces avant le développement des maquettes haute fidélité. Cette approche progressive valide les choix UX et facilite l'implémentation front-end.
+
+L'expérience utilisateur (UX) privilégie la simplicité et l'efficacité pour réduire la courbe d'apprentissage et améliorer l'adoption. Les tests utilisateur permettent de valider les choix de conception et d'optimiser l'interface.
+
+\subsection{Zoning}
+
+Dans cette sous-section, vous devez présenter l'organisation spatiale de vos interfaces. Le jury attend une analyse claire de la hiérarchie visuelle et de l'organisation des éléments.
+
+\textbf{Votre zoning :} \textit{[Décrivez l'organisation spatiale de vos pages principales]}
+
+\begin{exemple}
+\textbf{Zoning d'une page projet :}
+\begin{center}
+\begin{tabular}{|p{4cm}|p{6cm}|p{3cm}|}
+\hline
+\multicolumn{3}{|c|}{\textbf{Header - Navigation principale}} \\
+\hline
+\textbf{Sidebar} & \textbf{Contenu principal} & \textbf{Panel latéral} \\
+\hline
+• Menu navigation & • Titre du projet & • Actions rapides \\
+• Filtres & • Liste des tâches & • Statistiques \\
+• Recherche & • Tableau de données & • Notifications \\
+• Paramètres & • Pagination & • Aide contextuelle \\
+\hline
+\multicolumn{3}{|c|}{\textbf{Footer - Informations légales}} \\
+\hline
+\end{tabular}
+\end{center}
+\end{exemple}
+
+\subsection{Wireframe}
+
+Dans cette sous-section, vous devez présenter vos wireframes pour les pages principales. Le jury attend une représentation claire de la structure et des interactions.
+
+\textbf{Vos wireframes :} \textit{[Présentez vos wireframes pour les pages principales]}
+
+\begin{exemple}
+\textbf{Exemple de wireframe - Page de connexion :}
+\begin{center}
+\begin{tabular}{|p{8cm}|}
+\hline
+\multicolumn{1}{|c|}{\textbf{LOGO DE L'APPLICATION}} \\
+\hline
+\multicolumn{1}{|c|}{} \\
+\multicolumn{1}{|c|}{\textbf{Connexion}} \\
+\multicolumn{1}{|c|}{} \\
+\multicolumn{1}{|c|}{Email : [\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_]} \\
+\multicolumn{1}{|c|}{} \\
+\multicolumn{1}{|c|}{Mot de passe : [\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_]} \\
+\multicolumn{1}{|c|}{} \\
+\multicolumn{1}{|c|}{[    Se connecter    ]} \\
+\multicolumn{1}{|c|}{} \\
+\multicolumn{1}{|c|}{Mot de passe oublié ?} \\
+\multicolumn{1}{|c|}{} \\
+\hline
+\end{tabular}
+\end{center}
+\end{exemple}
+
+\subsection{Maquettage}
+
+Dans cette sous-section, vous devez présenter vos maquettes haute fidélité. Le jury attend une représentation visuelle fidèle au rendu final.
+
+\textbf{Vos maquettes :} \textit{[Décrivez vos maquettes haute fidélité et leur évolution]}
+
+\begin{exemple}
+\textbf{Évolution des maquettes :}
+\begin{center}
+\begin{tabular}{|p{3cm}|p{3cm}|p{3cm}|p{3cm}|}
+\hline
+\textbf{Version 1} & \textbf{Version 2} & \textbf{Version 3} & \textbf{Final} \\
+\hline
+Maquettes basiques & Intégration charte & Maquettes interactives & Maquettes validées \\
+Placeholders & Couleurs définies & Animations & Tests utilisateurs \\
+Structure simple & Typographie & Micro-interactions & Optimisations UX \\
+\hline
+\end{tabular}
+\end{center}
+\end{exemple}
+
+\subsection{Outils de conception et diagrammes}
+
+Dans cette sous-section, vous devez présenter les outils que vous utilisez pour créer vos diagrammes de qualité professionnelle. Le jury attend des diagrammes clairs et bien conçus qui facilitent la compréhension de votre architecture.
+
+\textbf{Vos outils de diagrammes :} \textit{[Listez les outils que vous utilisez et justifiez vos choix]}
+
+\begin{conseil}
+\textbf{Outils recommandés pour des diagrammes de qualité :}
+\begin{itemize}
+    \item \textbf{Draw.io (diagrams.net) :} Gratuit, intégré à GitHub, parfait pour les diagrammes UML
+    \item \textbf{Lucidchart :} Professionnel, templates UML, collaboration en équipe
+    \item \textbf{PlantUML :} Code-based, versioning Git, intégration LaTeX
+    \item \textbf{Mermaid :} Intégré GitHub, syntaxe simple, diagrammes de flux
+\end{itemize}
+
+\textbf{Conseils pour des diagrammes professionnels :}
+\begin{itemize}
+    \item Utilisez des couleurs cohérentes et une légende
+    \item Respectez les conventions UML (acteurs, cas d'usage, relations)
+    \item Gardez vos diagrammes simples et lisibles
+    \item Versionnez vos diagrammes avec votre code
+    \item Intégrez-les dans votre documentation GitHub
+\end{itemize}
+\end{conseil}
+
+\subsection{Charte graphique}
+
+Dans cette sous-section, vous devez détailler votre charte graphique complète. Le jury attend une cohérence visuelle et une identité forte.
+
+\subsubsection{Couleurs}
+
+\textbf{Votre palette de couleurs :} \textit{[Définissez votre palette avec les codes hexadécimaux]}
+
+\subsubsection{Typographie}
+
+\textbf{Votre système typographique :} \textit{[Définissez vos polices et leurs usages]}
+
+\subsubsection{Logo}
+
+\textbf{Votre logo et son utilisation :} \textit{[Décrivez votre logo et ses variantes]}
+
+\begin{exemple}
+\textbf{Charte graphique :}
+\begin{center}
+\begin{tabular}{|p{3cm}|p{4cm}|p{5cm}|}
+\hline
+\textbf{Couleurs} & \textbf{Typographie} & \textbf{Composants} \\
+\hline
+Primaire: \#FFD700 & Inter (titres) & Boutons arrondis \\
+Secondaire: \#101820 & Arial (corps) & Cartes avec ombres \\
+Neutre: \#333A40 & Monospace (code) & Icônes Material Design \\
+Accent: \#007BFF & & \\
+\hline
+\textbf{Espacement} & \textbf{Grille 8px} & \textbf{Marges cohérentes} \\
+\hline
+\end{tabular}
+\end{center}
+\end{exemple}
+
+\begin{conseil}
+\begin{itemize}
+    \item Définir une charte graphique cohérente
+    \item Créer des wireframes pour toutes les pages principales
+    \item Développer des maquettes haute fidélité
+    \item Tester l'accessibilité et la responsivité
+    \item Utiliser Lighthouse pour valider les performances et l'accessibilité
+    \item Valider les choix UX avec les utilisateurs
+\end{itemize}
+\end{conseil}
+
+\begin{jury}
+\begin{itemize}
+    \item Votre charte graphique est-elle cohérente ?
+    \item Avez-vous testé vos interfaces avec les utilisateurs ?
+    \item Vos maquettes respectent-elles l'accessibilité ?
+    \item Quels sont vos scores Lighthouse pour l'accessibilité ?
+    \item Comment gérez-vous la responsivité ?
+    \item Avez-vous défini des composants réutilisables ?
+\end{itemize}
+\end{jury}
+
+\section{Conception de base de données}
+
+La conception de base de données suit la méthode Merise avec un Modèle Conceptuel de Données (MCD), un Modèle Logique de Données (MLD), et un Modèle Physique de Données (MPD). Cette approche progressive garantit la cohérence et l'optimisation des données. Les contraintes d'intégrité et les index optimisent les performances et la fiabilité.
+
+PostgreSQL gère les données transactionnelles avec des contraintes strictes, tandis que MongoDB stocke les logs et rapports avec une structure flexible. Cette architecture hybride optimise les performances selon le type de données.
+
+\subsection{MCD (Modèle Conceptuel de Données)}
+
+Dans cette sous-section, vous devez présenter votre modèle conceptuel de données. Le jury attend une représentation claire des entités et de leurs relations.
+
+\textbf{Votre MCD :} \textit{[Présentez votre modèle conceptuel avec les entités et relations principales]}
+
+\subsection{MLD (Modèle Logique de Données)}
+
+Dans cette sous-section, vous devez détailler votre modèle logique de données. Le jury attend une traduction du MCD en structure de base de données.
+
+\textbf{Votre MLD :} \textit{[Décrivez votre modèle logique avec les tables et relations]}
+
+\subsection{MPD (Modèle Physique de Données)}
+
+Dans cette sous-section, vous devez présenter votre modèle physique de données. Le jury attend une implémentation concrète avec les contraintes et index.
+
+\textbf{Votre MPD :} \textit{[Détaillez votre modèle physique avec les contraintes, index et optimisations]}
+
+\begin{exemple}
+\textbf{MCD simplifié :}
+\begin{verbatim}
+PROJET (id, nom, description, date_debut, date_fin)
+    |
+    | 1,n
+    |
+TACHE (id, titre, description, statut, priorite)
+    |
+    | n,1
+    |
+UTILISATEUR (id, email, nom, prenom, role)
+\end{verbatim}
+
+\textbf{Exemple de contraintes PostgreSQL :}
+\begin{lstlisting}[language=SQL]
+-- Contraintes d'intégrité
+ALTER TABLE taches ADD CONSTRAINT fk_tache_projet
+    FOREIGN KEY (projet_id) REFERENCES projets(id)
+    ON DELETE CASCADE;
+
+-- Index pour optimiser les performances
+CREATE INDEX idx_taches_statut ON taches(statut);
+CREATE INDEX idx_taches_projet_statut ON taches(projet_id, statut);
+
+-- Contrainte de validation
+ALTER TABLE projets ADD CONSTRAINT chk_dates
+    CHECK (date_fin > date_debut);
+\end{lstlisting}
+
+\textbf{Exemple de document MongoDB :}
+\begin{lstlisting}[language=JSON]
+{
+  "_id": ObjectId("..."),
+  "userId": "user123",
+  "action": "task_created",
+  "timestamp": ISODate("2025-01-15T10:30:00Z"),
+  "metadata": {
+    "projectId": "proj456",
+    "taskId": "task789",
+    "ipAddress": "192.168.1.100"
+  }
+}
+\end{lstlisting}
+\end{exemple}
+
+\begin{conseil}
+\begin{itemize}
+    \item Modéliser le MCD avec toutes les entités et relations
+    \item Définir les contraintes d'intégrité référentielle
+    \item Optimiser avec des index appropriés
+    \item Prévoir la migration et l'évolution du schéma
+    \item Documenter les choix de conception
+\end{itemize}
+\end{conseil}
+
+\begin{jury}
+\begin{itemize}
+    \item Montrez votre MCD et expliquez 2 contraintes d'intégrité
+    \item Comment optimisez-vous les performances de vos requêtes ?
+    \item Avez-vous prévu la migration des données ?
+    \item Pourquoi utiliser PostgreSQL ET MongoDB ?
+    \item Comment gérez-vous la cohérence entre les deux bases ?
+\end{itemize}
+\end{jury}
+
+\section{Architecture 3 tiers}
+
+L'architecture 3 tiers sépare clairement les responsabilités : couche présentation (React), couche logique métier (Node.js), et couche données (PostgreSQL/MongoDB). Cette séparation facilite la maintenance, la scalabilité et les tests. Chaque tier peut évoluer indépendamment selon les besoins techniques et métier.
+
+Les flux de données sont optimisés pour minimiser les appels réseau et garantir la cohérence transactionnelle. L'API REST assure une communication standardisée entre les couches et facilite l'intégration avec d'autres systèmes.
+
+\begin{exemple}
+\textbf{Schéma architecture 3 tiers :}
+\begin{verbatim}
++----------------------------------+
+|        TIER 1: PRESENTATION      |
++-------+-------+-------+----------+
+| React | Router| State |         |
+| Comp. |       | Mgr.  |         |
++-------+-------+-------+----------+
+                |
+                | HTTP/HTTPS
+                v
++----------------------------------+
+|        TIER 2: LOGIQUE METIER    |
++-------+-------+-------+----------+
+|Express|Services| Auth  |         |
+|Routes | Layer  | Middleware      |
++-------+-------+-------+----------+
+                |
+                | SQL/NoSQL
+                v
++----------------------------------+
+|        TIER 3: DONNEES           |
++-------+-------+-------+----------+
+|PostgreSQL|MongoDB| Redis|       |
+|(Transactions)|(Logs)|(Cache)    |
++-------+-------+-------+----------+
+\end{verbatim}
+
+\textbf{Exemple de flux de données :}
+\begin{lstlisting}[language=JavaScript]
+// Tier 1: Frontend (React)
+const createProject = async (projectData) => {
+  const response = await fetch('/api/projects', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(projectData)
+  });
+  return response.json();
+};
+
+// Tier 2: Backend (Node.js/Express)
+app.post('/api/projects', authenticateUser, async (req, res) => {
+  try {
+    const project = await projectService.createProject(req.body);
+    await auditService.logAction('project_created', req.user.id);
+    res.status(201).json(project);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+\end{lstlisting}
+\end{exemple}
+
+\begin{conseil}
+\begin{itemize}
+    \item Documenter clairement les responsabilités de chaque tier
+    \item Définir les interfaces entre les couches
+    \item Prévoir la scalabilité horizontale et verticale
+    \item Implémenter des mécanismes de cache appropriés
+    \item Tester l'intégration entre les tiers
+\end{itemize}
+\end{conseil}
+
+\begin{jury}
+\begin{itemize}
+    \item Quelles sont les responsabilités de chaque tier ?
+    \item Comment gérez-vous la communication entre les tiers ?
+    \item Votre architecture est-elle scalable ?
+    \item Avez-vous prévu la gestion des erreurs inter-tiers ?
+    \item Comment optimisez-vous les performances ?
+\end{itemize}
+\end{jury}
+
+\section{Liens utiles}
+
+\begin{itemize}
+    \item UML: \url{https://www.uml-diagrams.org/}
+    \item Merise (FR): \url{https://perso.liris.cnrs.fr/pierre-antoine.champin/enseignement/intro-merise.html}
+    \item OWASP ASVS: \url{https://owasp.org/ASVS/}
+    \item PostgreSQL Docs: \url{https://www.postgresql.org/docs/}
+    \item MongoDB Modeling: \url{https://bit.ly/mongodb-modeling}
+    \item Draw.io (diagrammes): \url{https://app.diagrams.net/}
+    \item Lighthouse (accessibilité): \url{https://developers.google.com/web/tools/lighthouse}
+    \item Lucidchart (UML): \url{https://www.lucidchart.com/pages/fr/exemples/diagramme-uml}
+    \item PlantUML (diagrammes): \url{https://plantuml.com/}
+    \item Mermaid (diagrammes): \url{https://mermaid-js.github.io/mermaid/}
+\end{itemize}

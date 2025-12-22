@@ -1,0 +1,365 @@
+\chapter{Sécurité applicative et RGPD}
+
+\section{Protection contre les vulnérabilités OWASP}
+
+La sécurité applicative s'appuie sur les recommandations OWASP Top 10 pour protéger contre les vulnérabilités courantes. La protection XSS utilise l'échappement automatique de React et la validation côté serveur. La prévention SQL injection repose sur les requêtes paramétrées de l'ORM Prisma. La protection CSRF implémente des tokens synchronisés et la validation des origines.
+
+Les headers de sécurité (CSP, HSTS, X-Frame-Options) renforcent la protection au niveau HTTP. La validation stricte des entrées utilisateur et la sanitisation des données réduisent les risques d'injection et de manipulation.
+
+\begin{exemple}
+\textbf{Middleware de sécurité Express :}
+\begin{lstlisting}[language=JavaScript]
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+
+// Configuration Helmet
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'"]
+    }
+  }
+}));
+
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 min
+  max: 100, // 100 req/IP
+  message: 'Trop de requêtes'
+});
+app.use('/api/', limiter);
+
+// Validation des entrées
+const validateInput = (schema) => {
+  return (req, res, next) => {
+    const { error } = schema.validate(req.body);
+    if (error) {
+      return res.status(400).json({
+        error: 'Données invalides',
+        details: error.details.map(d => d.message)
+      });
+    }
+    next();
+  };
+};
+\end{lstlisting}
+
+\textbf{Protection XSS côté frontend :}
+\begin{lstlisting}[language=JavaScript]
+// React échappe automatiquement les données
+const UserProfile = ({ user }) => {
+  return (
+    <div>
+      <h1>{user.name}</h1> {/* Échappé automatiquement */}
+      <p>{user.bio}</p>
+      {/* Danger : éviter dangerouslySetInnerHTML */}
+    </div>
+  );
+};
+
+// Validation côté client avec Zod
+const userSchema = z.object({
+  name: z.string().min(1).max(100),
+  email: z.string().email(),
+  bio: z.string().max(500).optional()
+});
+\end{lstlisting}
+\end{exemple}
+
+\begin{conseil}
+\begin{itemize}
+    \item Implémenter les protections OWASP Top 10
+    \item Configurer les headers de sécurité avec Helmet
+    \item Utiliser le rate limiting pour prévenir les attaques DoS
+    \item Valider et sanitiser toutes les entrées utilisateur
+    \item Tester la sécurité avec des outils automatisés
+\end{itemize}
+\end{conseil}
+
+\begin{jury}
+\begin{itemize}
+    \item Quelles vulnérabilités OWASP avez-vous adressées ?
+    \item Comment protégez-vous contre les attaques XSS ?
+    \item Votre protection SQL injection est-elle efficace ?
+    \item Avez-vous configuré les headers de sécurité ?
+    \item Comment testez-vous la sécurité de votre application ?
+\end{itemize}
+\end{jury}
+
+\section{Authentification et autorisation}
+
+L'authentification utilise JWT avec des tokens d'accès courts (15 minutes) et des refresh tokens sécurisés. Le hachage des mots de passe utilise Argon2, plus sécurisé que bcrypt. L'autorisation implémente un système de rôles et permissions granulaire avec des middlewares de vérification.
+
+La gestion des sessions sécurise les tokens avec des cookies HttpOnly et SameSite. La déconnexion invalide les tokens côté serveur et côté client pour garantir la sécurité.
+
+\begin{exemple}
+\textbf{Configuration JWT et Argon2 (1/3) :}
+\begin{lstlisting}[language=JavaScript]
+const jwt = require('jsonwebtoken');
+const argon2 = require('argon2');
+
+// Configuration JWT
+const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_EXPIRES_IN = '15m';
+const REFRESH_EXPIRES_IN = '7d';
+
+// Hachage des mots de passe avec Argon2
+const hashPassword = async (password) => {
+  return await argon2.hash(password, {
+    type: argon2.argon2id,
+    memoryCost: 2 ** 16, // 64 MB
+    timeCost: 3,
+    parallelism: 1
+  });
+};
+\end{lstlisting}
+\end{exemple}
+
+\begin{exemple}
+\textbf{Configuration JWT et Argon2 (2/3) :}
+\begin{lstlisting}[language=JavaScript]
+// Génération des tokens
+const generateTokens = (userId, role) => {
+  const accessToken = jwt.sign(
+    { userId, role, type: 'access' },
+    JWT_SECRET,
+    { expiresIn: JWT_EXPIRES_IN }
+  );
+
+  const refreshToken = jwt.sign(
+    { userId, type: 'refresh' },
+    JWT_SECRET,
+    { expiresIn: REFRESH_EXPIRES_IN }
+  );
+
+  return { accessToken, refreshToken };
+};
+\end{lstlisting}
+\end{exemple}
+
+\begin{exemple}
+\textbf{Configuration JWT et Argon2 (3/3) :}
+\begin{lstlisting}[language=JavaScript]
+// Middleware d'authentification
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) {
+    return res.status(401).json({
+      error: 'Token d\'accès requis'
+    });
+  }
+
+  jwt.verify(token, JWT_SECRET, (err, user) => {
+    if (err) {
+      return res.status(403).json({
+        error: 'Token invalide'
+      });
+    }
+    req.user = user;
+    next();
+  });
+};
+\end{lstlisting}
+
+\textbf{Système de permissions (1/2) :}
+\begin{lstlisting}[language=JavaScript]
+// Définition des permissions
+const PERMISSIONS = {
+  PROJECT_CREATE: 'project:create',
+  PROJECT_READ: 'project:read',
+  PROJECT_UPDATE: 'project:update',
+  PROJECT_DELETE: 'project:delete',
+  USER_MANAGE: 'user:manage'
+};
+
+// Rôles et leurs permissions
+const ROLES = {
+  ADMIN: [PERMISSIONS.PROJECT_CREATE, PERMISSIONS.PROJECT_READ,
+          PERMISSIONS.PROJECT_UPDATE, PERMISSIONS.PROJECT_DELETE,
+          PERMISSIONS.USER_MANAGE],
+  MANAGER: [PERMISSIONS.PROJECT_CREATE, PERMISSIONS.PROJECT_READ,
+            PERMISSIONS.PROJECT_UPDATE],
+  DEVELOPER: [PERMISSIONS.PROJECT_READ, PERMISSIONS.PROJECT_UPDATE]
+};
+\end{lstlisting}
+
+\textbf{Système de permissions (2/2) :}
+\begin{lstlisting}[language=JavaScript]
+// Middleware d'autorisation
+const requirePermission = (permission) => {
+  return (req, res, next) => {
+    const userPermissions = ROLES[req.user.role] || [];
+    if (!userPermissions.includes(permission)) {
+      return res.status(403).json({
+        error: 'Permissions insuffisantes'
+      });
+    }
+    next();
+  };
+};
+\end{lstlisting}
+\end{exemple}
+
+\begin{conseil}
+\begin{itemize}
+    \item Utiliser JWT avec des tokens courts et refresh tokens
+    \item Implémenter Argon2 pour le hachage des mots de passe
+    \item Créer un système de rôles et permissions granulaire
+    \item Sécuriser les cookies avec HttpOnly et SameSite
+    \item Implémenter la déconnexion sécurisée
+\end{itemize}
+\end{conseil}
+
+\begin{jury}
+\begin{itemize}
+    \item Pourquoi utiliser JWT plutôt que des sessions ?
+    \item Comment gérez-vous la sécurité des mots de passe ?
+    \item Votre système d'autorisation est-il granulaire ?
+    \item Comment gérez-vous l'expiration des tokens ?
+    \item Avez-vous prévu la révocation des tokens ?
+\end{itemize}
+\end{jury}
+
+\section{Conformité RGPD}
+
+La conformité RGPD implique la mise en place d'un registre des traitements, la minimisation des données collectées, et la sécurisation des données personnelles. Le consentement explicite est recueilli pour chaque traitement, avec la possibilité de retrait. Les droits des personnes (accès, rectification, effacement, portabilité) sont implémentés via des APIs dédiées.
+
+La protection des données utilise le chiffrement au repos et en transit, avec des sauvegardes sécurisées. La notification des violations de données est automatisée pour respecter le délai de 72h.
+
+\begin{exemple}
+\textbf{Registre des traitements :}
+\begin{lstlisting}[language=JavaScript]
+// Modèle de registre des traitements
+const dataProcessingRegistry = {
+  'user-authentication': {
+    purpose: 'Authentification et gestion des comptes utilisateurs',
+    legalBasis: 'Consentement',
+    dataCategories: ['identité', 'connexion'],
+    retentionPeriod: '3 ans après fermeture du compte',
+    recipients: ['équipe technique', 'hébergeur'],
+    transfers: ['UE', 'États-Unis (clauses contractuelles)']
+  },
+  'project-management': {
+    purpose: 'Gestion des projets et collaboration',
+    legalBasis: 'Exécution du contrat',
+    dataCategories: ['travail', 'communication'],
+    retentionPeriod: '5 ans après fin du projet',
+    recipients: ['équipe projet', 'clients'],
+    transfers: ['UE uniquement']
+  }
+};
+
+// API pour les droits RGPD
+const gdprController = {
+  // Droit d'accès
+  async getPersonalData(req, res) {
+    const userId = req.user.userId;
+    const userData = await userService.getCompleteUserData(userId);
+    res.json({
+      personalData: userData,
+      processingPurposes: Object.keys(dataProcessingRegistry),
+      retentionPeriods: dataProcessingRegistry
+    });
+  },
+
+  // Droit à l'effacement
+  async deletePersonalData(req, res) {
+    const userId = req.user.userId;
+    await userService.anonymizeUserData(userId);
+    await auditService.logAction('gdpr_deletion', userId);
+    res.json({ message: 'Données personnelles supprimées' });
+  },
+
+  // Droit à la portabilité
+  async exportPersonalData(req, res) {
+    const userId = req.user.userId;
+    const exportData = await userService.exportUserData(userId);
+    res.attachment('mes-donnees.json');
+    res.json(exportData);
+  }
+};
+\end{lstlisting}
+
+\textbf{Chiffrement des données sensibles (1/3) :}
+\begin{lstlisting}[language=JavaScript]
+const crypto = require('crypto');
+
+// Configuration du chiffrement
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY;
+const ALGORITHM = 'aes-256-gcm';
+\end{lstlisting}
+\end{exemple}
+
+\begin{exemple}
+\textbf{Chiffrement des données sensibles (2/3) :}
+\begin{lstlisting}[language=JavaScript]
+// Fonction de chiffrement
+const encrypt = (text) => {
+  const iv = crypto.randomBytes(16);
+  const cipher = crypto.createCipher(ALGORITHM, ENCRYPTION_KEY);
+  cipher.setAAD(Buffer.from('user-data'));
+
+  let encrypted = cipher.update(text, 'utf8', 'hex');
+  encrypted += cipher.final('hex');
+
+  const authTag = cipher.getAuthTag();
+
+  return {
+    encrypted,
+    iv: iv.toString('hex'),
+    authTag: authTag.toString('hex')
+  };
+};
+\end{lstlisting}
+\end{exemple}
+
+\begin{exemple}
+\textbf{Chiffrement des données sensibles (3/3) :}
+\begin{lstlisting}[language=JavaScript]
+// Fonction de déchiffrement
+const decrypt = (encryptedData) => {
+  const decipher = crypto.createDecipher(ALGORITHM, ENCRYPTION_KEY);
+  decipher.setAAD(Buffer.from('user-data'));
+  decipher.setAuthTag(Buffer.from(encryptedData.authTag, 'hex'));
+
+  let decrypted = decipher.update(encryptedData.encrypted, 'hex', 'utf8');
+  decrypted += decipher.final('utf8');
+
+  return decrypted;
+};
+\end{lstlisting}
+\end{exemple}
+
+\begin{conseil}
+\begin{itemize}
+    \item Créer un registre des traitements complet
+    \item Implémenter les droits RGPD (accès, rectification, effacement)
+    \item Chiffrer les données sensibles au repos et en transit
+    \item Mettre en place la notification des violations
+    \item Documenter les mesures de sécurité et de conformité
+\end{itemize}
+\end{conseil}
+
+\begin{jury}
+\begin{itemize}
+    \item Avez-vous établi un registre des traitements ?
+    \item Comment implémentez-vous les droits RGPD ?
+    \item Vos données sont-elles chiffrées ?
+    \item Avez-vous prévu la notification des violations ?
+    \item Comment gérez-vous le consentement des utilisateurs ?
+\end{itemize}
+\end{jury}
+
+\section{Liens utiles}
+
+\begin{itemize}
+    \item OWASP Top 10: \url{https://owasp.org/www-project-top-ten/}
+    \item OWASP Cheat Sheets: \url{https://cheatsheetseries.owasp.org/}
+    \item CNIL RGPD: \url{https://www.cnil.fr/fr/rgpd-de-quoi-parle-t-on}
+    \item Argon2: \url{https://github.com/P-H-C/phc-winner-argon2}
+    \item JWT Best Practices: \url{https://tools.ietf.org/html/rfc8725}
+\end{itemize}

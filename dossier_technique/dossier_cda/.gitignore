@@ -1,0 +1,62 @@
+# LaTeX auxilliary files
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.run.xml
+*.toc
+*.lof
+*.lot
+*.idx
+*.ind
+*.ilg
+*.lol
+*.nav
+*.snm
+*.vrb
+*.synctex.gz
+*.acn
+*.acr
+*.alg
+*.glg
+*.glo
+*.gls
+*.ist
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.run.xml
+_minted*
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Editor files
+*.swp
+*.swo
+*~
+.vscode/settings.json
+.vscode/launch.json
+.vscode/extensions.json
+
+# Backup files
+*.bak
+*.backup
+*.tmp
+
+# PDF output (optionnel - décommentez si vous ne voulez pas versionner le PDF)
+# *.pdf
+
+# Keep fonts directory
+!fonts/
+!fonts/*.ttf

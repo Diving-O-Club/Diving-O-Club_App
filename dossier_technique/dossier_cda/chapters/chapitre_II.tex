@@ -1,0 +1,418 @@
+\chapter{Cadrage et cahier des charges}
+
+\section{Objectifs métier, techniques et pédagogiques}
+
+Dans cette section, vous devez définir clairement les trois types d'objectifs de votre projet. Le jury attend une distinction nette entre les objectifs métier (bénéfices pour l'entreprise), techniques (performance, architecture) et pédagogiques (apprentissages CDA).
+
+\textbf{Objectifs métier :} \textit{[Décrivez les bénéfices attendus pour l'entreprise : gains de productivité, réduction des coûts, amélioration de la qualité, etc.]}
+
+\textbf{Objectifs techniques :} \textit{[Précisez les performances attendues : temps de réponse, scalabilité, sécurité, maintenabilité, etc.]}
+
+\textbf{Objectifs pédagogiques :} \textit{[Listez les compétences CDA que vous souhaitez développer et valider]}
+
+\begin{exemple}
+\textbf{Exemple de tableau MoSCoW :}
+\begin{center}
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Priorité} & \textbf{Fonctionnalité} & \textbf{Justification} \\
+\hline
+Must Have & Authentification & Sécurité obligatoire \\
+Must Have & Gestion des projets & Cœur métier \\
+Should Have & Tableaux de bord & Amélioration UX \\
+Could Have & Notifications push & Plus-value \\
+Won't Have & IA prédictive & Hors périmètre v1 \\
+\hline
+\end{tabular}
+\end{center}
+
+\textbf{Votre tableau MoSCoW :} \textit{[Créez votre propre tableau de priorisation]}
+
+\textbf{Exemple de diagramme de périmètre MVP :}
+\begin{verbatim}
+                    +=================================+
+                    |        MVP v1.0 (6 mois)        |
+                    |                                 |
+                    +=================================+
+                                      |
+                    +-----------------+-----------------+
+                    |                 |                 |
+            +-------+-------+   +-------+-------+   +-------+-------+
+            | Auth.          |   | Gestion projets |   | Tableaux bord |
+            | (Must Have)      |   | (Must Have)    |   | (Should Have)    |
+            +------------------+   +----------------+   +------------------+
+                    |                 |                 |
+                    +-----------------+-----------------+
+                                      |
+                              +-------+-------+
+                              | Notifications |
+                              | (Could Have)  |
+                              +---------------+
+\end{verbatim}
+
+\textbf{Votre diagramme de périmètre MVP :} \textit{[Dessinez le périmètre de votre MVP]}
+\end{exemple}
+
+\begin{conseil}
+\textbf{Ce que le jury attend dans cette section :}
+\begin{itemize}
+    \item Une distinction claire entre objectifs métier, techniques et pédagogiques
+    \item Une priorisation MoSCoW justifiée et documentée
+    \item Un périmètre MVP bien délimité et réaliste
+    \item Des critères d'acceptation mesurables et vérifiables
+    \item Une analyse des contraintes et risques identifiés
+\end{itemize}
+
+\textbf{Conseils de rédaction :}
+\begin{itemize}
+    \item Quantifiez vos objectifs (pourcentages, délais, volumes)
+    \item Justifiez chaque priorité MoSCoW par des arguments métier
+    \item Montrez la cohérence entre MVP et objectifs SMART
+    \item Utilisez des diagrammes pour visualiser le périmètre
+\end{itemize}
+\end{conseil}
+
+\begin{jury}
+\textbf{Questions de contrôle du jury :}
+\begin{itemize}
+    \item Pouvez-vous distinguer clairement vos objectifs métier, techniques et pédagogiques ?
+    \item Comment avez-vous priorisé vos fonctionnalités avec la méthode MoSCoW ?
+    \item Votre MVP est-il vraiment minimal et réaliste ?
+    \item Quels sont vos critères de succès mesurables ?
+    \item Comment gérez-vous les changements de périmètre ?
+    \item Avez-vous identifié les contraintes et risques du projet ?
+\end{itemize}
+\end{jury}
+
+\section{Cibles et parties prenantes}
+
+Dans cette section, vous devez identifier et analyser vos utilisateurs cibles et toutes les parties prenantes du projet. Le jury attend une compréhension claire des besoins de chaque groupe et de leur influence sur le projet.
+
+\textbf{Personae utilisateurs :} \textit{[Décrivez vos utilisateurs types : rôles, besoins, contraintes, niveau technique]}
+
+\textbf{Parties prenantes :} \textit{[Listez tous les acteurs impliqués : utilisateurs finaux, décideurs, équipe technique, administrateurs]}
+
+\textbf{Matrice d'influence :} \textit{[Analysez l'influence et l'intérêt de chaque partie prenante]}
+
+La cartographie des parties prenantes facilite la communication et la gestion des attentes tout au long du projet. Cette approche systémique garantit que tous les besoins sont pris en compte dans la conception de la solution.
+
+\begin{exemple}
+\textbf{User Stories prioritaires :}
+\begin{itemize}
+    \item En tant que \textbf{chef de projet}, je veux visualiser l'avancement des tâches pour optimiser la planification
+    \item En tant que \textbf{développeur}, je veux mettre à jour mon statut rapidement pour informer l'équipe
+    \item En tant que \textbf{manager}, je veux générer des rapports automatiques pour le suivi des performances
+\end{itemize}
+
+\textbf{Critères d'acceptation :}
+\begin{itemize}
+    \item Le tableau de bord se charge en moins de 2 secondes
+    \item Les données sont synchronisées en temps réel
+    \item L'interface est responsive sur mobile et desktop
+\end{itemize}
+\end{exemple}
+
+\begin{conseil}
+\begin{itemize}
+    \item Créer des personae détaillés avec leurs besoins spécifiques
+    \item Identifier toutes les parties prenantes du projet
+    \item Analyser l'influence et l'intérêt de chaque partie prenante
+    \item Définir des user stories avec critères d'acceptation clairs
+    \item Organiser des sessions de validation avec les utilisateurs
+\end{itemize}
+\end{conseil}
+
+\begin{jury}
+\begin{itemize}
+    \item Qui sont vos utilisateurs cibles principaux ?
+    \item Comment avez-vous validé vos user stories ?
+    \item Quelles parties prenantes ont le plus d'influence ?
+    \item Vos critères d'acceptation sont-ils mesurables ?
+    \item Comment gérez-vous les besoins contradictoires ?
+\end{itemize}
+\end{jury}
+
+\section{Exigences fonctionnelles}
+
+Les exigences fonctionnelles définissent précisément ce que le système doit faire pour répondre aux besoins métier. Elles couvrent les fonctionnalités front-end (interface utilisateur), back-end (logique métier), la gestion des rôles et droits d'accès, ainsi que les aspects de confidentialité et d'authentification. Cette spécification détaillée guide le développement et sert de référence pour les tests d'acceptation.
+
+La sécurité et la confidentialité des données constituent des exigences critiques qui influencent directement l'architecture technique et les choix de développement. L'authentification robuste et la gestion fine des autorisations sont essentielles pour protéger les informations sensibles.
+
+\subsection{Fonctionnalités « Front Office »}
+
+Dans cette sous-section, vous devez détailler toutes les fonctionnalités accessibles aux utilisateurs finaux. Le jury attend une description précise de l'interface utilisateur et des interactions possibles.
+
+\textbf{Vos fonctionnalités Front Office :} \textit{[Listez toutes les fonctionnalités visibles par l'utilisateur final : navigation, formulaires, tableaux de bord, etc.]}
+
+\begin{exemple}
+\textbf{Exemple de fonctionnalités Front Office :}
+\begin{itemize}
+    \item \textbf{Dashboard :} Vue d'ensemble des projets et tâches
+    \item \textbf{Gestion projets :} Création, modification, suppression
+    \item \textbf{Gestion tâches :} Attribution, suivi, mise à jour statut
+    \item \textbf{Profil utilisateur :} Modification informations personnelles
+    \item \textbf{Recherche :} Filtrage et recherche dans les projets
+\end{itemize}
+\end{exemple}
+
+\subsection{Fonctionnalités « Back Office »}
+
+Dans cette sous-section, vous devez présenter les fonctionnalités administratives et de gestion du système. Le jury attend une distinction claire entre les fonctions métier et les fonctions d'administration.
+
+\textbf{Vos fonctionnalités Back Office :} \textit{[Décrivez les fonctions d'administration : gestion utilisateurs, configuration système, rapports, etc.]}
+
+\begin{exemple}
+\textbf{Exemple de fonctionnalités Back Office :}
+\begin{itemize}
+    \item \textbf{Gestion utilisateurs :} Création, modification, désactivation comptes
+    \item \textbf{Gestion rôles :} Attribution et modification des permissions
+    \item \textbf{Rapports système :} Logs, métriques, statistiques d'usage
+    \item \textbf{Configuration :} Paramètres système, maintenance
+    \item \textbf{Sauvegardes :} Gestion des sauvegardes et restauration
+\end{itemize}
+\end{exemple}
+
+\subsection{L'utilisateur (public)}
+
+Dans cette sous-section, vous devez définir clairement qui peut accéder au système et dans quelles conditions. Le jury attend une analyse des différents types d'utilisateurs et de leurs besoins spécifiques.
+
+\textbf{Vos types d'utilisateurs :} \textit{[Décrivez vos utilisateurs : internes, externes, partenaires, avec leurs besoins spécifiques]}
+
+\begin{exemple}
+\textbf{Exemple de typologie utilisateurs :}
+\begin{itemize}
+    \item \textbf{Utilisateurs internes :} Employés de l'entreprise avec accès complet
+    \item \textbf{Utilisateurs externes :} Clients ou partenaires avec accès limité
+    \item \textbf{Administrateurs :} Accès complet au système et aux données
+    \item \textbf{Consultants :} Accès temporaire avec restrictions
+\end{itemize}
+\end{exemple}
+
+\subsection{Confidentialité}
+
+Dans cette sous-section, vous devez détailler les mesures de protection des données et le respect de la vie privée. Le jury attend une approche conforme au RGPD et aux bonnes pratiques de sécurité.
+
+\textbf{Vos mesures de confidentialité :} \textit{[Décrivez comment vous protégez les données personnelles et sensibles]}
+
+\begin{exemple}
+\textbf{Exemple de mesures de confidentialité :}
+\begin{itemize}
+    \item \textbf{Chiffrement :} Données sensibles chiffrées en base
+    \item \textbf{Accès contrôlé :} Logs d'accès et audit trail
+    \item \textbf{RGPD :} Consentement, droit à l'oubli, portabilité
+    \item \textbf{Anonymisation :} Données anonymisées pour les rapports
+\end{itemize}
+\end{exemple}
+
+\subsection{Droits d'accès}
+
+Dans cette sous-section, vous devez présenter votre système de permissions et de contrôle d'accès. Le jury attend une matrice claire des droits par rôle et fonctionnalité.
+
+\textbf{Votre matrice de droits :} \textit{[Définissez qui peut faire quoi dans votre système]}
+
+\begin{exemple}
+\textbf{Matrice des rôles et droits :}
+\begin{center}
+\begin{tabular}{|l|l|l|l|l|}
+\hline
+\textbf{Rôle} & \textbf{Créer} & \textbf{Lire} & \textbf{Modifier} & \textbf{Supprimer} \\
+\hline
+Admin & \mycheckmark & \mycheckmark & \mycheckmark & \mycheckmark \\
+Manager & \mycheckmark & \mycheckmark & \mycheckmark & \mycross \\
+Développeur & \mycheckmark & \mycheckmark & \mycheckmark (ses projets) & \mycross \\
+Consultant & \mycross & \mycheckmark & \mycross & \mycross \\
+\hline
+\end{tabular}
+\end{center}
+\end{exemple}
+
+\subsection{Authentification}
+
+Dans cette sous-section, vous devez détailler votre système d'authentification et de gestion des sessions. Le jury attend une approche sécurisée et robuste.
+
+\textbf{Votre système d'authentification :} \textit{[Décrivez comment les utilisateurs se connectent et restent authentifiés]}
+
+\begin{exemple}
+\textbf{Exemple de système d'authentification :}
+\begin{itemize}
+    \item \textbf{Connexion :} Email/mot de passe avec validation
+    \item \textbf{Sessions :} JWT avec expiration automatique
+    \item \textbf{Sécurité :} Mot de passe fort, 2FA optionnel
+    \item \textbf{Récupération :} Reset par email sécurisé
+\end{itemize}
+\end{exemple}
+
+\begin{conseil}
+\begin{itemize}
+    \item Spécifier toutes les fonctionnalités front-end et back-end
+    \item Définir clairement les rôles et droits d'accès
+    \item Documenter les exigences de confidentialité
+    \item Prévoir les mécanismes d'authentification et d'autorisation
+    \item Valider les exigences avec les utilisateurs métier
+\end{itemize}
+\end{conseil}
+
+\begin{jury}
+\begin{itemize}
+    \item Quelles sont vos exigences fonctionnelles prioritaires ?
+    \item Comment gérez-vous les droits d'accès ?
+    \item Vos exigences sont-elles testables ?
+    \item Avez-vous prévu la confidentialité des données ?
+    \item Comment validez-vous les exigences avec les utilisateurs ?
+\end{itemize}
+\end{jury}
+
+\section{Exigences et choix techniques}
+
+L'architecture 3 tiers (présentation, logique métier, données) offre une séparation claire des responsabilités et facilite la maintenance. PostgreSQL assure la cohérence transactionnelle des données métier, tandis que MongoDB optimise le stockage des rapports et logs grâce à sa flexibilité documentaire. Cette approche hybride maximise les performances selon le type de données traitées.
+
+Les choix techniques sont guidés par les exigences de performance, de scalabilité et de maintenabilité. L'utilisation de technologies éprouvées réduit les risques techniques tout en permettant une évolution progressive de la solution.
+
+\subsection{Exigences}
+
+Dans cette sous-section, vous devez détailler toutes les contraintes techniques et les exigences non-fonctionnelles de votre système. Le jury attend une analyse complète des performances, sécurité, scalabilité et maintenabilité.
+
+\textbf{Vos exigences techniques :} \textit{[Listez vos contraintes : performances, sécurité, disponibilité, scalabilité, etc.]}
+
+\begin{exemple}
+\textbf{Exemple d'exigences techniques :}
+\begin{itemize}
+    \item \textbf{Performance :} Temps de réponse < 2s, support 100 utilisateurs simultanés
+    \item \textbf{Sécurité :} HTTPS obligatoire, authentification forte, audit logs
+    \item \textbf{Disponibilité :} 99.5\% uptime, sauvegardes quotidiennes
+    \item \textbf{Scalabilité :} Architecture horizontale, cache Redis
+    \item \textbf{Maintenabilité :} Code documenté, tests automatisés
+\end{itemize}
+\end{exemple}
+
+\subsection{Choix}
+
+Dans cette sous-section, vous devez justifier vos choix technologiques par rapport aux exigences identifiées. Le jury attend une analyse comparative et une justification claire de chaque décision technique.
+
+\textbf{Vos choix techniques :} \textit{[Justifiez vos technologies : pourquoi cette stack plutôt qu'une autre ?]}
+
+\begin{exemple}
+\textbf{Architecture logique simplifiée :}
+\begin{verbatim}
++-------------------+    +-------------------+    +-------------------+
+|   Frontend        |    |   Backend         |    |   Databases       |
+|   (React)         |<-->|   (Node.js)       |<-->|   PostgreSQL      |
+|                   |    |                   |    |   MongoDB         |
++-------------------+    +-------------------+    +-------------------+
+\end{verbatim}
+
+\textbf{Exemple de modèle PostgreSQL :}
+\begin{lstlisting}[language=SQL]
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    role_id INTEGER REFERENCES roles(id),
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX idx_users_email ON users(email);
+\end{lstlisting}
+\end{exemple}
+
+\begin{conseil}
+\begin{itemize}
+    \item Justifier chaque choix technique par des critères objectifs
+    \item Documenter l'architecture 3 tiers et les responsabilités
+    \item Expliquer l'utilisation de PostgreSQL et MongoDB
+    \item Prévoir l'évolution et la scalabilité de l'architecture
+    \item Évaluer les alternatives techniques considérées
+\end{itemize}
+\end{conseil}
+
+\begin{jury}
+\begin{itemize}
+    \item Pourquoi avez-vous choisi cette architecture ?
+    \item Comment justifiez-vous l'utilisation de deux bases de données ?
+    \item Votre architecture est-elle scalable ?
+    \item Quels sont les points de défaillance potentiels ?
+    \item Avez-vous considéré des alternatives techniques ?
+\end{itemize}
+\end{jury}
+
+\section{Définition du MVP}
+
+Le MVP concentre les fonctionnalités essentielles pour valider l'hypothèse produit : authentification, gestion des projets de base, et tableau de bord simple. Cette approche permet d'obtenir un retour utilisateur précoce et d'ajuster la roadmap en conséquence. Les scénarios essentiels couvrent les cas d'usage les plus fréquents et critiques pour le métier.
+
+\textbf{Votre définition du MVP :} \textit{[Définissez précisément le périmètre minimal viable de votre projet]}
+
+\begin{exemple}
+\textbf{Scénarios essentiels MVP :}
+\begin{enumerate}
+    \item Connexion utilisateur et gestion de session
+    \item Création et modification d'un projet
+    \item Attribution des tâches aux membres de l'équipe
+    \item Suivi de l'avancement en temps réel
+    \item Génération de rapports basiques
+\end{enumerate}
+\end{exemple}
+
+\begin{conseil}
+\begin{itemize}
+    \item Délimiter précisément le périmètre du MVP
+    \item Identifier les scénarios essentiels prioritaires
+    \item Valider chaque fonctionnalité avec les utilisateurs
+    \item Mesurer l'impact de chaque feature
+    \item Prévoir des critères de succès clairs
+\end{itemize}
+\end{conseil}
+
+\begin{jury}
+\begin{itemize}
+    \item Votre MVP est-il vraiment minimal ?
+    \item Quels sont vos scénarios essentiels ?
+    \item Comment validez-vous chaque fonctionnalité ?
+    \item Avez-vous des critères de succès mesurables ?
+    \item Comment gérez-vous les demandes hors périmètre ?
+\end{itemize}
+\end{jury}
+
+\section{Roadmap}
+
+La roadmap v1 vers v2 prévoit l'ajout progressif de fonctionnalités avancées basées sur les retours utilisateurs et les besoins métier émergents. Cette approche itérative minimise les risques et optimise l'allocation des ressources.
+
+\textbf{Votre roadmap :} \textit{[Planifiez l'évolution de votre projet de v1 vers v2]}
+
+\begin{exemple}
+\textbf{Roadmap v1 \myarrow v2 :}
+\begin{itemize}
+    \item \textbf{v1.0 :} Fonctionnalités de base (MVP)
+    \item \textbf{v1.1 :} Notifications et alertes
+    \item \textbf{v1.2 :} Intégrations externes (API)
+    \item \textbf{v2.0 :} Analytics avancées et IA
+\end{itemize}
+\end{exemple}
+
+\begin{conseil}
+\begin{itemize}
+    \item Délimiter précisément le périmètre du MVP
+    \item Identifier les scénarios essentiels prioritaires
+    \item Planifier la roadmap v1 vers v2 de manière réaliste
+    \item Prévoir des jalons de validation utilisateur
+    \item Documenter les critères de passage de version
+\end{itemize}
+\end{conseil}
+
+\begin{jury}
+\begin{itemize}
+    \item Votre MVP est-il vraiment minimal ?
+    \item Quels sont vos scénarios essentiels ?
+    \item Comment validez-vous le passage en v2 ?
+    \item Votre roadmap est-elle réaliste ?
+    \item Comment gérez-vous les changements de priorité ?
+\end{itemize}
+\end{jury}
+
+\section{Liens utiles}
+
+\begin{itemize}
+    \item User Stories: \url{https://www.mountaingoatsoftware.com/agile/user-stories}
+    \item MoSCoW: \url{https://www.productplan.com/glossary/moscow-prioritization/}
+    \item PostgreSQL Docs: \url{https://www.postgresql.org/docs/}
+    \item MongoDB Modeling: \url{https://bit.ly/mongodb-modeling}
+    \item Architecture 3-tier: \url{https://en.wikipedia.org/wiki/Multitier_architecture}
+\end{itemize}
