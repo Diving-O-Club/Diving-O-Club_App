@@ -2,25 +2,158 @@
 
 \section{Gestion de projet avec GitHub}
 
-Dans cette section, vous devez présenter votre approche de gestion de projet entièrement centralisée sur GitHub. Le jury attend une démonstration de votre maîtrise des outils GitHub pour la planification, le suivi et la réalisation de votre projet.
+\textbf{Gestion du projet et organisation du code}\\[0.2cm]
 
-\textbf{Votre approche GitHub :} \textit{[Décrivez comment vous utilisez GitHub pour gérer votre projet]}
+L’ensemble du projet Diving O Club est géré et suivi sur GitHub afin de garantir une traçabilité complète des décisions, du code et de l’avancement.
+
+\begin{itemize}
+  \item \textbf{Organisation du code}
+  \begin{itemize}
+      \item Dépôt GitHub unique structuré (frontend / backend / documentation)
+      \item Branches par fonctionnalité (\texttt{feature/...}), revues avant merge sur \texttt{develop}, puis release sur \texttt{main}
+      \item Messages de commit normalisés (Conventionnal Commit)
+  \end{itemize}
+
+  \item \textbf{Planification \& suivi (GitHub Projects)}
+  \begin{itemize}
+      \item Tableau Kanban structuré : \textit{Backlog $\rightarrow$ Next up $\rightarrow$ In Progress $\rightarrow$ In Review / Testing $\rightarrow$ Done}
+      \item Découpage du projet en \textit{milestones} : Phase de conception et cadrage, POC, MVP, Bêta, v1.
+      \item Issues créées pour chaque fonctionnalité, bug ou tâche technique
+  \end{itemize}
+
+  \item \textbf{Lien entre code et gestion}
+  \begin{itemize}
+      \item Chaque issue liée à une branche
+      \item Pull requests associées aux issues et validées via checklist
+      \item Documentation des décisions techniques dans \texttt{/docs}
+  \end{itemize}
+
+  \item \textbf{Qualité \& automatisation}
+  \begin{itemize}
+      \item GitHub Actions pour lint / tests / build
+      \item Revue systématique avant fusion sur \texttt{develop}
+      \item Releases taguées avec changelog versionné (\texttt{v1.0.0}, etc.)
+  \end{itemize}
+\end{itemize}
+
+Cette méthode assure une traçabilité complète, un développement par incrémentation contrôlé et une preuve de professionnalisation du cycle de vie logiciel.
+
+
+\section{Rituels de suivi du projet}
+
+Afin d’assurer un pilotage rigoureux du projet Diving O Club, plusieurs rituels de suivi ont été mis en place. 
+Bien que le projet soit développé individuellement, l’organisation adoptée repose sur des \textbf{cycles courts}, inspirés du cadre agile Scrum, ce qui permet un développement itératif, incrémental et facilement ajustable selon les retours du club partenaire.
+
+\begin{itemize}
+
+\item \textbf{Sprints d’une semaine (cycle court agile)}
+Chaque semaine constitue un sprint avec un objectif clair (3 à 5 tâches maximum).  
+Cette durée courte permet de livrer des incréments réguliers du produit, de limiter les risques et de faciliter la priorisation continue.  
+Une auto-revue de sprint est réalisée en fin de cycle afin d’évaluer l’atteinte des objectifs, ajuster le backlog et préparer le sprint suivant.
+
+\item \textbf{Revue hebdomadaire (Weekly Review)}
+Analyse de l’avancement, mise à jour du tableau Kanban GitHub, clôture des issues terminées et identification des blocages éventuels.  
+Ce rituel assure un recalibrage permanent de la charge, de la qualité du code et des priorités métier.
+
+\item \textbf{Tests exploratoires mensuels (avec 3 adhérents, 1 moniteur, 1 membre du comité)}
+Chaque mois, un test terrain est réalisé sur les parcours clés (inscription, paiement, certificat).  
+Les retours, blocages et améliorations sont intégrés au backlog sous forme d’issues, permettant un apprentissage continu et une amélioration progressive de l’expérience utilisateur.
+
+\end{itemize}
+
+Ces rituels garantissent un développement structuré et agile, fondé sur des boucles courtes de feedback, une amélioration continue et une forte capacité d’adaptation aux besoins réels du club testeur.
+
 
 \subsection{User Stories et estimation de temps}
 
-Dans cette sous-section, vous devez détailler vos user stories avec des estimations de temps réalistes. Chaque user story doit être liée à des commits et des milestones GitHub pour un suivi précis de l'avancement.
 
-\textbf{Vos user stories avec estimations :} \textit{[Créez vos user stories avec temps estimés]}
+\textbf{User stories avec estimations :}
 
-\begin{exemple}
-\textbf{Schéma des rituels Scrum :}
-\begin{verbatim}
-Sprint Planning ---> Daily Standup ---> Sprint Review
-     |                    |                |
-     |                    |                |
-     v                    v                v
-Sprint Retrospective ---> Sprint ---> Sprint Demo
-\end{verbatim}
+
+Dans une logique inspirée des méthodes agiles, le périmètre fonctionnel du projet a été 
+structuré en trois niveaux : \textbf{Épics}, \textbf{User Stories} et \textbf{Tâches techniques}. 
+
+\begin{itemize}
+  \item Les \textbf{Épics} regroupent les grands blocs fonctionnels du projet (ex. Authentification, Événements, Paiements).
+  \item Chaque \textbf{User Story} exprime un besoin utilisateur clair, formulé selon le format 
+  \textit{« En tant que [rôle], je veux [objectif], afin de [bénéfice] »}.
+  \item Les \textbf{Tâches} découlent directement des User Stories et correspondent aux actions techniques 
+  spécifiques nécessaires à leur implémentation.
+\end{itemize}
+
+Cette structuration apporte plusieurs avantages : une meilleure lisibilité du périmètre, 
+une priorisation facilitée, une estimation du temps plus fiable et une traçabilité directe 
+entre besoins métier et code. L’intégralité du backlog est maintenue dans GitHub Projects 
+pour assurer un suivi précis et incrémental.
+
+\vspace{0.5cm}
+\noindent
+\textbf{Exemple complet : EP-01 — Authentification \& Comptes}
+
+\paragraph{Épic EP-01 — Authentification \& Comptes}  
+Assurer la création, la validation et la gestion sécurisée des comptes utilisateur, incluant 
+la connexion, la gestion des sessions et la récupération de mot de passe.
+
+\subsubsection*{User Stories associées}
+
+\textbf{US-01 — Création de compte}  
+\textit{En tant qu'utilisateur, je veux créer un compte sécurisé afin d'accéder à mon espace personnel.}  
+\textbf{Critères d’acceptation :}  
+\begin{itemize}
+  \item Validation du format email et du mot de passe.
+  \item Compte créé en base, rôle par défaut = \texttt{user}.
+  \item Redirection vers l’espace personnel si inscription réussie.
+\end{itemize}
+
+\textbf{US-02 — Connexion / Déconnexion}  
+\textit{En tant qu'utilisateur, je veux me connecter avec email et mot de passe afin d’accéder à mon tableau de bord.}  
+\textbf{Critères d’acceptation :}  
+\begin{itemize}
+  \item JWT d’accès court + cookie refresh httpOnly.
+  \item Message générique en cas d’échec (anti-fuite d’information).
+  \item Déconnexion invalide le refresh token.
+\end{itemize}
+
+\textbf{US-03 — Gestion du rôle utilisateur}  
+\textit{En tant que membre du comité, je veux modifier le rôle d’un utilisateur afin d’adapter ses permissions.}  
+\textbf{Critères d’acceptation :}  
+\begin{itemize}
+  \item Mise à jour immédiate du rôle.
+  \item Action tracée dans les logs d’audit.
+\end{itemize}
+
+\textbf{US-04 — Récupération de mot de passe}  
+\textit{En tant qu'utilisateur, je veux récupérer mon accès en cas d’oubli de mot de passe.}  
+\textbf{Critères d’acceptation :}  
+\begin{itemize}
+  \item Envoi d’un lien signé avec expiration.
+  \item Réinitialisation invalide toutes les sessions précédentes.
+\end{itemize}
+
+\vspace{0.4cm}
+
+\subsubsection*{Tâches techniques associées}
+
+\begin{itemize}
+  \item Mise en place du module \texttt{AuthModule} dans Nest.js.
+  \item Implémentation des DTOs (login, register, refresh, reset).
+  \item Hashage des mots de passe avec bcrypt.
+  \item Génération JWT (access + refresh).
+  \item Cookies sécurisés \texttt{httpOnly}, \texttt{SameSite=Lax}.
+  \item Middleware de validation du token.
+  \item Route de réinitialisation du mot de passe + email signé.
+  \item Guard RBAC pour protéger les routes sensibles.
+  \item Ensemble de tests API : login, refresh, register, reset.
+\end{itemize}
+
+\vspace{0.3cm}
+
+Cet exemple illustre la logique appliquée à l’ensemble des autres Épics.  
+Le backlog complet contient plusieurs dizaines de User Stories et tâches ; afin d’éviter une
+surabondance dans le document, seul cet exemple est détaillé ici.
+Les autres éléments sont structurés et maintenus dans l’outil de gestion de projet.
+\vspace{0.5cm}
+
 
 \textbf{Colonnes du tableau Kanban :}
 \begin{itemize}
@@ -30,218 +163,247 @@ Sprint Retrospective ---> Sprint ---> Sprint Demo
     \item \textbf{Review :} Code en attente de validation
     \item \textbf{Done :} Fonctionnalités livrées
 \end{itemize}
-\end{exemple}
 
-\begin{conseil}
-\textbf{Ce que le jury attend dans cette section :}
-\begin{itemize}
-    \item Une justification claire du choix méthodologique
-    \item Une description des rituels et de leur utilité
-    \item Une adaptation de la méthode au contexte projet
-    \item Des métriques de suivi et d'amélioration continue
-    \item Une organisation claire des responsabilités
-\end{itemize}
-
-\textbf{Conseils de rédaction :}
-\begin{itemize}
-    \item Expliquez pourquoi cette méthode convient à votre projet
-    \item Montrez comment vous mesurez l'efficacité de votre approche
-    \item Décrivez les adaptations nécessaires à votre contexte
-    \item Utilisez des diagrammes pour illustrer vos processus
-\end{itemize}
-\end{conseil}
-
-\begin{jury}
-\begin{itemize}
-    \item Pourquoi avez-vous choisi cette méthode Agile ?
-    \item Comment mesurez-vous l'efficacité de vos rituels ?
-    \item Quels sont vos indicateurs de performance ?
-    \item Comment gérez-vous les imprévus dans vos sprints ?
-    \item Avez-vous adapté la méthode à votre contexte ?
-\end{itemize}
-\end{jury}
 
 \section{Versioning GitHub et conventions}
 
-Le versioning GitHub suit le modèle Git Flow avec des branches spécialisées pour chaque type de développement. Les conventions de nommage et de commit facilitent la traçabilité et la collaboration. Les Pull Requests permettent la revue de code systématique et la validation des fonctionnalités avant intégration.
+\textbf{Stratégie de gestion Git — Git Flow adapté solo}\\[0.2cm]
 
-Les conventions établies couvrent le nommage des branches, le format des messages de commit, et les templates de Pull Request. Cette standardisation améliore la qualité du code et accélère l'onboarding de nouveaux développeurs.
-
-\begin{exemple}
-\textbf{Schéma Git Flow :}
-\begin{verbatim}
-main -----------------------------------------------
-  |
-  +-- develop --------------------------------------
-       |
-       +-- feature/user-authentication
-       +-- feature/project-management
-       +-- hotfix/critical-bug-fix
-\end{verbatim}
-
-\textbf{Conventions de commit :}
-\begin{lstlisting}
-feat: add user authentication system
-fix: resolve login validation issue
-docs: update API documentation
-test: add unit tests for user service
-refactor: improve code structure
-\end{lstlisting}
-\end{exemple}
-
-\begin{conseil}
+\textbf{Modèle retenu : Git Flow (adapté solo)}\\[-0.1cm]
 \begin{itemize}
-    \item Définir des conventions de nommage claires
-    \item Utiliser des messages de commit descriptifs
-    \item Mettre en place des templates de Pull Request
-    \item Configurer des règles de protection des branches
-    \item Documenter les conventions dans un CONTRIBUTING.md
+  \item \textbf{Branches permanentes :} 
+  \begin{itemize}
+    \item \texttt{main} — version stable, déployée
+    \item \texttt{develop} — intégration
+  \end{itemize}
+  
+  \item \textbf{Branches temporaires :}
+  \begin{itemize}
+    \item \texttt{feature/<scope>} — nouvelle fonctionnalité
+    \item \texttt{fix/<scope>} — correctif non critique
+    \item \texttt{hotfix/<scope>} — correctif critique depuis \texttt{main}
+    \item \texttt{release/<version>}
+  \end{itemize}
 \end{itemize}
-\end{conseil}
 
-\begin{jury}
+\textbf{Stratégie de merge}\\[-0.1cm]
 \begin{itemize}
-    \item Quelles sont vos conventions de versioning ?
-    \item Comment gérez-vous les conflits de merge ?
-    \item Vos Pull Requests sont-elles systématiquement revues ?
-    \item Comment assurez-vous la qualité du code ?
-    \item Avez-vous des règles de protection des branches ?
+  \item Vers \texttt{develop} : pull request (relecture, CI OK), \textbf{squash \& merge}
+  \item Vers \texttt{main} : via \texttt{release/} après tests finaux
+  \item Hotfix : branche depuis \texttt{main} -> PR vers \texttt{main} + cherry-pick vers \texttt{develop}
 \end{itemize}
-\end{jury}
+
+\textbf{Nommage des branches — exemples}\\[-0.1cm]
+\begin{itemize}
+  \item \texttt{feature/auth-login}, \texttt{feature/events-calendar}, \texttt{fix/payment-status}
+  \item \texttt{release/v1.0.0}, \texttt{hotfix/jwt-expiry}
+\end{itemize}
+
+\textbf{Conventions de commit (Conventional Commits)}\\[-0.1cm]
+\begin{itemize}
+  \item \texttt{feat: auth avec JWT + refresh} \textit{Closes \#12}
+  \item \texttt{fix: corrige statut paiement HelloAsso} \textit{Closes \#34}
+  \item \texttt{docs: ajoute README déploiement} \textit{Closes \#7}
+  \item \texttt{test: ajoute tests API inscriptions} \textit{Closes \#21}
+  \item \texttt{refactor: isole service certificats} \textit{Closes \#18}
+  \item \texttt{chore: met à jour dépendances} \textit{Closes \#3}
+  \item \texttt{perf: optimise requête liste événements} \textit{Closes \#27}
+\end{itemize}
+
+\vspace{0.3cm}
+
+\noindent
+Chaque commit référence explicitement une issue via \texttt{Closes \#ID}, 
+ce qui permet :
+\begin{itemize}
+  \item la fermeture automatique de l’issue une fois la PR fusionnée ;
+  \item une traçabilité parfaite entre le code livré et les besoins exprimés ;
+  \item un historique clair pour le suivi du projet dans GitHub.
+\end{itemize}
+
+\vspace{0.5cm}
+
+\textbf{Pull Requests (PR)}\\[-0.1cm]
+\begin{itemize}
+  \item Template PR incluant checklist :
+  \begin{itemize}
+    \item Issue liée (\textit{Closes \#12})
+    \item Tests ajoutés / mis à jour
+    \item Lint \& CI OK
+    \item Impact sécurité (auth / rôles) vérifié
+  \end{itemize}
+  \item Règles : pas de commit direct sur \texttt{main}, 1 PR = 1 sujet, captures UI si besoin
+\end{itemize}
+
+\vspace{0.5cm}
+
+\textbf{Protection des branches}\\[-0.1cm]
+\begin{itemize}
+  \item \texttt{main} : protégée (CI obligatoire, squash \& merge uniquement, review requise)
+  \item \texttt{develop} : CI obligatoire, pas de push direct en production
+\end{itemize}
+
+\vspace{0.5cm}
+
+\textbf{Versioning \& releases}\\[-0.1cm]
+\begin{itemize}
+  \item SemVer \texttt{MAJOR.MINOR.PATCH}
+  \item \texttt{v1.0.0} = MVP (juin 2026)
+  \item \texttt{v1.1.0} = dashboard + notifications
+  \item \texttt{v1.2.0} = matériel + carnet de plongée
+  \item Changelog généré depuis commits (\texttt{feat}/\texttt{fix}) — \texttt{CHANGELOG.md}
+  \item Tags sur \texttt{main} lors des releases
+\end{itemize}
+
+\vspace{0.5cm}
+
+\textbf{Traçabilité GitHub}\\[-0.1cm]
+\begin{itemize}
+  \item Chaque US = issue (labels : feature, bug, security, docs, P1–P3)
+  \item Branche issue-based : \texttt{feature/123-events-calendar}
+  \item Commits \& PR référencent l’issue (\texttt{fixes \#123})
+  \item Milestones alignées avec roadmap (MVP, v1.1, v1.2)
+\end{itemize}
+
+\vspace{0.5cm}
+
+\textbf{CI/CD (qualité)}\\[-0.1cm]
+\begin{itemize}
+  \item GitHub Actions : \texttt{lint -> test -> build} sur PR ; déploiement sur tag \texttt{v*}
+  \item Tests sur endpoints critiques (auth, inscriptions, paiements, certificats)
+  \item Scan basique de vulnérabilités
+\end{itemize}
+
+\vspace{0.5cm}
+
+\textbf{Gestion des conflits \& imprévus}\\[-0.1cm]
+\begin{itemize}
+  \item Résolution locale puis rebase avant PR
+  \item Urgences via \texttt{hotfix/}, patch immédiat, sync vers \texttt{develop}
+\end{itemize}
+
+\vspace{0.5cm}
+
+\textbf{Documentation}\\[-0.1cm]
+\begin{itemize}
+  \item \texttt{README.md}
+  \item User stories
+\end{itemize}
+
 
 \section{Planification et outils de suivi}
 
-La planification combine une roadmap GitHub pour la vision macro et GitHub Projects pour le suivi opérationnel. La roadmap GitHub visualise les dépendances et les jalons critiques, tandis que le Kanban GitHub Projects offre une vue détaillée des tâches en cours. Cette approche dual optimise la coordination entre la planification stratégique et l'exécution tactique.
+\textbf{Planification et pilotage du projet}\\[0.2cm]
 
-La roadmap GitHub permet de communiquer la vision produit et les priorités à long terme. Les milestones et les dépendances facilitent la coordination entre les différentes équipes et la gestion des risques de planning.
-
-\begin{exemple}
-\textbf{Extrait de roadmap GitHub :}
-\begin{verbatim}
-Phase 1: Conception (4 semaines)
-+-- Analyse des besoins (1 semaine)
-+-- Conception technique (2 semaines)
-+-- Validation architecture (1 semaine)
-
-Phase 2: Développement MVP (8 semaines)
-+-- Backend API (4 semaines)
-+-- Frontend React (4 semaines)
-+-- Tests intégration (2 semaines)
-\end{verbatim}
-
-\textbf{Configuration GitHub Projects :}
+La planification du projet repose sur une approche duale :\\[-0.1cm]
 \begin{itemize}
-    \item \textbf{Colonnes :} Backlog, To Do, In Progress, Review, Done
-    \item \textbf{WIP Limits :} 3 tâches max en cours par développeur
-    \item \textbf{Policies :} PR obligatoire pour merge en develop
-    \item \textbf{Automation :} Mise à jour automatique des statuts
-\end{itemize}
-\end{exemple}
-
-\begin{focusgithub}
-\textbf{Git Flow et conventions :}
-\begin{itemize}
-    \item \textbf{Branches :} main, develop, feature/*, release/*, hotfix/*
-    \item \textbf{PR Template :} Description, tests, checklist
-    \item \textbf{CODEOWNERS :} Validation obligatoire par senior dev
-    \item \textbf{Protection Rules :} Pas de push direct sur main/develop
+  \item \textbf{Roadmap GitHub} pour la vision macro (jalons, dépendances, versions)
+  \item \textbf{Kanban GitHub Projects} pour le suivi opérationnel au quotidien (User Stories, issues, flux de production)
 \end{itemize}
 
-\textbf{GitHub Projects Kanban :}
+Cette organisation permet d’allier \textbf{vision stratégique long terme} et \textbf{exécution incrémentale contrôlée}.
+
+\vspace{0.3cm}
+
+\textbf{Roadmap GitHub — Vision produit}\\[-0.1cm]
 \begin{itemize}
-    \item \textbf{Colonnes :} Backlog, Sprint Planning, In Progress, Review, Done
-    \item \textbf{WIP Limits :} 2 features max en développement
-    \item \textbf{Automation :} Mise à jour statut via labels
-    \item \textbf{Metrics :} Cycle time, lead time, throughput
+  \item Découpage par versions :
+  \begin{itemize}
+  \item \texttt{MVP} = avril 2026
+  \item \texttt{v1.0} = rentrée clubs (fin août 2026)
+  \item \texttt{v1.1} = dashboard + notifications (sept. 2026)
+  \item \texttt{v1.2} = matériel + carnet de plongée (déc. 2026)
+  \end{itemize}
+
+  \item \textbf{Milestones} rattachés à chaque version (issues associées)
+  \item Dépendances visibles : backend -> frontend -> intégration -> déploiement
+  \item Gestion des risques : intégration HelloAsso, sécurité, performance
+  \item Communication claire avec les parties prenantes (club testeur)
 \end{itemize}
 
-\textbf{Roadmap et milestones :}
-\begin{itemize}
-    \item \textbf{Milestones :} v1.0 (Q2), v1.1 (Q3), v2.0 (Q4)
-    \item \textbf{Dependencies :} Backend \myarrow Frontend \myarrow Tests
-    \item \textbf{Risks :} Intégration externe, performance
-    \item \textbf{Success Metrics :} Velocity, quality gates
-\end{itemize}
-\end{focusgithub}
+\vspace{0.3cm}
 
-\begin{conseil}
+\textbf{Kanban GitHub Projects — Suivi opérationnel}\\[-0.1cm]
 \begin{itemize}
-    \item Créer une roadmap GitHub réaliste avec marges
-    \item Configurer GitHub Projects selon vos besoins
-    \item Définir des milestones et jalons clairs
-    \item Prévoir des buffers pour les imprévus
-    \item Communiquer régulièrement sur l'avancement
-\end{itemize}
-\end{conseil}
+  \item Colonnes : \textit{Backlog -> To Do -> In Progress -> Review -> Done}
+  \item Limite WIP : 2–3 tâches maximum simultanément (évite la dispersion)
+  \item 1 issue = 1 User Story (estimée, assignée, reliée à un milestone)
 
-\begin{jury}
-\begin{itemize}
-    \item Votre planification est-elle réaliste ?
-    \item Comment gérez-vous les retards ?
-    \item Quels outils utilisez-vous pour le suivi ?
-    \item Comment communiquez-vous l'avancement ?
-    \item Avez-vous identifié les risques de planning ?
+  \item Automatisations :
+  \begin{itemize}
+    \item Passage automatique de l’issue lorsque la PR est fusionnée
+    \item Fermeture automatique via \texttt{Closes \#XX}
+  \end{itemize}
+
+  \item PR obligatoires pour fusionner sur \texttt{develop} ou \texttt{main}
+  \item Indicateurs suivis : lead time, throughput, cycle time
 \end{itemize}
-\end{jury}
+
+
 
 \section{Estimation de temps et planification}
 
-Dans cette section, vous devez présenter votre estimation de temps pour chaque fonctionnalité et expliquer comment vous planifiez votre projet. Le jury attend une approche réaliste et méthodique de la gestion du temps.
+\textbf{Estimation du temps et faisabilité}\\[0.2cm]
 
-\textbf{Votre estimation globale :} \textit{[Décrivez votre estimation de temps totale et par phase]}
+L’estimation du temps est basée sur le périmètre MVP (v1.0) composé des dix User Stories essentielles.  
+Le développement est planifié en alternance (\(\approx\) 3 jours / semaine en entreprise), soit environ \(\approx\) 12 jours-homme par mois.
 
-L'analyse des temps permet de valider la faisabilité du projet et d'optimiser la planification selon les contraintes disponibles. Cette approche pragmatique démontre votre capacité à prendre en compte les contraintes temporelles dans les décisions techniques.
+\vspace{0.4cm}
 
-\begin{exemple}
-\textbf{Estimation de temps par fonctionnalité :}
-\begin{longtable}{p{2cm}p{3.2cm}p{0.9cm}p{0.6cm}p{1.6cm}p{1.7cm}}
-\toprule
-\textbf{Fonctionnalité} & \textbf{Description} & \textbf{Unité} & \textbf{Qty} & \textbf{Temps estimé} & \textbf{Total} \\
-\midrule
-Authentification & Login/Register & jours & 3 & 2 & 6 \\
-Gestion projets & CRUD projets & jours & 5 & 3 & 15 \\
-Tableaux de bord & Dashboard & jours & 2 & 4 & 8 \\
-Tests & Tests unitaires & jours & 10 & 1 & 10 \\
-Déploiement & CI/CD & jours & 3 & 2 & 6 \\
-\midrule
-\multicolumn{5}{r}{\textbf{Total estimé}} & \textbf{45 jours} \\
-\bottomrule
-\end{longtable}
+\textbf{Estimation par fonctionnalité (MVP)}\\[0.2cm]
 
-\textbf{Votre estimation :} \textit{[Créez votre propre estimation de temps avec vos fonctionnalités]}
-\end{exemple}
+\begin{table}[h!]
+\centering
+\begin{tabular}{|p{7cm}|c|}
+\hline
+\textbf{Bloc fonctionnel} & \textbf{Estimation} \\ \hline
+Authentification \& rôles (US-01 / US-02) & 3,5 jours \\ \hline
+Calendrier \& gestion d’événements (US-03 / US-04) & 5 jours \\ \hline
+Inscriptions \& annulations (US-05 / US-06) & 3,5 jours \\ \hline
+Paiements HelloAsso (US-07 / US-08) & 4,5 jours \\ \hline
+Certificats médicaux (US-09 / US-10) & 3,5 jours \\ \hline
+\textbf{Total MVP} & \textbf{20–22 jours} \\ \hline
+\end{tabular}
+\end{table}
 
-\begin{conseil}
-\textbf{Ce que le jury attend dans cette section :}
+
+En rythme alternance : \(\approx\) 2 mois calendrier (3 jours / semaine).  
+Ce planning s’inscrit dans la phase prévue : \textbf{Décembre -> Avril — Développement back-end / front-end}.
+
+\vspace{0.4cm}
+
+\textbf{Estimation par phase projet}\\[0.2cm]
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{|p{4.2cm}|p{3.2cm}|p{6cm}|c|}
+\hline
+\textbf{Phase} & \textbf{Période} & \textbf{Objectif} & \textbf{Charge} \\ \hline
+Conception \& cadrage & Oct–Déc 2025 & UML, MCD/MLD, cahier des charges, maquettes & \(\sim\) 10 j \\ \hline
+POC (stack) & Déc 2025 & Validation Next.js / Nest.js / PostgreSQL + MongoDB & \(\sim\) 3 j \\ \hline
+Dév. back-end (MVP) & Jan–Mar 2026 & API, Auth, Events, Inscriptions, Certificats, Paiements (HelloAsso) & \(\sim\) 22 j \\ \hline
+\textbf{MVP} & \textbf{Avr 2026} & \textbf{Version utilisable en conditions réelles (club)} & -- \\ \hline
+Front + intégrations & Mai–Juin 2026 & UI Next.js/React, intégration, tests, perf & \(\sim\) 15 j \\ \hline
+Stabilisation \& bêta & Juil 2026 & Corrections, retours club pilote (Aquaclub21) & \(\sim\) 8 j \\ \hline
+\textbf{V1 (rentrée clubs)} & \textbf{Fin août 2026} & Déploiement final \& documentation & -- \\ \hline
+\end{tabular}
+\end{table}
+
+Ce volume est cohérent avec la durée d’alternance (9 mois effectifs).
+
+\vspace{0.4cm}
+
+\textbf{Validation de la faisabilité}\\[0.2cm]
+
 \begin{itemize}
-    \item Une estimation de temps réaliste et justifiée
-    \item Une répartition claire par fonctionnalité
-    \item Une prise en compte des phases de test et déploiement
-    \item Une marge de sécurité pour les imprévus
-    \item Un lien avec les user stories et milestones GitHub
+  \item Le périmètre MVP a été réduit au module cœur pour rester réalisable.
+  \item Les fonctionnalités secondaires sont planifiées en v1.1 / v1.2 (après retours terrain).
+  \item Le planning est aligné sur la roadmap produit et les deadlines CDA.
 \end{itemize}
 
-\textbf{Conseils de rédaction :}
-\begin{itemize}
-    \item Basez-vous sur votre expérience et la complexité technique
-    \item Ajoutez 20\% de marge pour les imprévus
-    \item Décomposez les grosses fonctionnalités en sous-tâches
-    \item Justifiez vos estimations par des arguments techniques
-    \item Montrez la cohérence avec votre roadmap GitHub
-\end{itemize}
-\end{conseil}
 
-\begin{jury}
-\textbf{Questions de contrôle du jury :}
-\begin{itemize}
-    \item Comment avez-vous estimé le temps pour chaque fonctionnalité ?
-    \item Avez-vous pris en compte les phases de test et déploiement ?
-    \item Comment gérez-vous les dépassements de temps ?
-    \item Quelle marge de sécurité avez-vous prévue ?
-    \item Comment liez-vous cette estimation à vos milestones GitHub ?
-    \item Que faites-vous si une fonctionnalité prend plus de temps que prévu ?
-\end{itemize}
-\end{jury}
+
+
 
 \section{Liens utiles}
 
