@@ -2,525 +2,216 @@
 
 \section{Containerisation avec Docker}
 
-La containerisation Docker standardise l'environnement de développement et de production, garantissant la reproductibilité des déploiements. Le Dockerfile multi-stage optimise la taille des images en séparant les phases de build et de runtime. Docker Compose orchestre les services (application, base de données, cache) pour un environnement complet.
+La containerisation constitue un élément essentiel de l’architecture de \textit{Diving O Club}. Elle permet d’isoler chaque service de l’application — frontend, backend, base de données PostgreSQL et base MongoDB dédiée aux logs — dans des environnements reproductibles, indépendants du système hôte et adaptés au déploiement continu. Docker garantit que l’application se comporte de manière identique en développement, en test et en production, ce qui réduit notablement les erreurs liées aux différences d’environnement.
 
-Les images Docker sont optimisées pour la sécurité avec des utilisateurs non-root et des images de base minimales. Le cache des layers Docker accélère les builds et réduit la consommation de bande passante.
+\subsection{Objectifs de la containerisation}
 
-\begin{exemple}
-\textbf{Dockerfile multi-stage :}
-\begin{lstlisting}[language=dockerfile]
-\# Stage 1: Build
-FROM node:18-alpine AS builder
+La containerisation au sein de \textit{Diving O Club} répond à plusieurs besoins opérationnels :
 
-WORKDIR /app
-
-\# Copier les fichiers de dépendances
-COPY package*.json ./
-RUN npm ci --only=production
-
-\# Copier le code source
-COPY . .
-
-\# Build de l'application
-RUN npm run build
-
-\# Stage 2: Production
-FROM node:18-alpine AS production
-
-\# Créer un utilisateur non-root
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nextjs -u 1001
-
-WORKDIR /app
-
-\# Copier les dépendances de production
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/package*.json ./
-
-\# Changer le propriétaire des fichiers
-RUN chown -R nextjs:nodejs /app
-USER nextjs
-
-\# Exposer le port
-EXPOSE 3000
-
-\# Variables d'environnement
-ENV NODE_ENV=production
-ENV PORT=3000
-
-\# Commande de démarrage
-CMD ["node", "dist/index.js"]
-\end{lstlisting}
-
-\textbf{Docker Compose pour l'environnement complet (1/2) :}
-\begin{lstlisting}[language=yaml]
-version: '3.8'
-
-services:
-  app:
-    build: .
-    ports:
-      - "3000:3000"
-    environment:
-      - NODE_ENV=production
-      - DATABASE_URL=postgresql://user:pass@postgres:5432/projectdb
-      - MONGODB_URI=mongodb://mongo:27017/projectlogs
-    depends_on:
-      - postgres
-      - mongo
-      - redis
-    restart: unless-stopped
-
-  postgres:
-    image: postgres:15-alpine
-    environment:
-      - POSTGRES_DB=projectdb
-      - POSTGRES_USER=user
-      - POSTGRES_PASSWORD=pass
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-    restart: unless-stopped
-\end{lstlisting}
-\end{exemple}
-
-\begin{exemple}
-\textbf{Docker Compose pour l'environnement complet (2/2) :}
-\begin{lstlisting}[language=yaml]
-  mongo:
-    image: mongo:6
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=admin
-      - MONGO_INITDB_ROOT_PASSWORD=password
-    volumes:
-      - mongo_data:/data/db
-    ports:
-      - "27017:27017"
-    restart: unless-stopped
-
-  redis:
-    image: redis:7-alpine
-    ports:
-      - "6379:6379"
-    restart: unless-stopped
-
-volumes:
-  postgres_data:
-  mongo_data:
-\end{lstlisting}
-\end{exemple}
-
-\begin{conseil}
 \begin{itemize}
-    \item Utiliser des Dockerfiles multi-stage pour optimiser les images
-    \item Créer des utilisateurs non-root pour la sécurité
-    \item Organiser les services avec Docker Compose
-    \item Optimiser le cache des layers Docker
-    \item Surveiller la taille et la sécurité des images
+    \item \textbf{Standardisation des environnements} : chaque service dispose de sa propre image Docker (NestJS, Next.js, PostgreSQL, MongoDB), éliminant les problèmes de compatibilité ou de configuration manquante.
+    \item \textbf{Facilitation du déploiement} : les conteneurs sont versionnés et orchestrés via Docker Compose, permettant une montée en production rapide et contrôlée.
+    \item \textbf{Isolation des services} : les dépendances du backend, du frontend et des bases de données sont strictement séparées.
+    \item \textbf{Préparation à la scalabilité} : la séparation des services permet une montée en charge indépendante, comme le redimensionnement du backend sans impacter le frontend ou la base de données.
+    \item \textbf{Sécurisation du multi-tenant} : chaque club dispose de données isolées dans PostgreSQL, tandis que MongoDB stocke les logs applicatifs de manière indépendante.
 \end{itemize}
-\end{conseil}
 
-\begin{jury}
+\subsection{Structure des services Docker}
+
+La stack applicative repose sur quatre conteneurs principaux :
+
 \begin{itemize}
-    \item Pourquoi utiliser Docker pour votre application ?
-    \item Comment optimisez-vous vos images Docker ?
-    \item Votre Dockerfile est-il sécurisé ?
-    \item Comment gérez-vous les secrets dans Docker ?
-    \item Avez-vous testé vos conteneurs en production ?
+    \item \textbf{frontend} : application Next.js servant l’interface utilisateur.
+    \item \textbf{backend} : API NestJS contenant la logique métier et accédant à PostgreSQL via Prisma.
+    \item \textbf{postgres} : base relationnelle contenant les données critiques (comptes utilisateurs, clubs, événements, paiements, documents, etc.).
+    \item \textbf{mongodb} : base documentaire permettant le stockage des logs et événements techniques.
 \end{itemize}
-\end{jury}
+
+L’ensemble est orchestré via un fichier \texttt{docker-compose.yml} qui gère les réseaux, les volumes persistants et les variables d’environnement nécessaires aux services.
+
+\subsection{Processus de construction des images}
+
+Chaque service dispose d’un \textit{Dockerfile} dédié.
+
+\paragraph{Backend NestJS}
+L’image du backend est construite à partir d’une image Node. Les dépendances sont installées, le code TypeScript est compilé et le client Prisma est généré. Cette image inclut la logique métier ainsi que les scripts nécessaires aux migrations.
+
+\paragraph{Frontend Next.js}
+L’image du frontend génère un build optimisé pour la production, ensuite servi via un serveur Next autonome. Cette approche assure des performances constantes et une compatibilité totale avec la CI/CD.
+
+\paragraph{Bases de données}
+Les services PostgreSQL et MongoDB reposent sur des images officielles configurées via des variables d’environnement. Des volumes Docker garantissent la persistance des données, y compris lors du redémarrage ou du remplacement des conteneurs.
+
+\subsection{Bénéfices pour le cycle de développement}
+
+\begin{itemize}
+    \item \textbf{Onboarding simplifié} : un nouveau contributeur peut démarrer l’environnement complet avec une seule commande : \texttt{docker compose up --build}.
+    \item \textbf{Tests reproductibles} : les tests d’intégration, de performance et end-to-end utilisent les mêmes conteneurs que la production.
+    \item \textbf{Clarté architecturale} : la correspondance entre les conteneurs et les tiers applicatifs reflète fidèlement l’architecture de \textit{Diving O Club}.
+    \item \textbf{Intégration transparente avec la CI/CD} : GitHub Actions construit et valide les images Docker, garantissant l’absence d’écart entre l’environnement testé et la version déployée.
+\end{itemize}
+
 
 \section{Pipeline CI/CD avec GitHub Actions}
 
-Le pipeline CI/CD automatise les étapes de linting, build, test, scan de sécurité et déploiement. GitHub Actions exécute ces étapes à chaque push et Pull Request, garantissant la qualité du code avant intégration. Les secrets et variables d'environnement sécurisent les informations sensibles.
+L’intégration continue (CI) et le déploiement continu (CD) jouent un rôle déterminant dans la qualité et la fiabilité de \textit{Diving O Club}. Grâce à GitHub Actions, chaque modification apportée au code déclenche automatiquement des vérifications, des tests et, selon la branche ciblée, la construction et la préparation des images Docker pour le déploiement. Ce pipeline garantit que seule une version conforme, testée et stable peut progresser vers les environnements de préproduction ou de production.
 
-Le déploiement automatique vers les environnements de staging et production suit une approche blue-green pour minimiser les risques. Les rollbacks automatiques sont déclenchés en cas de détection d'anomalies.
+\subsection{Objectifs du pipeline CI/CD}
 
-\begin{exemple}
-\textbf{Workflow GitHub Actions complet (1/3) :}
-\begin{lstlisting}[language=yaml]
-name: CI/CD Pipeline
+La mise en place d’un pipeline CI/CD répond à plusieurs enjeux essentiels :
 
-on:
-  push:
-    branches: [main, develop]
-  pull_request:
-    branches: [main, develop]
-
-env:
-  NODE_VERSION: '18'
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
-
-jobs:
-  # Job 1: Lint et tests
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run linter
-        run: npm run lint
-
-      - name: Run type checking
-        run: npm run type-check
-
-      - name: Run tests
-        run: npm test -- --coverage
-
-      - name: Upload coverage
-        uses: codecov/codecov-action@v3
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-\end{lstlisting}
-\end{exemple}
-
-\begin{exemple}
-\textbf{Workflow GitHub Actions complet (2/3) :}
-\begin{lstlisting}[language=yaml]
-  # Job 2: Build et scan de sécurité
-  build-and-scan:
-    runs-on: ubuntu-latest
-    needs: test
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Build Docker image
-        run: docker build -t ${{ env.IMAGE_NAME }}:${{ github.sha }} .
-
-      - name: Run Trivy security scan
-        uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: ${{ env.IMAGE_NAME }}:${{ github.sha }}
-          format: 'sarif'
-          output: 'trivy-results.sarif'
-
-      - name: Upload Trivy scan results
-        uses: github/codeql-action/upload-sarif@v2
-        with:
-          sarif_file: 'trivy-results.sarif'
-\end{lstlisting}
-\end{exemple}
-
-\begin{exemple}
-\textbf{Workflow GitHub Actions complet (3/3) :}
-\begin{lstlisting}[language=yaml]
-  # Job 3: Déploiement staging
-  deploy-staging:
-    runs-on: ubuntu-latest
-    needs: build-and-scan
-    if: github.ref == 'refs/heads/develop'
-    environment: staging
-    steps:
-      - name: Deploy to staging
-        run: |
-          echo "Deploying to staging environment"
-          # Script de déploiement staging
-          ./scripts/deploy.sh staging
-
-  # Job 4: Déploiement production
-  deploy-production:
-    runs-on: ubuntu-latest
-    needs: build-and-scan
-    if: github.ref == 'refs/heads/main'
-    environment: production
-    steps:
-      - name: Deploy to production
-        run: |
-          echo "Deploying to production environment"
-          # Script de déploiement production
-          ./scripts/deploy.sh production
-
-      - name: Run smoke tests
-        run: |
-          echo "Running smoke tests"
-          npm run test:smoke
-
-      - name: Notify team
-        if: always()
-        uses: 8398a7/action-slack@v3
-        with:
-          status: ${{ job.status }}
-          channel: '\#deployments'
-          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
-\end{lstlisting}
-\end{exemple}
-
-\begin{exemple}
-\textbf{Script de déploiement (1/2) :}
-\begin{lstlisting}[language=bash]
-#!/bin/bash
-# scripts/deploy.sh
-
-set -e
-
-ENVIRONMENT=$1
-IMAGE_TAG=${2:-latest}
-
-echo "Deploying to $ENVIRONMENT environment with tag $IMAGE_TAG"
-
-# Mise à jour des images Docker
-docker-compose -f docker-compose.$ENVIRONMENT.yml pull
-\end{lstlisting}
-\end{exemple}
-
-\begin{exemple}
-\textbf{Script de déploiement (2/2) :}
-\begin{lstlisting}[language=bash]
-# Déploiement blue-green
-if [ "$ENVIRONMENT" = "production" ]; then
-    # Déploiement en blue-green
-    docker-compose -f docker-compose.prod.yml up -d --scale app=2
-    sleep 30
-    docker-compose -f docker-compose.prod.yml up -d --scale app=1
-else
-    # Déploiement simple pour staging
-    docker-compose -f docker-compose.staging.yml up -d
-fi
-
-# Vérification de santé
-echo "Checking application health..."
-curl -f http://localhost:3000/health || exit 1
-
-echo "Deployment to $ENVIRONMENT completed successfully"
-\end{lstlisting}
-\end{exemple}
-
-\begin{focusgithub}
-\textbf{Pipeline CI/CD GitHub Actions :}
 \begin{itemize}
-    \item \textbf{Lint :} ESLint, Prettier, TypeScript
-    \item \textbf{Tests :} Unit, Integration, E2E
-    \item \textbf{Sécurité :} Trivy, CodeQL, Snyk
-    \item \textbf{Build :} Docker multi-stage
-    \item \textbf{Deploy :} Blue-green, rollback auto
+    \item \textbf{Automatisation des tests} : chaque push ou pull request déclenche l’exécution des tests unitaires, d’intégration et de vérification statique (lint).
+    \item \textbf{Qualité du code} : GitHub Actions empêche l’intégration d’une modification non conforme, réduisant les risques de régression.
+    \item \textbf{Déploiement contrôlé} : seules les versions validées sur la branche \texttt{develop} peuvent être fusionnées vers \texttt{main}, déclenchant la génération des images Docker stables.
+    \item \textbf{Reproductibilité} : les builds produits par la CI sont identiques à ceux utilisés sur l’environnement de production.
+    \item \textbf{Suivi transparent} : chaque étape du pipeline est historisée et consultable directement depuis GitHub.
 \end{itemize}
 
-\textbf{Environnements et secrets :}
+\subsection{Structure du pipeline GitHub Actions}
+
+Le pipeline CI/CD de \textit{Diving O Club} repose sur plusieurs workflows distincts mais complémentaires :
+
 \begin{itemize}
-    \item \textbf{Staging :} Auto-deploy depuis develop
-    \item \textbf{Production :} Auto-deploy depuis main
-    \item \textbf{Secrets :} DATABASE\_URL, JWT\_SECRET, API\_KEYS
-    \item \textbf{Variables :} NODE\_ENV, PORT, LOG\_LEVEL
+    \item \textbf{workflow CI (pull requests vers develop)} : vérification du linting, installation des dépendances, exécution des tests backend (NestJS) et frontend (Next.js), ainsi que la compilation de l'application.
+    \item \textbf{workflow de build Docker} : construction des images backend et frontend pour s’assurer que les Dockerfiles restent valides à chaque modification.
+    \item \textbf{workflow CD (push sur main)} : génération d’une version stable, construction et push des images Docker versionnées, préparation du déploiement vers l’environnement cible.
 \end{itemize}
 
-\textbf{Métriques de pipeline :}
-\begin{itemize}
-    \item \textbf{Durée moyenne :} 8 minutes
-    \item \textbf{Taux de succès :} 95\%
-    \item \textbf{Temps de déploiement :} 3 minutes
-    \item \textbf{Rollbacks :} 2\% des déploiements
-\end{itemize}
-\end{focusgithub}
+Chaque workflow est exécuté dans un environnement Linux virtualisé fourni par GitHub (\texttt{ubuntu-latest}), garantissant un comportement homogène.
 
-\begin{conseil}
-\begin{itemize}
-    \item Automatiser tous les aspects du pipeline CI/CD
-    \item Séparer les environnements de staging et production
-    \item Implémenter des tests de non-régression automatisés
-    \item Configurer des alertes en cas d'échec de déploiement
-    \item Documenter les procédures de rollback
-\end{itemize}
-\end{conseil}
+\subsection{Étapes clés du pipeline}
 
-\begin{jury}
+\paragraph{1. Vérification du code}
+Le pipeline effectue systématiquement :
 \begin{itemize}
-    \item Votre pipeline CI/CD est-il complet ?
-    \item Comment gérez-vous les secrets et variables ?
-    \item Avez-vous prévu les rollbacks automatiques ?
-    \item Comment testez-vous vos déploiements ?
-    \item Votre pipeline respecte-t-il les bonnes pratiques ?
+    \item l’analyse statique du code JavaScript/TypeScript (ESLint),
+    \item la vérification du style de code,
+    \item l’installation propre des dépendances.
 \end{itemize}
-\end{jury}
+
+\paragraph{2. Exécution des tests}
+Les tests du projet sont exécutés automatiquement :
+\begin{itemize}
+    \item \textbf{backend} : tests unitaires et d’intégration via Jest,
+    \item \textbf{frontend} : tests unitaires avec Jest et React Testing Library.
+\end{itemize}
+
+Si un test échoue, la pull request ne peut pas être fusionnée.
+
+\paragraph{3. Construction des images Docker}
+Le pipeline reconstruit les images du backend NestJS et du frontend Next.js afin de garantir leur compatibilité avec les environnements de production. Cette étape vérifie notamment :
+\begin{itemize}
+    \item la validité des Dockerfiles,
+    \item la réussite du build Next.js,
+    \item la compilation du backend.
+\end{itemize}
+
+\paragraph{4. Versioning et déploiement automatisé}
+Lorsqu’un commit est fusionné dans la branche \texttt{main}, GitHub Actions déclenche automatiquement :
+\begin{itemize}
+    \item la création d’un tag de version (par exemple \texttt{v1.4.0}),
+    \item la construction des images Docker associées,
+    \item leur publication dans un registre d’images (Docker Hub ou GitHub Container Registry),
+    \item la préparation du déploiement sur l’environnement de production.
+\end{itemize}
+
+Ce processus garantit que seules les versions validées et traçables atteignent les serveurs.
+
+\subsection{Bénéfices pour le projet}
+
+\begin{itemize}
+    \item \textbf{Fiabilité accrue} : chaque livraison est vérifiée automatiquement, réduisant les erreurs humaines.
+    \item \textbf{Cycle de développement accéléré} : le temps passé à valider et tester manuellement est considérablement réduit.
+    \item \textbf{Transparence totale} : chaque étape (tests, builds, déploiements) est archivée dans GitHub.
+    \item \textbf{Alignement avec les standards professionnels} : l'utilisation d’un pipeline CI/CD démontre une maîtrise des pratiques DevOps attendues dans le cadre du titre CDA.
+    \item \textbf{Préparation à la montée en charge} : le pipeline permet d’enchaîner les releases rapidement, en toute sécurité.
+\end{itemize}
+
 
 \section{Documentation et monitoring}
 
-La documentation technique couvre l'API avec Swagger/OpenAPI, les procédures opérationnelles dans un runbook, et le monitoring avec des dashboards temps réel. Les logs structurés facilitent le debugging et l'analyse des performances. Les alertes automatiques notifient l'équipe en cas d'anomalie.
+Une documentation claire et un système de monitoring fiable sont indispensables pour garantir la maintenabilité, la transparence et la stabilité de \textit{Diving O Club}. Ces deux aspects complètent la containerisation et le pipeline CI/CD en offrant une visibilité complète sur l’état de la plateforme ainsi qu’une compréhension partagée du fonctionnement interne de l’application. Ils permettent également d’anticiper les erreurs, de faciliter l’arrivée de nouveaux contributeurs et d’assurer le contrôle qualité demandé dans le cadre du titre CDA.
 
-Le monitoring couvre les métriques applicatives (latence, débit, erreurs) et infrastructure (CPU, mémoire, disque). Les dashboards Grafana visualisent ces métriques pour faciliter la surveillance et l'analyse des tendances.
+\subsection{Documentation du projet}
 
-\begin{exemple}
-\textbf{Documentation API Swagger :}
-\begin{lstlisting}[language=yaml]
-openapi: 3.0.0
-info:
-  title: Project Management API
-  version: 1.0.0
+La documentation du projet couvre à la fois l’usage fonctionnel de l’application et les aspects techniques nécessaires au développement, au déploiement et à la maintenance.
 
-paths:
-  /projects:
-    get:
-      summary: Liste des projets
-      parameters:
-        - name: page
-          in: query
-          schema:
-            type: integer
-            default: 1
-      responses:
-        '200':
-          description: Liste des projets
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: array
-                    items:
-                      $ref: '\#/components/schemas/Project'
-    post:
-      summary: Créer un projet
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '\#/components/schemas/ProjectInput'
-      responses:
-        '201':
-          description: Projet créé
+\paragraph{Documentation fonctionnelle}
+Elle présente le parcours utilisateur, les fonctionnalités clés (gestion des membres, inscriptions, certificats médicaux, événements, paiements, etc.) ainsi que les règles métier associées. Cette documentation facilite la compréhension du produit par les membres du club pilote, les encadrants, ainsi que par les utilisateurs finaux.
 
-components:
-  schemas:
-    Project:
-      type: object
-      properties:
-        id: { type: string, format: uuid }
-        name: { type: string }
-        description: { type: string }
-        createdAt: { type: string, format: date-time }
-    ProjectInput:
-      type: object
-      required: [name]
-      properties:
-        name: { type: string, minLength: 1 }
-        description: { type: string }
-\end{lstlisting}
-\end{exemple}
-
-\begin{exemple}
-\textbf{Runbook opérationnel (1/3) :}
-\begin{lstlisting}[language=markdown]
-# Runbook - Project Management Application
-
-## Procédures de démarrage
-
-### Démarrage de l'application
-```bash
-# Environnement de développement
-docker-compose up -d
-
-# Environnement de production
-docker-compose -f docker-compose.prod.yml up -d
-```
-
-### Vérification de santé
-```bash
-curl -f http://localhost:3000/health
-```
-\end{lstlisting}
-\end{exemple}
-
-\begin{exemple}
-\textbf{Runbook opérationnel (2/3) :}
-\begin{lstlisting}[language=markdown]
-## Procédures de maintenance
-
-### Sauvegarde des données
-```bash
-# PostgreSQL
-pg_dump -h localhost -U user projectdb > backup_$(date +%Y%m%d).sql
-
-# MongoDB
-mongodump --host localhost:27017 --db projectlogs --out backup_mongo_$(date +%Y%m%d)
-```
-
-### Mise à jour de l'application
-```bash
-# Pull de la nouvelle image
-docker-compose pull
-
-# Redémarrage avec la nouvelle image
-docker-compose up -d
-```
-\end{lstlisting}
-\end{exemple}
-
-\begin{exemple}
-\textbf{Configuration de monitoring :}
-\begin{lstlisting}[language=yaml]
-\# docker-compose.monitoring.yml
-version: '3.8'
-
-services:
-  prometheus:
-    image: prom/prometheus
-    ports:
-      - "9090:9090"
-    volumes:
-      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/etc/prometheus/console_libraries'
-      - '--web.console.templates=/etc/prometheus/consoles'
-
-  grafana:
-    image: grafana/grafana
-    ports:
-      - "3001:3000"
-    environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-    volumes:
-      - grafana_data:/var/lib/grafana
-
-  node-exporter:
-    image: prom/node-exporter
-    ports:
-      - "9100:9100"
-    volumes:
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
-      - /:/rootfs:ro
-
-volumes:
-  grafana_data:
-\end{lstlisting}
-\end{exemple}
-
-\begin{conseil}
+\paragraph{Documentation technique}
+La documentation technique fournit une vision détaillée de l’architecture et des choix technologiques :
 \begin{itemize}
-    \item Documenter l'API avec OpenAPI/Swagger
-    \item Créer un runbook opérationnel complet
-    \item Implémenter un monitoring proactif
-    \item Configurer des alertes automatiques
-    \item Former l'équipe aux procédures opérationnelles
+    \item architecture 3 tiers (frontend, backend, base de données),
+    \item description des services (NestJS, Next.js, PostgreSQL, MongoDB),
+    \item conventions de développement,
+    \item gestion des environnements,
+    \item schémas UML, MCD, séquences et API REST,
+    \item procédures de déploiement et d’utilisation de Docker.
 \end{itemize}
-\end{conseil}
 
-\begin{jury}
+Elle inclut également la description des endpoints avec leurs paramètres, formats JSON et statuts HTTP. Cette documentation API facilite l’intégration avec d’autres services, notamment HelloAsso dans les futures versions.
+
+\paragraph{Documentation automatisée}
+Le backend NestJS utilise un système de génération automatique de documentation à l’aide de Swagger/OpenAPI. Chaque modification apportée aux contrôleurs ou DTOs met automatiquement à jour la documentation interactive de l’API. Cela garantit :
 \begin{itemize}
-    \item Votre API est-elle documentée ?
-    \item Avez-vous un runbook opérationnel ?
-    \item Comment surveillez-vous votre application ?
-    \item Vos alertes sont-elles configurées ?
-    \item L'équipe connaît-elle les procédures d'urgence ?
+    \item une documentation toujours synchronisée avec le code,
+    \item une meilleure communication entre développeurs,
+    \item des tests manuels simplifiés via l’interface Swagger.
 \end{itemize}
-\end{jury}
+
+\subsection{Monitoring et suivi de l’application}
+
+Le monitoring permet d’observer en temps réel la santé du système, la performance des services et les comportements anormaux. Pour \textit{Diving O Club}, plusieurs niveaux de surveillance ont été mis en place.
+
+\paragraph{Centralisation des logs}
+Les logs techniques sont stockés dans MongoDB, séparée de PostgreSQL. Cette approche permet :
+\begin{itemize}
+    \item de conserver un historique complet des événements back-end,
+    \item d’analyser les erreurs, temps de réponse et anomalies,
+    \item de faciliter le débogage et la compréhension du comportement applicatif.
+\end{itemize}
+
+Des logs sont générés pour :
+\begin{itemize}
+    \item les actions critiques (connexion, création d’événement, paiement, document médical),
+    \item les erreurs de validation ou de base de données,
+    \item les performances des services,
+    \item la consommation mémoire et CPU des conteneurs.
+\end{itemize}
+
+\paragraph{Monitoring des performances}
+Des outils comme \textbf{Lighthouse} (performance frontend) et \textbf{Wave} (accessibilité) sont utilisés pour mesurer :
+\begin{itemize}
+    \item le temps de chargement du frontend,
+    \item la performance mobile, essentielle pour une PWA,
+    \item l’accessibilité générale pour les utilisateurs,
+    \item les best practices SEO et PWAs.
+\end{itemize}
+
+Les résultats Lighthouse permettent d’ajuster la configuration Next.js, réduire la taille des bundles ou optimiser les images.
+
+\paragraph{Surveillance de l’infrastructure}
+Dans le cadre du déploiement conteneurisé, l'état des services Docker est suivi via :
+\begin{itemize}
+    \item l’inspection de l’usage CPU/mémoire,
+    \item la vérification des volumes persistants,
+    \item la surveillance du réseau entre les services.
+\end{itemize}
+
+Ce suivi garantit que la plateforme reste stable même pendant les périodes de forte activité (inscriptions, renouvellement d’adhésions, événements clubs).
+
+\subsection{Bénéfices pour la maintenance et l’évolution}
+
+\begin{itemize}
+    \item \textbf{Réduction du temps de résolution des bugs} : les logs centralisés permettent d’identifier rapidement la cause d'un problème.
+    \item \textbf{Meilleure qualité produit} : Lighthouse et Wave fournissent des axes d’amélioration concrets pour l’UX, la performance et l’accessibilité.
+    \item \textbf{Standardisation du travail d’équipe} : la documentation technique partagée facilite la contribution de nouveaux développeurs.
+    \item \textbf{Préparation aux futures versions} : une base documentée et monitorée simplifie l’intégration de nouvelles fonctionnalités (multi-tenant, dashboard avancé, statistiques, etc.).
+    \item \textbf{Conformité aux bonnes pratiques du titre CDA} : le projet démontre une démarche complète de qualité logicielle, de supervision et de documentation.
+\end{itemize}
+
 
 \section{Liens utiles}
 
