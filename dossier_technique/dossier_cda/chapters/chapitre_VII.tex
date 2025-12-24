@@ -1,422 +1,596 @@
 \chapter{Tests et qualité logicielle}
 
+Ce chapitre présente la stratégie globale de tests mise en place pour assurer la fiabilité, la performance et la qualité du projet \textit{Diving O Club}.  
+La couverture fonctionnelle repose sur une pyramide de tests équilibrée : une base solide de tests unitaires pour valider la logique métier, des tests d'intégration pour vérifier les interactions entre les différents modules de l'application, et des tests end-to-end pour garantir le bon fonctionnement des parcours utilisateurs clés. Cette organisation permet d’assurer une couverture élevée tout en optimisant le temps d’exécution.
+
+Les tests de performance mesurent la latence (P95) et la capacité de l'application à supporter la charge, tandis que les tests de sécurité automatisés identifient les vulnérabilités courantes. Enfin, la qualité du code est suivie en continu grâce à SonarQube, afin de maintenir un niveau de qualité homogène et maîtrisé tout au long du cycle de développement.
+
 \section{Stratégie de tests}
 
-La stratégie de tests suit la pyramide de tests avec une base solide de tests unitaires, des tests d'intégration pour valider les interactions entre composants, et des tests end-to-end pour vérifier les parcours utilisateur complets. Cette approche garantit une couverture de code élevée tout en optimisant le temps d'exécution des tests.
+La stratégie de tests de \textit{Diving O Club} s’appuie sur le modèle de la pyramide de tests,
+un standard reconnu permettant d’assurer une qualité maximale tout en maîtrisant les coûts
+d’exécution.  
+Ce modèle hiérarchise les tests selon leur rapidité, leur fiabilité et leur portée :
 
-Les tests de performance mesurent la latence P95 et le débit de l'application sous charge. Les tests de sécurité automatisés détectent les vulnérabilités communes. La qualité du code est surveillée avec SonarQube pour maintenir un niveau de qualité constant.
+\begin{itemize}
+    \item \textbf{Tests unitaires} : nombreux, rapides, automatisables, ils forment la base du système.
+    \item \textbf{Tests d'intégration} : moins nombreux, ils valident la cohérence entre plusieurs modules.
+    \item \textbf{Tests End-to-End (E2E)} : rares mais essentiels, couvrant des scénarios complets utilisateurs.
+\end{itemize}
 
-\begin{exemple}
 \textbf{Pyramide de tests :}
 \begin{verbatim}
+
                     +===================================+
                     |           TESTS E2E               |
-                    |        (Cypress/Playwright)       |
-                    |         Peu nombreux, lents       |
-                    |         Couverture globale        |
+                    |            Playwright             |
+                    |      Peu nombreux, plus lents     |
+                    |   Valident les parcours complets  |
                     +===================================+
-                              |
-                              |
+                    |         TESTS D’INTÉGRATION       |
+                    |         Jest + Supertest          |
+                    |  Vérif. API / Auth / DB / Roles   |
                     +===================================+
-                    |        TESTS D'INTEGRATION        |
-                    |        (Jest/Supertest)           |
-                    |         Nombre modere             |
-                    |         Interactions composants   |
+                    |           TESTS UNITAIRES         |
+                    |              Jest                 |
+                    |   Très nombreux, très rapides     |
+                    |   Cœur logique du projet          |
                     +===================================+
-                              |
-                              |
-                    +===================================+
-                    |         TESTS UNITAIRES           |
-                    |            (Jest)                 |
-                    |         Nombreux, rapides          |
-                    |         Couverture detaillee       |
-                    +===================================+
+
 \end{verbatim}
 
-\begin{exemple}
-\textbf{Exemple de test unitaire (1/2) :}
-\begin{lstlisting}[language=JavaScript]
-// Test unitaire pour le service de projet
-describe('ProjectService', () => {
-  let projectService;
-  let mockRepository;
+Cette approche garantit un niveau élevé de qualité tout en permettant d’identifier les erreurs
+le plus tôt possible dans le cycle de développement.
+
+% =====================================================================
+%                    7.1.1 TESTS UNITAIRES
+% =====================================================================
+
+\subsection{Tests unitaires}
+
+Les tests unitaires constituent la base de la pyramide.  
+Ils vérifient de manière isolée le comportement des services, helpers, pipes ou règles métier
+du backend NestJS. Ils permettent de détecter rapidement des régressions dans la logique
+applicative.
+
+\subsubsection*{Pourquoi réaliser des tests unitaires ?}
+
+\begin{itemize}
+    \item \textbf{Rapidité} : ils s’exécutent en quelques millisecondes.
+    \item \textbf{Fiabilité} : ils valident les règles métier isolées de toute dépendance externe.
+    \item \textbf{Détection précoce} : la majorité des erreurs viennent d’une mauvaise logique métier.
+    \item \textbf{Sécurité évolutive} : ils évitent que des modifications futures cassent des fonctionnalités stables.
+\end{itemize}
+
+\subsubsection*{Valeur ajoutée des tests unitaires}
+
+\begin{itemize}
+    \item Stabilisation des règles propres au projet multi-tenant.
+    \item Vérification des comportements critiques (calculs, validations, permissions).
+    \item Réduction des temps de debugging.
+\end{itemize}
+
+% ------------------- Exemple 1 ---------------------
+
+\subsubsection*{Exemple 1 : filtrage des clubs visibles dans la recherche}
+
+\begin{lstlisting}[language=JavaScript, caption={Test unitaire : filtrage des clubs validés pour la recherche}, label={lst:unit-clubs-search}]
+import { ClubsService } from './clubs.service';
+
+describe('ClubsService - searchPublicClubs', () => {
+  let service;
+  const fakeRepo = { searchByQuery: jest.fn() };
 
   beforeEach(() => {
-    mockRepository = {
-      create: jest.fn(),
-      findById: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn()
-    };
-    projectService = new ProjectService(mockRepository);
+    service = new ClubsService(fakeRepo);
   });
-\end{lstlisting}
-\end{exemple}
 
-\begin{exemple}
-\textbf{Exemple de test unitaire (2/2) :}
-\begin{lstlisting}[language=JavaScript]
-  describe('createProject', () => {
-    it('should create a project with valid data', async () => {
-      // Arrange
-      const projectData = {
-        name: 'Test Project',
-        description: 'Test Description',
-        userId: 'user123'
-      };
-      const expectedProject = { id: 'proj123', ...projectData };
-      mockRepository.create.mockResolvedValue(expectedProject);
+  it('retourne uniquement les clubs VALIDATED correspondant à la recherche', async () => {
+    fakeRepo.searchByQuery.mockResolvedValueOnce([
+      { id: 1, name: 'Aquaclub21', city: 'Dijon', status: 'VALIDATED' },
+      { id: 2, name: 'Test Suba', city: 'Dijon', status: 'PENDING_VALIDATION' },
+    ]);
 
-      // Act
-      const result = await projectService.createProject(projectData);
+    const result = await service.searchPublicClubs('Dijon');
 
-      // Assert
-      expect(mockRepository.create).toHaveBeenCalledWith(projectData);
-      expect(result).toEqual(expectedProject);
-    });
-
-    it('should throw error for invalid project data', async () => {
-      // Arrange
-      const invalidData = { name: '' }; // Nom vide
-
-      // Act & Assert
-      await expect(projectService.createProject(invalidData))
-        .rejects.toThrow('Le nom du projet est requis');
-    });
+    expect(result).toHaveLength(1);
+    expect(result[0].name).toBe('Aquaclub21');
+    expect(result[0].status).toBe('VALIDATED');
   });
 });
 \end{lstlisting}
-\end{exemple}
 
-\textbf{Exemple de test d'intégration :}
-\begin{lstlisting}[language=JavaScript]
-// Test d'intégration pour l'API
-describe('Project API Integration', () => {
+
+% ------------------- Exemple 2 ---------------------
+
+\subsubsection*{Exemple 2 : vérification des règles d'inscription à un événement}
+
+\begin{lstlisting}[language=JavaScript, caption={Test unitaire : règles métier d'inscription à un événement}, label={lst:unit-can-register}]
+import { EventsService } from './events.service';
+
+describe('EventsService - canUserRegisterToEvent', () => {
+  let service;
+
+  beforeEach(() => {
+    service = new EventsService();
+  });
+
+  it('retourne false si l événement est complet', () => {
+    const user = { hasValidLicense: true, hasValidMedicalCertificate: true };
+    const event = { capacity: 10, registeredCount: 10 };
+
+    const result = service.canUserRegisterToEvent(user, event);
+
+    expect(result).toBe(false);
+  });
+
+  it('retourne true si toutes les conditions sont remplies', () => {
+    const user = { hasValidLicense: true, hasValidMedicalCertificate: true };
+    const event = { capacity: 10, registeredCount: 5 };
+
+    const result = service.canUserRegisterToEvent(user, event);
+
+    expect(result).toBe(true);
+  });
+});
+\end{lstlisting}
+
+Les tests unitaires représentent plus de 70\% de la stratégie de tests du projet.
+
+% =====================================================================
+%                    7.1.2 TESTS D’INTEGRATION
+% =====================================================================
+
+\subsection{Tests d’intégration}
+
+Les tests d’intégration valident l’interaction entre plusieurs composants NestJS :
+contrôleurs, services, modules, base de données, validation, guards, etc.
+
+\subsubsection*{Pourquoi réaliser des tests d’intégration ?}
+
+\begin{itemize}
+    \item Vérifier que l’API fonctionne réellement (pas seulement la logique interne).
+    \item Tester l’authentification JWT et la gestion des rôles.
+    \item Vérifier l’interaction entre NestJS, Prisma et PostgreSQL.
+    \item Détecter des erreurs impossibles à identifier avec de simples tests unitaires.
+\end{itemize}
+
+\subsubsection*{Valeur ajoutée des tests d'intégration}
+
+\begin{itemize}
+    \item Validation réaliste des endpoints.
+    \item Test des modules tels qu’ils seront utilisés en production.
+    \item Couverture des dépendances entre services.
+\end{itemize}
+
+% ------------------- Exemple ---------------------
+
+\subsubsection*{Exemple 1 : test d'intégration de la création d'un club en attente}
+
+\begin{lstlisting}[language=JavaScript, caption={Test d'intégration : proposition d'un club en statut PENDING\_VALIDATION}, label={lst:int-propose-club}]
+import { INestApplication } from '@nestjs/common';
+import { Test } from '@nestjs/testing';
+import * as request from 'supertest';
+import { AppModule } from '../src/app.module';
+
+describe('ClubsController (integration)', () => {
   let app;
-  let authToken;
 
   beforeAll(async () => {
-    app = await createTestApp();
-    authToken = await getTestAuthToken();
+    const moduleRef = await Test.createTestingModule({
+      imports: [AppModule],
+    }).compile();
+
+    app = moduleRef.createNestApplication();
+    await app.init();
   });
 
-  describe('POST /api/projects', () => {
-    it('should create a project with authentication', async () => {
-      const projectData = {
-        name: 'Integration Test Project',
-        description: 'Test Description'
-      };
+  afterAll(async () => app.close());
 
-      const response = await request(app)
-        .post('/api/projects')
-        .set('Authorization', `Bearer ${authToken}`)
-        .send(projectData)
-        .expect(201);
+  it('/clubs/propose crée un club en statut PENDING_VALIDATION', async () => {
+    const response = await request(app.getHttpServer())
+      .post('/clubs/propose')
+      .send({
+        name: 'Club Test CDA',
+        city: 'Dijon',
+        email: 'contact@club-test.fr',
+      })
+      .expect(201);
 
-      expect(response.body).toMatchObject({
-        id: expect.any(String),
-        name: projectData.name,
-        description: projectData.description
-      });
-    });
+    expect(response.body.id).toBeDefined();
+    expect(response.body.status).toBe('PENDING_VALIDATION');
+  });
+});
+\end{lstlisting}
 
-    it('should reject request without authentication', async () => {
-      const projectData = { name: 'Test Project' };
+\subsubsection*{Exemple 2 : test d'intégration de la recherche de clubs}
 
-      await request(app)
-        .post('/api/projects')
-        .send(projectData)
-        .expect(401);
+\begin{lstlisting}[language=JavaScript, caption={Test d'intégration : recherche de clubs publics}, label={lst:int-search-clubs}]
+import { INestApplication } from '@nestjs/common';
+import { Test } from '@nestjs/testing';
+import * as request from 'supertest';
+import { AppModule } from '../src/app.module';
+
+describe('Public clubs search (integration)', () => {
+  let app;
+
+  beforeAll(async () => {
+    const moduleRef = await Test.createTestingModule({
+      imports: [AppModule],
+    }).compile();
+
+    app = moduleRef.createNestApplication();
+    await app.init();
+  });
+
+  afterAll(async () => app.close());
+
+  it('/clubs/search ne retourne que des clubs VALIDATED', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/clubs/search')
+      .query({ query: 'Dijon' })
+      .expect(200);
+
+    expect(Array.isArray(response.body)).toBe(true);
+    response.body.forEach((club) => {
+      expect(club.status).toBe('VALIDATED');
     });
   });
 });
 \end{lstlisting}
-\end{exemple}
 
-\begin{conseil}
-\begin{itemize}
-    \item Implémenter la pyramide de tests (unitaires, intégration, E2E)
-    \item Maintenir une couverture de code élevée (>80\%)
-    \item Automatiser l'exécution des tests dans la CI/CD
-    \item Tester les cas d'erreur et les cas limites
-    \item Documenter les stratégies de test et les conventions
-\end{itemize}
-\end{conseil}
 
-\begin{jury}
+Ces tests couvrent environ 20\% de la stratégie globale.
+
+% =====================================================================
+%                    7.1.3 TESTS END-TO-END (E2E)
+% =====================================================================
+
+\subsection{Tests End-to-End (E2E)}
+
+Les tests End-to-End valident les parcours critiques des utilisateurs à travers toute la
+plateforme.  
+Ils simulent un vrai utilisateur interagissant via le navigateur (Next.js) avec le backend NestJS.
+
+\subsubsection*{Pourquoi réaliser des tests E2E ?}
+
 \begin{itemize}
-    \item Quelle est votre stratégie de tests ?
-    \item Quelle est votre couverture de code ?
-    \item Comment testez-vous les cas d'erreur ?
-    \item Vos tests sont-ils automatisés ?
-    \item Comment mesurez-vous la qualité de vos tests ?
+    \item Reproduire des scénarios réels (connexion, ajout de plongée, navigation).
+    \item S’assurer que front-end, back-end et base de données fonctionnent ensemble.
+    \item Valider les parcours critiques avant mise en production.
 \end{itemize}
-\end{jury}
+
+\subsubsection*{Valeur ajoutée des tests E2E}
+
+\begin{itemize}
+    \item Détection des erreurs visibles par les utilisateurs.
+    \item Validation de la cohérence globale du système.
+    \item Réduction des bugs en production.
+\end{itemize}
+
+% ------------------- Exemple ---------------------
+
+\subsubsection*{Exemple 1 : scénario E2E de recherche et affichage d'un club}
+
+\begin{lstlisting}[language=JavaScript, caption={Test E2E : connexion et recherche d'un club}, label={lst:e2e-search-club}]
+import { test, expect } from '@playwright/test';
+
+test('un utilisateur peut se connecter et afficher la page d un club', async ({ page }) => {
+  await page.goto('http://localhost:3000');
+
+  // Connexion
+  await page.getByRole('link', { name: 'Connexion' }).click();
+  await page.getByLabel('Email').fill('user@test.fr');
+  await page.getByLabel('Mot de passe').fill('Password123!');
+  await page.getByRole('button', { name: 'Se connecter' }).click();
+
+  await expect(page.getByText('Bienvenue')).toBeVisible();
+
+  // Recherche d'un club
+  await page.getByPlaceholder('Rechercher un club').fill('Aquaclub21');
+  await page.getByRole('button', { name: 'Rechercher' }).click();
+
+  // Accès à la page du club
+  await page.getByRole('link', { name: 'Aquaclub21' }).click();
+  await expect(page.getByText('Aquaclub21 - Page du club')).toBeVisible();
+});
+\end{lstlisting}
+
+\subsubsection*{Exemple 2 : scénario E2E de validation d'un club et visibilité publique}
+
+\begin{lstlisting}[language=JavaScript, caption={Test E2E : validation d'un club côté back office, visibilité côté front}, label={lst:e2e-validate-club}]
+import { test, expect } from '@playwright/test';
+
+test('un admin valide un club qui devient visible dans la recherche publique', async ({ page }) => {
+  // Connexion admin technique
+  await page.goto('http://localhost:3000/admin');
+  await page.getByLabel('Email').fill('admin-tech@divingoclub.fr');
+  await page.getByLabel('Mot de passe').fill('AdminPassword123!');
+  await page.getByRole('button', { name: 'Se connecter' }).click();
+
+  await expect(page.getByText('Back Office - Clubs à valider')).toBeVisible();
+
+  // Validation du club en attente
+  await page.getByRole('row', { name: /Club Test CDA/ }).getByRole('button', { name: 'Valider' }).click();
+  await expect(page.getByText('Club validé avec succès')).toBeVisible();
+
+  // Vérification côté front public
+  await page.goto('http://localhost:3000');
+  await page.getByPlaceholder('Rechercher un club').fill('Club Test CDA');
+  await page.getByRole('button', { name: 'Rechercher' }).click();
+
+  await expect(page.getByRole('link', { name: 'Club Test CDA' })).toBeVisible();
+});
+\end{lstlisting}
+
+Les tests E2E représentent environ 10\% du total mais couvrent les scénarios les plus critiques.
+
+% =====================================================================
+%                    CONCLUSION
+% =====================================================================
+
+\subsection*{Conclusion}
+
+La pyramide de tests mise en place pour \textit{Diving O Club} garantit une
+qualité élevée, une détection rapide des erreurs et une validation solide des parcours
+utilisateurs.  
+Cette stratégie est adaptée à un projet multi-tenant complexe et assure une stabilité
+sur le long terme.
+
 
 \section{Tests de performance}
 
-Les tests de performance utilisent k6 pour simuler des charges réalistes et mesurer les métriques clés : latence P95, débit, et taux d'erreur. Les scénarios de test couvrent les parcours utilisateur critiques et les pics de charge prévus. L'optimisation s'appuie sur l'analyse des goulots d'étranglement identifiés.
+Les tests de performance ont pour objectif de garantir que l'application \textit{Diving O Club}
+reste stable, rapide et réactive, même sous une charge importante. Ils permettent d’identifier les
+goulots d’étranglement, de valider les objectifs de latence et de s'assurer que les fonctionnalités
+critiques restent accessibles pour les utilisateurs des clubs, même en période de forte activité
+(campagnes d’adhésion, inscriptions aux événements, etc.).
 
-Le monitoring en production surveille les métriques de performance en temps réel avec des alertes automatiques. Les tests de charge réguliers valident la capacité de l'application à supporter la croissance du trafic.
+Les métriques principales utilisées sont :
+\begin{itemize}
+    \item \textbf{Latence P95} : 95\% des requêtes doivent répondre en dessous d’un seuil défini.
+    \item \textbf{Débit (throughput)} : nombre de requêtes traitées par seconde.
+    \item \textbf{Taux d’erreurs} : proportion de requêtes échouées sous charge.
+\end{itemize}
 
-\begin{exemple}
-\textbf{Script de test de performance k6 (1/2) :}
-\begin{lstlisting}[language=JavaScript]
+Ces tests sont réalisés avec l’outil \textbf{k6}, adapté aux tests de charge sur API REST
+et facilement intégrable dans une pipeline CI/CD.
+
+\subsection{Scénarios de performance testés}
+
+Les scénarios sont choisis en fonction des fonctionnalités critiques de la V1 :
+
+\begin{itemize}
+    \item \textbf{Authentification} : pic de connexions simultanées en période d’ouverture des inscriptions.
+    \item \textbf{Recherche de clubs} : endpoint fortement sollicité par les nouveaux utilisateurs.
+    \item \textbf{Affichage de la page publique d'un club} : nombre élevé de consultations.
+    \item \textbf{Validation d'un club côté Back Office} : opération sensible nécessitant une réactivité stable.
+\end{itemize}
+
+Chaque scénario est testé sous une montée progressive de charge afin d’observer :
+\begin{itemize}
+    \item le comportement nominal de l’API,
+    \item la dégradation éventuelle sous charge,
+    \item le seuil à partir duquel l’application commence à ralentir.
+\end{itemize}
+
+\subsection{Exemple de script de test de performance}
+
+L’exemple suivant illustre un test de montée en charge sur l’endpoint de recherche des clubs,
+réalisé avec \texttt{k6}. Le test vérifie notamment que 95\% des requêtes répondent en moins de 300~ms.
+
+\begin{lstlisting}[language=JavaScript, caption={Script k6 : test de charge sur la recherche de clubs}, label={lst:k6-search}]
 import http from 'k6/http';
 import { check, sleep } from 'k6';
-import { Rate } from 'k6/metrics';
 
-// Métriques personnalisées
-const errorRate = new Rate('errors');
-
-export let options = {
+export const options = {
   stages: [
-    { duration: '2m', target: 10 }, // Montée en charge
-    { duration: '5m', target: 50 }, // Charge normale
-    { duration: '2m', target: 100 }, // Pic de charge
-    { duration: '5m', target: 50 },  // Retour à la normale
-    { duration: '2m', target: 0 },   // Descente
+    { duration: '20s', target: 50 },  // montée progressive jusqu'à 50 utilisateurs
+    { duration: '30s', target: 50 },  // plateau
+    { duration: '10s', target: 0 },   // descente
   ],
   thresholds: {
-    http_req_duration: ['p(95)<500'], // 95% des requêtes < 500ms
-    http_req_failed: ['rate<0.1'],    // Moins de 10% d'erreurs
-    errors: ['rate<0.1']
-  }
+    http_req_failed: ['rate<0.01'],     // moins de 1% d'erreurs
+    http_req_duration: ['p(95)<300'],   // P95 inférieur à 300ms
+  },
 };
-\end{lstlisting}
-\end{exemple}
 
-\begin{exemple}
-\textbf{Script de test de performance k6 (2/2) :}
-\begin{lstlisting}[language=JavaScript]
-export default function() {
-  // Test de connexion
-  let loginResponse = http.post('http://localhost:3000/api/auth/login', {
-    email: 'test@example.com',
-    password: 'password123'
+export default function () {
+  const res = http.get('https://api.divingoclub.fr/clubs/search?query=Dijon');
+
+  check(res, {
+    'status 200': (r) => r.status === 200,
+    'P95 OK':     (r) => r.timings.duration < 300,
   });
-
-  check(loginResponse, {
-    'login status is 200': (r) => r.status === 200,
-    'login response time < 200ms': (r) => r.timings.duration < 200,
-  }) || errorRate.add(1);
-
-  if (loginResponse.status === 200) {
-    const token = loginResponse.json('token');
-
-    // Test de création de projet
-    let projectResponse = http.post('http://localhost:3000/api/projects',
-      JSON.stringify({
-        name: `Test Project ${__VU}`,
-        description: 'Performance test project'
-      }),
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      }
-    );
-
-    check(projectResponse, {
-      'project creation status is 201': (r) => r.status === 201,
-      'project creation time < 300ms': (r) => r.timings.duration < 300,
-    }) || errorRate.add(1);
-  }
 
   sleep(1);
 }
 \end{lstlisting}
-\end{exemple}
 
-\begin{exemple}
-\textbf{Résultats de performance :}
-\begin{center}
-\begin{tabular}{|l|l|l|l|}
-\hline
-\textbf{Métrique} & \textbf{Objectif} & \textbf{Mesuré} & \textbf{Statut} \\
-\hline
-Latence P95 & < 500ms & 320ms & \mycheckmark \\
-Débit & > 100 req/s & 150 req/s & \mycheckmark \\
-Taux d'erreur & < 1\% & 0.2\% & \mycheckmark \\
-CPU & < 80\% & 65\% & \mycheckmark \\
-Mémoire & < 2GB & 1.2GB & \mycheckmark \\
-\hline
-\end{tabular}
-\end{center}
-\end{exemple}
+\subsection{Interprétation des résultats}
 
-\begin{conseil}
+À la suite de l’exécution du script, plusieurs métriques essentielles sont analysées :
+
 \begin{itemize}
-    \item Définir des objectifs de performance mesurables
-    \item Utiliser k6 pour les tests de charge automatisés
-    \item Surveiller les métriques en production
-    \item Optimiser les goulots d'étranglement identifiés
-    \item Planifier des tests de performance réguliers
+    \item \textbf{P95 stable} : si le P95 reste en dessous de l’objectif (ex.~300~ms), l’expérience utilisateur est considérée comme fluide.
+    \item \textbf{Débit constant} : un throughput régulier indique que la plateforme absorbe correctement la charge.
+    \item \textbf{Taux d’erreur faible} : un taux inférieur à 1\% garantit la fiabilité de l’API.
 \end{itemize}
-\end{conseil}
 
-\begin{jury}
+Ces mesures permettent d’anticiper les montées en charge en conditions réelles, notamment lors
+des ouvertures d'inscriptions, des campagnes d’adhésion ou des pics d’activité saisonniers.
+
+\subsection{Analyse des performances front-end avec Lighthouse}
+
+En complément des tests de charge sur l’API, l’interface web de \textit{Diving O Club}
+est auditée à l’aide de \textbf{Lighthouse}, un outil automatisé intégré dans Chrome.
+Lighthouse évalue plusieurs dimensions essentielles à l’expérience utilisateur :
+
 \begin{itemize}
-    \item Quels sont vos objectifs de performance ?
-    \item Comment mesurez-vous les performances ?
-    \item Avez-vous identifié des goulots d'étranglement ?
-    \item Vos tests de charge sont-ils réalistes ?
-    \item Comment surveillez-vous les performances en production ?
+    \item \textbf{Performance} : temps de chargement, interactivité, Largest Contentful Paint (LCP).
+    \item \textbf{Accessibilité} : contraste, labels de formulaires, navigabilité clavier.
+    \item \textbf{SEO} : conformité aux bonnes pratiques de référencement.
+    \item \textbf{Best Practices} : sécurité front-end, gestion correcte des ressources.
 \end{itemize}
-\end{jury}
+
+Les pages testées incluent :
+\begin{itemize}
+    \item la page de recherche de clubs ;
+    \item la page publique d’un club ;
+    \item la page d’authentification.
+\end{itemize}
+
+Les objectifs définis pour la V1 sont :
+\begin{itemize}
+    \item \textbf{Performance > 80} ;
+    \item \textbf{Accessibilité > 90} ;
+    \item \textbf{LCP < 2,5~secondes}.
+\end{itemize}
+
+Lighthouse permet ainsi de garantir que l’application reste rapide et agréable, y compris
+sur mobile ou sur des connexions instables.
+
+\subsection{Tests d’accessibilité avec WAVE}
+
+L’accessibilité est également vérifiée à l’aide de \textbf{WAVE (Web Accessibility Evaluation Tools)},
+un outil spécialisé dans la détection des barrières rencontrées par les personnes présentant des handicaps.
+
+WAVE analyse notamment :
+\begin{itemize}
+    \item la présence de textes alternatifs sur les images ;
+    \item la bonne utilisation de la structure sémantique (titres, sections) ;
+    \item les contrastes et la lisibilité ;
+    \item la navigation au clavier ;
+    \item l’absence d’erreurs ARIA ;
+    \item la cohérence des champs de formulaires.
+\end{itemize}
+
+L'objectif est de garantir une application conforme aux recommandations \textbf{WCAG 2.1}
+et accessible à tous les membres et visiteurs des clubs de plongée.
+
+
+
 
 \section{Qualité du code avec SonarQube}
 
-SonarQube analyse automatiquement la qualité du code, détecte les bugs, les vulnérabilités de sécurité, et les code smells. L'intégration dans la CI/CD garantit que seuls les codes de qualité sont déployés. Les métriques de qualité (complexité cyclomatique, duplication, couverture) guident l'amélioration continue.
+La qualité du code est un élément fondamental dans la pérennité d’un projet à long terme
+comme \textit{Diving O Club}, qui doit rester maintenable, compréhensible et évolutif.
+Pour répondre à ces exigences, l’analyse statique du code est réalisée à l’aide de
+\textbf{SonarQube} (ou SonarCloud dans le cadre de l’intégration GitHub).
 
-Les règles de qualité sont configurées selon les standards de l'équipe et les bonnes pratiques de l'industrie. Les rapports de qualité facilitent la communication avec les parties prenantes et la prise de décision technique.
+SonarQube permet de détecter automatiquement les anomalies dans le code source, de mesurer
+la qualité globale du projet et de suivre son évolution au fil des versions.  
+L’objectif est d’éviter l’accumulation de dette technique, d’améliorer la lisibilité du code
+et de réduire les risques de bugs en production.
 
-Lighthouse mesure automatiquement les performances, l'accessibilité, les bonnes pratiques et le SEO des applications web. L'intégration dans la CI/CD permet de surveiller ces métriques à chaque déploiement et d'alerter en cas de régression.
+\subsection{Objectifs de l'analyse qualité}
 
-\begin{exemple}
-\textbf{Configuration SonarQube :}
-\begin{lstlisting}[language=yaml]
-# sonar-project.properties
-sonar.projectKey=project-management-app
-sonar.projectName=Project Management Application
-sonar.projectVersion=1.0
+L’utilisation de SonarQube poursuit plusieurs objectifs complémentaires :
 
-# Sources et tests
-sonar.sources=src
-sonar.tests=tests
-sonar.test.inclusions=tests/**/*.test.js
+\begin{itemize}
+    \item \textbf{Détection des bugs potentiels} : erreurs de logique, exceptions possibles, mauvaises pratiques.
+    \item \textbf{Détection des vulnérabilités} : injections, mauvaise gestion de l’authentification, données sensibles.
+    \item \textbf{Réduction des code smells} : complexité excessive, duplications, non-respect des standards.
+    \item \textbf{Suivi de la couverture de tests} : vérifier que les tests unitaires et d’intégration couvrent suffisamment le code.
+    \item \textbf{Gestion de la dette technique} : estimation du temps nécessaire pour corriger les problèmes détectés.
+\end{itemize}
 
-# Exclusions
-sonar.exclusions=node_modules/**,dist/**,coverage/**
+Ces analyses permettent d’assurer une base de code saine, facilitant le travail du développeur
+et la montée en compétence des futurs contributeurs.
 
-# Métriques de qualité
-sonar.javascript.lcov.reportPaths=coverage/lcov.info
-sonar.coverage.exclusions=tests/**,**/*.test.js
+\subsection{Métriques surveillées}
 
-# Règles de qualité
-sonar.qualitygate.wait=true
-sonar.qualitygate.timeout=300
-\end{lstlisting}
-\end{exemple}
+SonarQube fournit un ensemble d’indicateurs permettant d’évaluer objectivement la qualité du
+code :
 
-\begin{exemple}
-\textbf{Rapport de qualité SonarQube :}
-\begin{center}
-\begin{tabular}{|l|l|l|l|}
-\hline
-\textbf{Métrique} & \textbf{Objectif} & \textbf{Actuel} & \textbf{Statut} \\
-\hline
-Couverture de code & > 80\% & 85\% & \mycheckmark \\
-Duplication & < 3\% & 1.2\% & \mycheckmark \\
-Complexité cyclomatique & < 10 & 7.3 & \mycheckmark \\
-Maintenabilité & A & A & \mycheckmark \\
-Fiabilité & A & A & \mycheckmark \\
-Sécurité & A & A & \mycheckmark \\
-\hline
-\end{tabular}
-\end{center}
+\begin{itemize}
+    \item \textbf{Coverage} : pourcentage du code couvert par les tests automatisés.
+    \item \textbf{Bugs} : erreurs pouvant entraîner un comportement incorrect.
+    \item \textbf{Vulnérabilités} : failles de sécurité potentielles.
+    \item \textbf{Code Smells} : mauvaises pratiques impactant la maintenabilité.
+    \item \textbf{Duplication} : proportion de lignes de code dupliquées.
+    \item \textbf{Debt Ratio} : temps estimé pour corriger les problèmes détectés.
+\end{itemize}
 
-\textbf{Exemple de correction de code smell :}
-\begin{lstlisting}[language=JavaScript]
-// AVANT : Méthode trop longue
-const processUserData = (userData) => {
-  const validatedData = validateUserData(userData);
-  const processedData = transformUserData(validatedData);
-  const enrichedData = enrichWithExternalData(processedData);
-  const formattedData = formatForDatabase(enrichedData);
-  const savedData = saveToDatabase(formattedData);
-  const auditLog = createAuditLog(savedData);
-  const notification = sendNotification(auditLog);
-  return notification;
-};
+Pour la V1 de \textit{Diving O Club}, les objectifs qualitatifs sont les suivants :
 
-// APRÈS : Méthodes courtes et focalisées
-const processUserData = (userData) => {
-  const validatedData = validateUserData(userData);
-  const processedData = transformUserData(validatedData);
-  return saveUserData(processedData);
-};
+\begin{itemize}
+    \item \textbf{Couverture des tests supérieure à 70\%} ;
+    \item \textbf{Aucune vulnérabilité critique ou majeure} ;
+    \item \textbf{Taux de duplication inférieur à 3\%}.
+\end{itemize}
 
-const saveUserData = (data) => {
-  const enrichedData = enrichWithExternalData(data);
-  const formattedData = formatForDatabase(enrichedData);
-  const savedData = saveToDatabase(formattedData);
-  auditUserAction(savedData);
-  return savedData;
-};
-\end{lstlisting}
-\end{exemple}
+\subsection{Intégration dans la CI/CD}
 
-\begin{focusgithub}
-\textbf{Intégration SonarQube dans GitHub Actions :}
-\begin{lstlisting}[language=yaml]
-name: Quality Gate
-on: [push, pull_request]
+SonarQube est intégré directement dans la chaîne de développement via GitHub Actions.  
+À chaque pull request vers la branche \texttt{develop}, la pipeline effectue :
+
+\begin{enumerate}
+    \item l’installation des dépendances ;
+    \item l’exécution des tests unitaires et d’intégration (générant un rapport de couverture) ;
+    \item l’analyse du code par SonarQube ;
+    \item la publication d’un rapport détaillé dans l’interface SonarCloud.
+\end{enumerate}
+
+Si des problèmes critiques sont détectés (vulnérabilités, duplication importante, couverture
+insuffisante), la pull request peut être bloquée, garantissant ainsi un niveau de qualité homogène.
+
+\subsection{Exemple de pipeline CI GitHub}
+
+L’extrait suivant illustre une configuration simplifiée pour exécuter une analyse SonarCloud :
+
+\begin{lstlisting}[language=JavaScript, caption={Pipeline CI : analyse SonarCloud}, label={lst:ci-sonar}]
+name: CI Quality
+
+on:
+  pull_request:
+    branches: [ "develop" ]
 
 jobs:
-  quality:
+  sonar:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+    steps:
+      - uses: actions/checkout@v4
         with:
-          node-version: '18'
+          fetch-depth: 0
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
-      - name: Run tests
-        run: npm test -- --coverage
+      - name: Run tests with coverage
+        run: npm run test:coverage
 
-      - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@v1
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          projectKey: diving-o-club
+          organization: divingoclub
 \end{lstlisting}
 
-\textbf{Métriques de qualité GitHub :}
+\subsection{Conclusion}
+
+Grâce à SonarQube, la qualité du code de \textit{Diving O Club} est contrôlée en continu,
+permettant :
+
 \begin{itemize}
-    \item \textbf{Couverture :} 85\% (objectif: >80\%)
-    \item \textbf{Bugs :} 0 (objectif: 0)
-    \item \textbf{Vulnérabilités :} 0 (objectif: 0)
-    \item \textbf{Code smells :} 12 (objectif: <20)
-    \item \textbf{Duplication :} 1.2\% (objectif: <3\%)
+    \item une réduction progressive de la dette technique ;
+    \item une amélioration de la maintenabilité ;
+    \item une meilleure sécurité du code source ;
+    \item une fiabilité accrue avant chaque mise en production.
 \end{itemize}
 
-\textbf{Métriques Lighthouse :}
-\begin{itemize}
-    \item \textbf{Performance :} 92/100 (objectif: >90)
-    \item \textbf{Accessibilité :} 95/100 (objectif: >90)
-    \item \textbf{Best Practices :} 88/100 (objectif: >85)
-    \item \textbf{SEO :} 90/100 (objectif: >85)
-\end{itemize}
-\end{focusgithub}
+Cette démarche s’inscrit dans une vision de long terme et pose les bases d’un projet robuste,
+évolutif et durable.
 
-\begin{conseil}
-\begin{itemize}
-    \item Intégrer SonarQube dans votre pipeline CI/CD
-    \item Intégrer Lighthouse CI pour surveiller les performances web
-    \item Définir des seuils de qualité appropriés
-    \item Corriger les code smells et vulnérabilités détectés
-    \item Surveiller les métriques de qualité dans le temps
-    \item Former l'équipe aux bonnes pratiques de qualité
-\end{itemize}
-\end{conseil}
 
-\begin{jury}
-\begin{itemize}
-    \item Comment mesurez-vous la qualité de votre code ?
-    \item Quels sont vos scores Lighthouse pour les performances et l'accessibilité ?
-    \item Vos métriques de qualité sont-elles satisfaisantes ?
-    \item Comment gérez-vous les code smells détectés ?
-    \item Avez-vous intégré la qualité dans votre CI/CD ?
-    \item Comment améliorez-vous la qualité en continu ?
-\end{itemize}
-\end{jury}
 
 \section{Liens utiles}
 
