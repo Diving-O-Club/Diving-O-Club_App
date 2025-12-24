@@ -2,197 +2,180 @@
 
 \section{Veille technologique stack}
 
-La veille technologique couvre l'évolution des technologies utilisées dans le projet : React, Node.js, PostgreSQL, MongoDB, et Docker. Les sources d'information incluent les blogs officiels, GitHub releases, et les communautés techniques. Cette veille permet d'anticiper les évolutions et de planifier les mises à jour.
+La veille technologique constitue un élément essentiel pour assurer la pérennité et l’évolution de l’application \textit{Diving O Club}. Elle permet d’anticiper les changements dans les langages, frameworks, bases de données et outils DevOps utilisés dans le projet, afin de garantir que l’architecture reste moderne, sécurisée et performante.
 
-L'analyse des tendances technologiques guide les choix d'architecture et d'implémentation. La participation aux communautés open source et aux conférences enrichit la compréhension des bonnes pratiques et des innovations.
-
-\begin{exemple}
-\textbf{Sources de veille technologique :}
+Dans le cadre du projet, la veille répond à trois objectifs principaux :
 \begin{itemize}
-    \item \textbf{Frontend :} React Blog, Next.js Releases, TypeScript Roadmap
-    \item \textbf{Backend :} Node.js Releases, Express.js Updates, Prisma Changelog
-    \item \textbf{Bases de données :} PostgreSQL Release Notes, MongoDB Updates
-    \item \textbf{DevOps :} Docker Blog, Kubernetes Releases, GitHub Actions Updates
-    \item \textbf{Sécurité :} OWASP News, CVE Database, Security Advisories
+    \item \textbf{Assurer la compatibilité et le cycle de vie des technologies} (versions supportées, fin de support, migrations prévues).
+    \item \textbf{Identifier les améliorations de performance et de sécurité} apportées par les nouvelles versions.
+    \item \textbf{Détecter les vulnérabilités critiques} via les bulletins de sécurité et bases de CVE.
 \end{itemize}
 
-\textbf{Exemple de veille React :}
-\begin{verbatim}
-React 18.2.0 (Janvier 2024)
-+-- Nouvelles fonctionnalités
-|   +-- Concurrent Features stabilisées
-|   +-- Suspense amélioré
-|   +-- Server Components en production
-+-- Performances
-|   +-- Réduction de 15% du bundle size
-|   +-- Amélioration du rendu concurrent
-+-- Migration
-    +-- Breaking changes mineurs
-    +-- Guide de migration disponible
-\end{verbatim}
+La veille est menée de manière hebdomadaire à travers plusieurs sources fiables, organisées par couche du projet.
 
-\textbf{Impact sur le projet :}
+\subsection*{Frontend}
 \begin{itemize}
-    \item \textbf{React 18 :} Migration planifiée pour Q2 2024
-    \item \textbf{Node.js 20 :} Mise à jour pour les performances
-    \item \textbf{PostgreSQL 16 :} Nouvelles fonctionnalités JSON
-    \item \textbf{Docker Compose V2 :} Amélioration des performances
+    \item React et Next.js via leurs blogs officiels et GitHub Releases.
+    \item Tailwind CSS pour les évolutions de classes utilitaires, améliorations de performance et compatibilité SSR.
+    \item Suivi des tendances d’optimisation (RSC, Server Components, bundling).
 \end{itemize}
-\end{exemple}
 
-\begin{conseil}
+\subsection*{Backend}
 \begin{itemize}
-    \item Suivre les releases officielles des technologies utilisées
-    \item Participer aux communautés techniques (GitHub, Stack Overflow)
-    \item S'abonner aux newsletters et blogs spécialisés
-    \item Tester les nouvelles versions en environnement de développement
-    \item Documenter les impacts et planifier les migrations
+    \item NestJS (migration guides, changements d’API, évolutions de performance).
+    \item Node.js LTS (sécurité, performances V8, nouveaux modules).
+    \item Prisma ORM (nouvelles fonctionnalités SQL, optimisation des requêtes).
 \end{itemize}
-\end{conseil}
 
-\begin{jury}
+\subsection*{Base de données}
 \begin{itemize}
-    \item Quelles sources utilisez-vous pour votre veille ?
-    \item Comment identifiez-vous les technologies émergentes ?
-    \item Avez-vous planifié des mises à jour technologiques ?
-    \item Comment évaluez-vous l'impact des nouvelles versions ?
-    \item Votre veille influence-t-elle vos choix techniques ?
+    \item PostgreSQL (fonctionnalités JSON/SQL, indexation, améliorations du planner).
+    \item MongoDB (changements des pipelines d’agrégation, nouvelles stratégies de stockage).
 \end{itemize}
-\end{jury}
+
+\subsection*{DevOps et Infrastructure}
+\begin{itemize}
+    \item Docker et Docker Compose (changements de syntaxe, dépréciations).
+    \item GitHub Actions (nouvelles actions officielles, évolutions du moteur CI).
+    \item Suivi des bonnes pratiques liées à la containerisation et aux déploiements automatisés.
+\end{itemize}
+
+\subsection*{Sécurité}
+\begin{itemize}
+    \item OWASP (changements dans les Top 10, bonnes pratiques API et authentification).
+    \item CVE database pour les vulnérabilités sur Node.js, NestJS, Prisma, PostgreSQL, MongoDB.
+    \item Alertes GitHub Dependabot utilisées sur le repository du projet.
+\end{itemize}
+
+\subsection*{Impact direct sur le projet}
+La veille technologique menée durant le développement du projet \textit{Diving O Club} a conduit à plusieurs décisions :
+\begin{itemize}
+    \item Adoption de \textbf{React 18} et mise en place anticipée des Server Components pour optimiser le rendu.
+    \item Passage à \textbf{Node.js 20 LTS}, garantissant une meilleure stabilité et des performances accrues.
+    \item Utilisation de \textbf{Prisma} pour bénéficier des mises à jour fréquentes liées aux performances SQL.
+    \item Utilisation de \textbf{Docker Compose V2}, plus rapide et mieux intégré avec les workflows GitHub.
+    \item Suivi des alertes de sécurité via \textbf{Dependabot}, permettant la mise à jour proactive des dépendances.
+\end{itemize}
+
+Cette démarche garantit que l’application reste durable, maintenable et conforme aux standards actuels du développement web moderne.
+
 
 \section{Bonnes pratiques sécurité}
 
-La veille sécurité suit les recommandations OWASP, les CVE (Common Vulnerabilities and Exposures), et les advisories des éditeurs. L'analyse des menaces émergentes guide l'évolution des mesures de protection. Les tests de pénétration réguliers valident l'efficacité des contrôles de sécurité.
+La sécurité constitue un enjeu central pour l’application \textit{Diving O Club}, qui gère des données sensibles
+(membres, certificats médicaux, inscriptions à des événements, paiements, documents administratifs).
+La mise en place de bonnes pratiques de sécurité permet de protéger les utilisateurs, d’assurer la
+confidentialité des données et de réduire les risques d’attaque (injection, compromission de comptes,
+exploitation d’un service interne, etc.).
 
-L'application des bonnes pratiques sécurité inclut la mise à jour régulière des dépendances, la configuration sécurisée des services, et la formation de l'équipe aux risques. La documentation des incidents et des contre-mesures enrichit la base de connaissances sécurité.
+L’ensemble des pratiques présentées ci-dessous s’appuie sur les recommandations OWASP,
+les exigences du RGPD et les standards applicatifs modernes utilisés dans les architectures web.
 
-\begin{exemple}
-\textbf{Veille sécurité OWASP 2024 :}
+\subsection*{Sécurisation de l'authentification}
 \begin{itemize}
-    \item \textbf{A01 - Broken Access Control :} Nouveaux patterns d'attaque
-    \item \textbf{A02 - Cryptographic Failures :} Vulnérabilités des algorithmes
-    \item \textbf{A03 - Injection :} Évolution des techniques d'injection
-    \item \textbf{A04 - Insecure Design :} Risques de conception
-    \item \textbf{A05 - Security Misconfiguration :} Configurations par défaut
+    \item Utilisation de \textbf{JWT signés} pour les sessions côté API.
+    \item Expiration courte des tokens d’accès et rotation des tokens de rafraîchissement.
+    \item Hashage des mots de passe avec \textbf{bcrypt} avant stockage dans PostgreSQL.
+    \item Mise en place d’un \textbf{rate limiting} sur les routes sensibles (login, reset password).
 \end{itemize}
 
-\textbf{Exemple de vulnérabilité suivie :}
-\begin{verbatim}
-CVE-2024-1234: Vulnerability in Express.js
-+-- Severity: HIGH (CVSS 7.5)
-+-- Description: Prototype pollution in req.query
-+-- Affected versions: < 4.18.3
-+-- Impact: Remote code execution possible
-+-- Mitigation: Update to Express 4.18.3+
-+-- Status: Fixed in project (v4.18.5)
-\end{verbatim}
-
-\textbf{Mesures de sécurité appliquées :}
+\subsection*{Sécurisation des API}
 \begin{itemize}
-    \item \textbf{Dépendances :} Audit automatique avec npm audit
-    \item \textbf{Conteneurs :} Scan de vulnérabilités avec Trivy
-    \item \textbf{Code :} Analyse statique avec SonarQube
-    \item \textbf{Runtime :} Monitoring des anomalies avec Prometheus
-    \item \textbf{Formation :} Sessions sécurité trimestrielles
+    \item Architecture \textbf{stateless} pour limiter la surface d’attaque et simplifier la révocation.
+    \item Validation stricte des entrées utilisateur via les pipes de validation NestJS (DTO + class-validator).
+    \item Séparation des rôles via RBAC : \texttt{student}, \texttt{coach}, \texttt{admin} dans les futures extensions multi-tenants.
+    \item Utilisation systématique de réponses typées pour éviter les fuites de données (pas de champs sensibles dans les réponses JSON).
 \end{itemize}
-\end{exemple}
 
-\begin{conseil}
+\subsection*{Sécurisation du stockage des données}
 \begin{itemize}
-    \item Surveiller les CVE et advisories de sécurité
-    \item Automatiser l'audit des dépendances
-    \item Implémenter des tests de sécurité automatisés
-    \item Former l'équipe aux bonnes pratiques sécurité
-    \item Documenter les incidents et les contre-mesures
+    \item PostgreSQL utilisé pour les données critiques avec contraintes, indexation, triggers de contrôle.
+    \item MongoDB réservé aux logs et statistiques afin d’isoler les données sensibles.
+    \item Chiffrement des données sensibles au repos lorsque nécessaire.
+    \item Sauvegardes régulières avec vérification d’intégrité.
 \end{itemize}
-\end{conseil}
 
-\begin{jury}
+\subsection*{Protection contre les attaques courantes}
 \begin{itemize}
-    \item Comment surveillez-vous les vulnérabilités ?
-    \item Avez-vous automatisé l'audit de sécurité ?
-    \item Comment gérez-vous les vulnérabilités critiques ?
-    \item L'équipe est-elle formée à la sécurité ?
-    \item Avez-vous un plan de réponse aux incidents ?
+    \item Protection CSRF via les mécanismes intégrés de Next.js pour les formulaires.
+    \item Protection XSS via l’encodage automatique du rendu serveur (React + Next.js).
+    \item Prévention de l’injection SQL en utilisant Prisma ORM et des requêtes paramétrées.
+    \item Mise en place d’en-têtes HTTP de sécurité (CSP, HSTS, X-Frame-Options, X-Content-Type-Options).
 \end{itemize}
-\end{jury}
+
+\subsection*{Sécurité DevOps et CICD}
+\begin{itemize}
+    \item Vérification automatique des dépendances avec \textbf{GitHub Dependabot}.
+    \item Analyse de sécurité sur chaque pull request via GitHub Actions.
+    \item Gestion des secrets via \textbf{GitHub Secrets} et jamais dans le repository.
+    \item Images Docker optimisées et basées sur des versions \textbf{LTS}, minimisant la surface d’attaque.
+\end{itemize}
+
+\subsection*{Conformité RGPD}
+\begin{itemize}
+    \item Minimisation des données collectées (principe du « strict nécessaire »).
+    \item Séparation logique entre les données des clubs (vision future multi-tenant).
+    \item Droit d’accès, de rectification et de suppression pour les utilisateurs.
+    \item Politique de conservation des données documentée et appliquée.
+\end{itemize}
+
+\subsection*{Impact direct sur le projet}
+La mise en place des bonnes pratiques de sécurité a influencé plusieurs choix techniques du projet :
+\begin{itemize}
+    \item Adoption de NestJS pour sa gestion structurée des modules, des guards et des pipes de validation.
+    \item Utilisation du rôle \texttt{admin} pour contrôler les données club et éviter les fuites entre tenants.
+    \item Mise en place d’un pipeline de sécurité automatisé dans GitHub Actions.
+    \item Intégration de Prisma pour empêcher les injections SQL et simplifier les audits.
+\end{itemize}
+
+L’ensemble de ces éléments garantit que \textit{Diving O Club} reste une application fiable et conforme aux standards de sécurité requis pour une plateforme manipulant des données personnelles.
+
 
 \section{Application au projet}
 
-La veille technologique et sécurité influence directement les choix d'architecture et d'implémentation du projet. Les nouvelles fonctionnalités sont évaluées selon leur impact sur la sécurité, les performances, et la maintenabilité. Les mises à jour sont planifiées selon un calendrier de migration structuré.
+Les actions de veille technologique et les bonnes pratiques de sécurité décrites précédemment ont été intégrées de manière concrète dans le développement de l’application \textit{Diving O Club}. Cette section détaille la manière dont elles ont influencé les choix structurants du projet, tant au niveau de l’architecture que du code et du déploiement.
 
-L'intégration des bonnes pratiques découvertes améliore continuellement la qualité du code et la sécurité de l'application. La documentation des décisions techniques facilite la transmission des connaissances et la maintenance future.
-
-\begin{exemple}
-\textbf{Évolution technique du projet :}
+\subsection*{Choix technologiques guidés par la veille}
+La veille menée tout au long du projet a permis d’adopter des technologies modernes, stables et adaptées aux besoins spécifiques de la plateforme :
 \begin{itemize}
-    \item \textbf{Q1 2024 :} Migration vers React 18 pour les performances
-    \item \textbf{Q2 2024 :} Implémentation des Server Components
-    \item \textbf{Q3 2024 :} Mise à jour PostgreSQL 16 pour les JSON
-    \item \textbf{Q4 2024 :} Migration vers Node.js 20 LTS
+    \item Adoption de \textbf{React 18} et utilisation progressive des fonctionnalités modernes (Server Components, Suspense).
+    \item Utilisation de \textbf{Next.js} pour bénéficier d’un rendu hybride (SSR / SSG) optimisant les performances et l'accessibilité.
+    \item Choix du backend \textbf{NestJS} pour sa structure modulaire, sa robustesse et l’intégration native de bonnes pratiques industrielles.
+    \item Utilisation de \textbf{Prisma ORM} suite aux améliorations régulières concernant la performance SQL, la documentation du schéma et la réduction du risque d'injection.
+    \item Adoption de \textbf{Docker Compose v2} pour standardiser les environnements de développement et faciliter les futures étapes de déploiement.
 \end{itemize}
 
-\textbf{Améliorations sécurité appliquées :}
-\begin{lstlisting}[language=JavaScript]
-// AVANT : Validation basique
-const validateUser = (userData) => {
-  if (userData.email && userData.password) {
-    return true;
-  }
-  return false;
-};
-
-// APRÈS : Validation robuste avec sanitisation
-const validateUser = (userData) => {
-  const schema = Joi.object({
-    email: Joi.string().email().max(255).required(),
-    password: Joi.string().min(8).pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/).required(),
-    name: Joi.string().max(100).sanitize().required()
-  });
-
-  const { error, value } = schema.validate(userData);
-  if (error) {
-    throw new ValidationError(error.details[0].message);
-  }
-
-  return value;
-};
-\end{lstlisting}
-
-\textbf{Métriques d'amélioration :}
-\begin{center}
-\begin{tabular}{|l|l|l|l|}
-\hline
-\textbf{Aspect} & \textbf{Avant} & \textbf{Après} & \textbf{Amélioration} \\
-\hline
-Temps de réponse & 800ms & 450ms & -44\% \\
-Vulnérabilités & 12 & 0 & -100\% \\
-Couverture tests & 65\% & 85\% & +31\% \\
-Bundle size & 2.1MB & 1.4MB & -33\% \\
-\hline
-\end{tabular}
-\end{center}
-\end{exemple}
-
-\begin{conseil}
+\subsection*{Intégration des bonnes pratiques de sécurité}
+Les mesures de sécurité identifiées dans la veille et dans le respect des recommandations OWASP ont été intégrées directement dans la conception du projet :
 \begin{itemize}
-    \item Intégrer les bonnes pratiques découvertes en veille
-    \item Planifier les migrations technologiques
-    \item Mesurer l'impact des améliorations
-    \item Documenter les décisions techniques
-    \item Partager les connaissances avec l'équipe
+    \item Mise en place d’une \textbf{API stateless} avec authentification par JWT signé et renouvellement contrôlé.
+    \item Hashage des mots de passe avec \textbf{bcrypt} et absence totale de stockage en clair.
+    \item Mise en œuvre d’une séparation stricte des rôles utilisateurs, facilitant les futures évolutions multi-tenant.
+    \item Validation systématique des données d’entrée via les DTO NestJS pour éviter les injections et manipulations malveillantes.
+    \item Protection de l’interface web grâce au rendu serveur de Next.js, limitant les risques de XSS persistants.
+    \item Isolation des données critiques dans PostgreSQL et utilisation de MongoDB uniquement pour les logs non sensibles.
 \end{itemize}
-\end{conseil}
 
-\begin{jury}
+\subsection*{Automatisation et qualité du code}
+L’intégration d’outils DevOps et de pratiques de qualité a été directement influencée par la veille :
 \begin{itemize}
-    \item Comment appliquez-vous votre veille au projet ?
-    \item Avez-vous mesuré l'impact des améliorations ?
-    \item Vos décisions techniques sont-elles documentées ?
-    \item Comment partagez-vous vos connaissances ?
-    \item Votre veille influence-t-elle la roadmap ?
+    \item Pipeline \textbf{CI/CD GitHub Actions} vérifiant automatiquement les tests, la qualité du code et les vulnérabilités.
+    \item Analyse continue des dépendances via \textbf{Dependabot}, permettant une correction rapide des failles.
+    \item Normalisation de l'environnement grâce à \textbf{Docker}, garantissant un comportement identique entre développement et production.
 \end{itemize}
-\end{jury}
+
+\subsection*{Impact global sur le projet}
+L’ensemble de ces actions a permis :
+\begin{itemize}
+    \item d’assurer la \textbf{pérennité technologique} du projet grâce à un choix de stack durable et maintenable ;
+    \item de garantir un \textbf{haut niveau de sécurité} pour les données sensibles des clubs de plongée ;
+    \item d’améliorer la \textbf{performance et l’accessibilité} de l’application via une stack moderne ;
+    \item de faciliter le \textbf{travail en équipe et l’industrialisation} du développement grâce à la CI/CD et à une architecture propre ;
+    \item de poser des bases solides pour la future version multi-tenant prévue dans l’évolution du projet.
+\end{itemize}
+
+Ainsi, la veille technologique et les bonnes pratiques de sécurité ne sont pas des éléments théoriques annexes, mais des piliers intégrés à chaque étape de la conception et de l’évolution de \textit{Diving O Club}.
+
 
 \section{Liens utiles}
 
