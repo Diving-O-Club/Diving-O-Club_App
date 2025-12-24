@@ -2,455 +2,803 @@
 
 \section{Architecture 3 tiers}
 
-Dans cette section, vous devez présenter votre architecture 3 tiers et expliquer la répartition des responsabilités entre les couches. Le jury attend une compréhension claire de la séparation physique des composants.
+L’application repose sur une \textbf{architecture 3 tiers} classique et éprouvée, 
+séparant strictement l’interface utilisateur, la logique métier et la gestion des données.  
+Ce modèle structure le système en trois couches indépendantes :
 
-\textbf{Votre architecture 3 tiers :} \textit{[Décrivez votre architecture et la répartition des responsabilités]}
+\begin{itemize}
+    \item \textbf{Couche Présentation} : gère l’affichage, l’interaction et l’expérience utilisateur.
+    \item \textbf{Couche Logique Métier} : centralise les règles métier, le contrôle des accès, la validation et les traitements applicatifs.
+    \item \textbf{Couche Données} : assure le stockage persistant, l’intégrité, la cohérence et l’accès sécurisé aux informations.
+\end{itemize}
+
+Cette séparation garantit une \textbf{meilleure maintenabilité}, une \textbf{évolution facilitée}, 
+ainsi qu’une \textbf{sécurisation des responsabilités} entre les composants.  
+Chaque couche communique uniquement avec la couche adjacente, ce qui réduit les dépendances, 
+améliore la testabilité (tests unitaires et fonctionnels) et permet de faire évoluer une 
+partie du système sans impacter les autres.
+
+La section suivante détaille précisément le rôle, les responsabilités et les technologies 
+associées à chacune de ces trois couches.
 
 \subsection{Couche Présentation (Frontend)}
 
-Dans cette sous-section, vous devez détailler la couche présentation de votre application. Le jury attend une explication claire des technologies et de l'organisation du code.
+\subsubsection*{Technologies de présentation (Frontend)}
 
-\textbf{Votre couche présentation :} \textit{[Décrivez votre stack frontend et son organisation]}
-
-\begin{exemple}
-\textbf{Technologies de présentation :}
 \begin{itemize}
-    \item \textbf{Framework :} React 18 avec hooks et context
-    \item \textbf{État :} Redux Toolkit pour la gestion d'état globale
-    \item \textbf{Routing :} React Router pour la navigation
-    \item \textbf{UI :} Material-UI pour les composants
-    \item \textbf{HTTP :} Axios pour les appels API
+  \item \textbf{Langage :} TypeScript (typage léger centré sur le métier).
+  \item \textbf{Framework \& rendu :} Next.js (React 18 + TypeScript).
+  \item \textbf{Gestion d’état global léger :} React Context API.
+  \item \textbf{Gestion d’état métier avancé :} Redux Toolkit + React-Redux.
+  \item \textbf{UI \& composants graphiques :} Material UI (MUI).
+  \item \textbf{Routing :} Système de routing natif de Next.js.
+  \item \textbf{Appels HTTP :} Axios (client HTTP typé).
 \end{itemize}
 
-\textbf{Structure des composants :}
+\vspace{0.5cm}
+
+La couche présentation de \textit{Diving O Club} s’appuie sur un ensemble de technologies cohérentes et complémentaires, choisies pour garantir à la fois la maintenabilité, les performances et une bonne expérience utilisateur, tout en restant accessibles à mettre en œuvre dans le cadre du projet.
+
+Le \textbf{framework Next.js}, basé sur \textbf{React 18} et \textbf{TypeScript}, sert de socle au frontend. Next.js fournit un système de routing structuré, la possibilité de rendre certaines pages côté serveur et d’optimiser le chargement initial, ce qui est particulièrement adapté à une application consultée fréquemment sur mobile. L’utilisation de \textbf{TypeScript raisonnable} permet de typer principalement les entités métier (utilisateur, club, événement, membre, paiement), les propriétés des composants et les réponses d’API. Cela réduit les erreurs au runtime, améliore l’autocomplétion dans l’IDE et assure une cohérence forte avec la couche backend également développée en TypeScript.
+
+La gestion de l’état côté interface est divisée en deux niveaux. Pour l’état global léger et stable (utilisateur connecté, rôle, club courant dans le cadre multi-tenant), l’application utilise le \textbf{Context API}, fonctionnalité native de React. Ce mécanisme évite la prolifération de props (\textit{prop-drilling}) et permet de partager facilement des informations transverses entre plusieurs pages sans ajouter de dépendance supplémentaire.
+
+Pour l’état métier plus complexe, l’application s’appuie sur \textbf{Redux Toolkit}, associé à \textbf{React-Redux}. Redux Toolkit structure l’état applicatif sous forme de ``slices'' par domaine (événements, membres, inscriptions, certificats, paiements, équipements) et fournit un ensemble d’outils pour gérer les actions, les reducers et l’asynchronisme de manière standardisée. Ce choix facilite la synchronisation des données entre plusieurs pages, le cache local des données issues de l’API Nest.js et le débogage grâce aux outils de l’écosystème Redux, tout en conservant un code lisible.
+
+L’interface utilisateur repose sur \textbf{Material UI (MUI)}, une librairie de composants React conforme aux bonnes pratiques d’accessibilité. MUI fournit des composants prêts à l’emploi (boutons, cartes, formulaires, barres de navigation, tableaux, dialogues) qui sont personnalisés via un thème dédié à \textit{Diving O Club}. Cela permet de gagner du temps de développement, d’assurer une cohérence visuelle entre les différentes pages et de limiter la quantité de CSS spécifique à maintenir.
+
+Le \textbf{routing} est géré nativement par Next.js : chaque fichier de page correspond à une route (authentification, tableau de bord, gestion des clubs, événements, inscriptions, administration). La mise en place de layouts partagés (header, navigation, footer) permet de mutualiser la structure visuelle et de réduire la duplication de code. Enfin, les communications avec le backend Nest.js sont centralisées via \textbf{Axios}, utilisé comme client HTTP typé. Une instance Axios est configurée dans un dossier \texttt{services} (URL de base, en-têtes, token d’authentification), puis chaque domaine fonctionnel expose des fonctions dédiées (authentification, événements, membres, paiements). Cette approche évite de disperser la logique réseau dans les composants et améliore la lisibilité comme la testabilité du frontend.
+
+
+\subsubsection*{Structure du frontend}
+
 \begin{verbatim}
 src/
-+-- components/                    # Composants réutilisables
-|   +-- common/
++-- app/ ou pages/              # Routing Next.js : pages principales
+|   +-- page.tsx / index.tsx    # Page d'accueil / landing
+|   +-- login/
+|   |   +-- page.tsx            # Page de connexion
+|   +-- dashboard/
+|       +-- page.tsx            # Tableau de bord
+|       +-- events.tsx          # Liste des événements du club
+|       +-- members.tsx         # Liste des membres
+|       +-- payments.tsx        # Suivi des paiements
+|       +-- settings.tsx        # Paramètres du club (admin)
+|
++-- components/                 # Composants réutilisables
+|   +-- layout/
+|   |   +-- AppLayout.tsx       # Layout global (header/nav/footer)
+|   |   +-- Header.tsx
+|   |   +-- Sidebar.tsx
+|   |   +-- Footer.tsx
+|   |
+|   +-- common/                 # Composants génériques (MUI wrappers)
 |   |   +-- Button.tsx
+|   |   +-- TextField.tsx
+|   |   +-- Select.tsx
 |   |   +-- Modal.tsx
 |   |   +-- LoadingSpinner.tsx
-|   +-- projects/                  # Fonctionnalité projets
-|   |   +-- ProjectList.tsx
-|   |   +-- ProjectCard.tsx
-|   |   +-- ProjectForm.tsx
-|   +-- tasks/                     # Fonctionnalité tâches
-|       +-- TaskList.tsx
-|       +-- TaskItem.tsx
-+-- hooks/                         # Hooks personnalisés
-+-- services/                      # Appels API
-+-- utils/                         # Fonctions utilitaires
+|   |   +-- Alert.tsx
+|   |
+|   +-- events/                 # UI liée aux événements
+|   |   +-- EventList.tsx
+|   |   +-- EventCard.tsx
+|   |   +-- EventForm.tsx
+|   |
+|   +-- members/                # UI liée aux membres / adhérents
+|   |   +-- MemberList.tsx
+|   |   +-- MemberCard.tsx
+|   |
+|   +-- payments/               # UI pour les paiements / HelloAsso
+|       +-- PaymentTable.tsx
+|       +-- PaymentStatusBadge.tsx
+|
++-- context/                    # Context API (état global léger)
+|   +-- AuthContext.tsx         # Utilisateur connecté + rôle
+|   +-- ClubContext.tsx         # Club courant (multi-tenant)
+|
++-- store/                      # Redux (état métier avancé)
+|   +-- index.ts                # Configuration du store Redux
+|   +-- slices/
+|       +-- authSlice.ts        # JWT, profil, permissions front
+|       +-- clubSlice.ts        # Infos club courant
+|       +-- eventsSlice.ts      # Événements / sorties
+|       +-- membersSlice.ts     # Adhérents
+|       +-- paymentsSlice.ts    # Paiements / statuts
+|
++-- hooks/                      # Hooks personnalisés
+|   +-- useAuth.ts              # Accès pratique au contexte Auth
+|   +-- useClub.ts              # Accès au club courant
+|   +-- useEvents.ts            # Accès aux données d'événements
+|
++-- services/                   # Appels API typés vers Nest.js
+|   +-- apiClient.ts            # Instance Axios configurée (TypeScript)
+|   +-- authService.ts          # Login, refresh token, profil
+|   +-- clubService.ts          # Infos club
+|   +-- eventService.ts         # CRUD événements
+|   +-- memberService.ts        # CRUD membres
+|   +-- paymentService.ts       # Intégration HelloAsso / paiements
+|
++-- styles/                     # Thème et styles globaux
+|   +-- theme.ts                # Thème Material UI (couleurs, typo)
+|   +-- globals.css             # Styles globaux Next.js
+|
++-- utils/                      # Fonctions utilitaires
+    +-- date.ts                 # Formatage des dates
+    +-- validation.ts           # Validations front simples
+    +-- formatters.ts           # Formatage d'affichage
 \end{verbatim}
-\end{exemple}
+
 
 \subsection{Couche Logique Métier (Backend)}
 
-Dans cette sous-section, vous devez présenter la couche logique métier de votre application. Le jury attend une explication de l'architecture et de l'organisation du code.
+La couche logique métier de \textit{Diving O Club} est implémentée avec le framework \textbf{Nest.js} en \textbf{TypeScript}. Elle constitue le coeur de l’application côté serveur : elle expose une API REST, centralise les règles métier, orchestre les accès aux données et applique les règles de sécurité (authentification, autorisation par rôle, vérification du club dans le cadre multi-tenant). Cette couche est strictement séparée de la présentation (frontend Next.js) et de la persistance (PostgreSQL), conformément à l’architecture 3-tiers présentée au chapitre~4.
 
-\textbf{Votre couche logique métier :} \textit{[Décrivez votre stack backend et son organisation]}
+L’architecture backend est organisée de manière \textbf{modulaire}, avec un module par domaine fonctionnel : \texttt{AuthModule} (authentification, JWT, refresh tokens), \texttt{ClubsModule} (gestion des clubs et du multi-tenant), \texttt{MembersModule} (adhérents et encadrants), \texttt{EventsModule} (sorties plongée, séances piscine, voyages), \texttt{PaymentsModule} (suivi des paiements et intégration avec HelloAsso), etc. Chaque module regroupe ses propres \textbf{controllers}, \textbf{services} et \textbf{repositories} (DAO), ainsi que les \textbf{DTO} (Data Transfer Objects) et les schémas de validation associés.
 
-\subsubsection{Controller}
+La gestion des rôles et des droits d’accès repose sur des \textbf{guards} Nest.js (par exemple \texttt{AuthGuard}, \texttt{RolesGuard}) et sur la logique métier des services : les guards vérifient l’authentification et les rôles à partir du JWT avant d’exécuter une route, tandis que les services appliquent les règles métier plus fines (par exemple, un encadrant ne peut créer des événements que pour son propre club). Les \textbf{controllers} restent ainsi le plus fins possible et ne gèrent pas directement les rôles.
 
-\textbf{Vos contrôleurs :} \textit{[Décrivez vos contrôleurs et leur rôle]}
+\subsubsection*{Controllers}
 
-\begin{exemple}
-\textbf{Exemple de contrôleur :}
-\begin{lstlisting}[language=JavaScript]
-// ProjectController.js
-class ProjectController {
-  async createProject(req, res) {
-    try {
-      const projectData = req.body;
-      const project = await this.projectService.create(projectData);
-      res.status(201).json(project);
-    } catch (error) {
-      res.status(400).json({ error: error.message });
+Les \textbf{controllers} Nest.js constituent le point d’entrée HTTP de la couche logique métier. Ils reçoivent les requêtes venant du frontend (création d’événement, inscription à une sortie, consultation de la liste des membres, etc.), appliquent les guards d’authentification / autorisation et délèguent immédiatement le traitement aux services. L’objectif est de conserver des contrôleurs fins, limités à l’orientation des requêtes, au mapping des DTO et au choix des codes de retour HTTP.
+
+Chaque contrôleur est décoré avec \texttt{@Controller()} pour définir le préfixe de route (par exemple \texttt{/events}), et utilise des décorateurs comme \texttt{@Get()}, \texttt{@Post()}, \texttt{@Patch()} ou \texttt{@Delete()} pour exposer les différentes opérations du domaine. Les paramètres de route, le corps de la requête et l’utilisateur authentifié sont injectés via des décorateurs (\texttt{@Param()}, \texttt{@Body()}, \texttt{@Req()} ou un décorateur personnalisé pour l’utilisateur courant).
+
+\paragraph{Exemple de contrôleur (simplifié) :}
+
+\begin{verbatim}
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  UseGuards
+} from '@nestjs/common';
+import { EventsService } from './events.service';
+import { CreateEventDto } from './dto/create-event.dto';
+import { AuthGuard } from '../auth/auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
+import { CurrentUser } from '../auth/current-user.decorator';
+import { UserJwtPayload } from '../auth/types';
+
+@Controller('events')
+@UseGuards(AuthGuard, RolesGuard)
+export class EventsController {
+  constructor(private readonly eventsService: EventsService) {}
+
+  // Création d'un événement (coach ou admin uniquement)
+  @Post()
+  @Roles('coach', 'admin')
+  async create(
+    @Body() dto: CreateEventDto,
+    @CurrentUser() user: UserJwtPayload,
+  ) {
+    return this.eventsService.create(dto, user);
+  }
+
+  // Liste des événements du club de l'utilisateur connecté
+  @Get()
+  async findAll(@CurrentUser() user: UserJwtPayload) {
+    return this.eventsService.findAllForClub(user.clubId);
+  }
+}
+\end{verbatim}
+
+Dans cet exemple, le \texttt{EventsController} protège les routes avec des guards (\texttt{AuthGuard}, \texttt{RolesGuard}) et utilise un décorateur \texttt{@Roles} pour indiquer les rôles autorisés sur certaines opérations. Il récupère l’utilisateur courant via \texttt{@CurrentUser()} et délègue toute la logique métier au \texttt{EventsService}.
+
+\subsubsection*{Services}
+
+Les \textbf{services} implémentent la logique métier propre à chaque domaine. Ils orchestrent les différentes opérations : validation métier spécifique, application des règles liées aux clubs (capacité maximale d’une sortie, statut d’un membre, licences et certificats valides), interactions avec plusieurs repositories (événements, membres, paiements), et éventuellement déclenchement de notifications.
+
+Dans \textit{Diving O Club}, chaque module métier expose un service principal (\texttt{AuthService}, \texttt{ClubsService}, \texttt{MembersService}, \texttt{EventsService}, \texttt{PaymentsService}, etc.). Les services utilisent des DTO typés pour recevoir les données en entrée et retournent des objets métier structurés ou des modèles persistés. Ils encapsulent les règles de gestion afin que le frontend ne fasse jamais de logique sensible côté client.
+
+\paragraph{Exemple de service (simplifié) :}
+
+\begin{verbatim}
+import {
+  Injectable,
+  BadRequestException,
+  ForbiddenException
+} from '@nestjs/common';
+import { EventsRepository } from './events.repository';
+import { CreateEventDto } from './dto/create-event.dto';
+import { UserJwtPayload } from '../auth/types';
+
+@Injectable()
+export class EventsService {
+  constructor(private readonly eventsRepository: EventsRepository) {}
+
+  async create(dto: CreateEventDto, user: UserJwtPayload) {
+    // Règle métier 1 : seul un coach ou un admin peut créer un événement
+    if (!['coach', 'admin'].includes(user.role)) {
+      throw new ForbiddenException('Accès interdit');
     }
+
+    // Règle métier 2 : l'événement appartient toujours au club de l'utilisateur
+    dto.clubId = user.clubId;
+
+    // Règle métier 3 : validation métier spécifique
+    if (dto.maxParticipants <= 0) {
+      throw new BadRequestException('Capacité maximale invalide');
+    }
+
+    if (dto.startDate >= dto.endDate) {
+      throw new BadRequestException('Dates de début/fin incohérentes');
+    }
+
+    // Délégation à la couche d'accès aux données (repository)
+    return this.eventsRepository.create(dto);
+  }
+
+  async findAllForClub(clubId: number) {
+    return this.eventsRepository.findAllByClub(clubId);
   }
 }
-\end{lstlisting}
-\end{exemple}
+\end{verbatim}
 
-\subsubsection{Service}
+Dans cet exemple, le \texttt{EventsService} applique des règles métier liées aux rôles et au contexte : vérification du rôle de l’utilisateur, forçage du club de l’événement, validation de la capacité et de la cohérence des dates. Le service délègue ensuite la persistance au repository.
 
-\textbf{Vos services :} \textit{[Décrivez vos services et la logique métier]}
+\subsubsection*{Repositories (DAO)}
 
-\begin{exemple}
-\textbf{Exemple de service :}
-\begin{lstlisting}[language=JavaScript]
-// ProjectService.js
-class ProjectService {
-  async create(projectData) {
-    // Validation des données
-    this.validateProjectData(projectData);
+Les \textbf{repositories} (ou DAO, Data Access Objects) encapsulent l’accès à la base de données. Dans \textit{Diving O Club}, ils s’appuient sur l’ORM \textbf{Prisma} pour communiquer avec PostgreSQL. Chaque repository est responsable d’un domaine (événements, membres, clubs, paiements) et expose des méthodes simples : \texttt{create}, \texttt{findById}, \texttt{findAllByClub}, \texttt{update}, \texttt{delete}, etc.
 
-    // Logique métier
-    const project = await this.projectRepository.create(projectData);
+Ce découpage permet de :
 
-    // Notifications
-    await this.notificationService.notifyTeam(project);
-
-    return project;
-  }
-}
-\end{lstlisting}
-\end{exemple}
-
-\subsubsection{Repository (DAO)}
-
-\textbf{Vos repositories :} \textit{[Décrivez vos repositories et l'accès aux données]}
-
-\begin{exemple}
-\textbf{Exemple de repository :}
-\begin{lstlisting}[language=JavaScript]
-// ProjectRepository.js
-class ProjectRepository {
-  async create(projectData) {
-    const query = 'INSERT INTO projects (name, description) VALUES ($1, $2) RETURNING *';
-    const values = [projectData.name, projectData.description];
-    const result = await this.db.query(query, values);
-    return result.rows[0];
-  }
-}
-\end{lstlisting}
-\end{exemple}
-
-\subsection{Couche Données (Database)}
-
-Dans cette sous-section, vous devez présenter la couche de données de votre application. Le jury attend une explication de l'architecture des données et des choix techniques.
-
-\textbf{Votre couche données :} \textit{[Décrivez votre architecture de données]}
-
-\begin{exemple}
-\textbf{Architecture des données :}
 \begin{itemize}
-    \item \textbf{PostgreSQL :} Données transactionnelles et relations
-    \item \textbf{MongoDB :} Logs, rapports et données non-structurées
-    \item \textbf{Redis :} Cache et sessions utilisateur
-    \item \textbf{ORM :} Prisma pour PostgreSQL, Mongoose pour MongoDB
+  \item centraliser les requêtes vers la base de données dans une couche unique ;
+  \item adapter plus facilement la structure de la base sans impacter la logique métier ;
+  \item tester les services indépendamment de la persistance (en simulant les repositories).
 \end{itemize}
 
-\textbf{Exemple de repository PostgreSQL :}
-\begin{lstlisting}[language=JavaScript]
-class ProjectRepository {
-  async create(projectData) {
-    return await prisma.project.create({
+\paragraph{Exemple de repository (simplifié) :}
+
+\begin{verbatim}
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+import { CreateEventDto } from './dto/create-event.dto';
+
+@Injectable()
+export class EventsRepository {
+  constructor(private readonly prisma: PrismaService) {}
+
+  async create(dto: CreateEventDto) {
+    return this.prisma.event.create({
       data: {
-        name: projectData.name,
-        description: projectData.description,
-        userId: projectData.userId
+        title: dto.title,
+        description: dto.description,
+        startDate: dto.startDate,
+        endDate: dto.endDate,
+        maxParticipants: dto.maxParticipants,
+        clubId: dto.clubId,
+        location: dto.location,
       },
-      include: {
-        tasks: true,
-        user: { select: { id: true, email: true } }
-      }
+    });
+  }
+
+  async findAllByClub(clubId: number) {
+    return this.prisma.event.findMany({
+      where: { clubId },
+      orderBy: { startDate: 'asc' },
     });
   }
 }
-\end{lstlisting}
-\end{exemple}
+\end{verbatim}
+
+Dans cet exemple, \texttt{EventsRepository} utilise \texttt{PrismaService} pour interagir avec PostgreSQL. Le repository ne contient aucune logique métier : il se limite à mapper les DTO vers le schéma de la base et à exécuter les opérations de persistance. Les règles métier restent dans les services, et les contrôleurs se concentrent sur la gestion des requêtes HTTP. Cette organisation \textbf{Controller $\rightarrow$ Service $\rightarrow$ Repository} respecte la séparation des responsabilités attendue dans une architecture 3-tiers et prépare l’application à évoluer sans remettre en cause l’ensemble du backend.
+
+
+\subsection{Couche Données (Database)}
+
+Dans cette sous-section, la couche de données de \textit{Diving O Club} est décrite en termes
+d’architecture, de choix techniques et de rôle dans l’architecture 3 tiers. L’objectif est de
+proposer une base fiable pour les opérations transactionnelles (adhérents, événements,
+inscriptions, paiements) tout en conservant la possibilité d’exploiter des logs et rapports
+techniques pour le suivi de l’application.
+
+L’application s’appuie principalement sur une base \textbf{PostgreSQL} pour toutes les données
+métier structurées (clubs, utilisateurs, membres, événements, inscriptions, certificats,
+paiements). PostgreSQL offre un modèle relationnel robuste, des contraintes d’intégrité
+(clés étrangères, unicité, contraintes de vérification) et un langage SQL riche, adapté
+à la gestion des relations complexes entre entités (par exemple un membre rattaché à
+un club, à plusieurs événements et à plusieurs paiements).
+
+Les accès à PostgreSQL sont réalisés via l’ORM \textbf{Prisma}, qui fournit des modèles
+fortement typés en TypeScript et un système de migrations pour faire évoluer le schéma
+de données de manière contrôlée. Prisma simplifie l’écriture des requêtes tout en
+conservant un contrôle explicite sur les relations et les jointures.
+
+En complément, une base \textbf{MongoDB} peut être utilisée pour stocker des logs techniques
+ou des rapports non-structurés, lorsque cela est nécessaire (suivi d’activité, traces,
+journalisation applicative). Dans ce cas, les données MongoDB ne portent pas de logique
+métier critique et ne sont pas utilisées dans les parcours principaux de l’utilisateur.
+
+\paragraph{Architecture des données :}
+
+\begin{itemize}
+  \item \textbf{PostgreSQL} : Données transactionnelles et relations (clubs, membres, événements, inscriptions, paiements).
+  \item \textbf{MongoDB} : Logs et rapports techniques non-structurés (optionnel).
+  \item \textbf{ORM} : Prisma pour PostgreSQL (modèles typés, migrations).
+\end{itemize}
+
+\paragraph{Exemple de repository PostgreSQL (Prisma) :}
+
+\begin{verbatim}
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+import { CreateEventDto } from './dto/create-event.dto';
+
+@Injectable()
+export class EventsRepository {
+  constructor(private readonly prisma: PrismaService) {}
+
+  async create(dto: CreateEventDto) {
+    return await this.prisma.event.create({
+      data: {
+        title: dto.title,
+        description: dto.description,
+        startDate: dto.startDate,
+        endDate: dto.endDate,
+        maxParticipants: dto.maxParticipants,
+        clubId: dto.clubId,
+        location: dto.location,
+      },
+      include: {
+        club: {
+          select: { id: true, name: true },
+        },
+      },
+    });
+  }
+}
+\end{verbatim}
 
 \subsection{Communication entre les tiers}
 
-Dans cette sous-section, vous devez expliquer comment les différents tiers communiquent entre eux. Le jury attend une compréhension claire des flux de données et des protocoles utilisés.
+\subsubsection*{5.1.4 Communication entre les tiers}
 
-\textbf{Vos flux de communication :} \textit{[Décrivez comment vos tiers communiquent]}
+Dans cette sous-section, la communication entre les trois couches de l’architecture est
+décrite afin de montrer comment les données circulent dans \textit{Diving O Club}. L’objectif
+est de garantir une séparation claire des responsabilités entre la présentation, la logique
+métier et la couche données, tout en assurant des échanges sécurisés et standardisés.
 
-\begin{exemple}
-\textbf{Flux de communication 3 tiers :}
+La communication entre le \textbf{frontend} (Next.js) et le \textbf{backend} (Nest.js) repose sur
+des appels \textbf{HTTP/HTTPS} utilisant un format d’échange standardisé en \textbf{JSON}. Le
+frontend envoie des requêtes vers les endpoints REST exposés par l’API Nest.js (exemples :
+\texttt{/auth/login}, \texttt{/events}, \texttt{/members}). Chaque requête utilise les tokens
+d’authentification transmis dans les en-têtes afin de garantir la sécurité (JWT).
+
+Le backend applique les rules d’accès via des \textbf{guards}, valide les données via des DTO,
+exécute la logique métier dans les services, puis délègue l’accès aux données aux repositories.
+La communication entre le backend et la couche données repose sur les requêtes SQL
+générées par Prisma, exécutées dans PostgreSQL. Ces interactions sont transactionnelles,
+fortement typées et assurent l’intégrité des données (relations, contraintes, cohérence).
+
+\paragraph{Flux de communication 3 tiers :}
+
 \begin{verbatim}
-    +===============================================================+
-    |                    ARCHITECTURE 3 TIERS                       |
-    +===============================================================+
++=====================================================================+
+|                           ARCHITECTURE 3 TIERS                      |
++=====================================================================+
 
-    +-------------------+    HTTP/HTTPS     +-------------------+
-    |   TIER 1           | <--------------> |   TIER 2           |
-    |   PRESENTATION     |     JSON/REST     |   LOGIQUE METIER   |
-    |                   |                   |                   |
-    |   +-------------+ |                   |   +-------------+ |
-    |   |   React     | |                   |   |   Node.js   | |
-    |   |   Frontend  | |                   |   |   Express   | |
-    |   +-------------+ |                   |   +-------------+ |
-    +-------------------+                   +-------------------+
-                                                      |
-                                                      | SQL/NoSQL
-                                                      | Transactions
-                                                      v
-                                            +-------------------+
-                                            |   TIER 3           |
-                                            |   DONNEES          |
-                                            |                   |
-                                            |   +-------------+ |
-                                            |   | PostgreSQL  | |
-                                            |   | MongoDB     | |
-                                            |   +-------------+ |
-                                            +-------------------+
+                     HTTP/HTTPS         JSON/REST
++-------------------+ <------------------------------> +-------------------+
+|     TIER 1        |                                   |     TIER 2        |
+|   PRESENTATION    |                                   |  LOGIQUE METIER  |
+|  (Next.js, TS)    |                                   | (Nest.js, TS)     |
+|                   |                                   |                   |
+|   +-------------+ |                                   | +-------------+   |
+|   |  Frontend   | |                                   | |  API REST   |   |
+|   |  React/TS   | |                                   | | Controllers|   |
+|   +-------------+ |                                   | +-------------+   |
++-------------------+                                   +-------------------+
+                             |
+                             | SQL (via Prisma)
+                             | Transactions
+                             v
++-------------------+
+|     TIER 3        |
+|     DONNEES       |
+|  (PostgreSQL)     |
+|                   |
+|  +-------------+  |
+|  |   Prisma    |  |
+|  |   Models    |  |
+|  +-------------+  |
++-------------------+
 \end{verbatim}
-\end{exemple}
+
+Dans cette architecture, chaque tier reste indépendant : la présentation ne contient aucune
+logique métier, le backend ne connaît pas l’interface graphique, et la base de données est
+isolée de l'application via le pattern Repository. Les échanges sont sécurisés, validés et
+parfaitement structurés pour garantir la cohérence globale du système.
+
 
 \subsection{Avantages de l'architecture 3 tiers}
 
-Dans cette sous-section, vous devez expliquer les avantages de votre architecture 3 tiers. Le jury attend une justification claire des choix architecturaux.
+\subsubsection*{5.1.5 Avantages de l’architecture 3 tiers}
 
-\textbf{Avantages de votre architecture :} \textit{[Justifiez les bénéfices de votre approche]}
+L’architecture 3 tiers mise en place pour \textit{Diving O Club} présente plusieurs avantages
+majeurs en termes de clarté, de sécurité, de performance et d’évolutivité. La séparation nette
+entre la couche présentation, la couche logique métier et la couche données permet
+d’isoler les responsabilités et de maintenir une organisation cohérente du code.
 
-\begin{exemple}
-\textbf{Avantages de l'architecture 3 tiers :}
 \begin{itemize}
-    \item \textbf{Séparation des responsabilités :} Chaque tier a un rôle défini
-    \item \textbf{Scalabilité :} Possibilité de scaler chaque tier indépendamment
-    \item \textbf{Maintenabilité :} Modifications isolées par tier
-    \item \textbf{Tests :} Tests unitaires par tier facilités
-    \item \textbf{Sécurité :} Contrôle d'accès par tier
-    \item \textbf{Performance :} Optimisation possible par tier
-\end{itemize}
-\end{exemple}
+  \item \textbf{Séparation des responsabilités} : chaque tier remplit un rôle précis.  
+  Le frontend (Next.js) gère l'affichage et les interactions, le backend (Nest.js)
+  centralise la logique métier, et la base de données (PostgreSQL) assure la persistance
+  fiable des données. Cette séparation rend l’architecture plus lisible et facilite
+  les évolutions futures.
 
-\begin{conseil}
-\begin{itemize}
-    \item Séparer clairement les responsabilités par tier
-    \item Documenter les interfaces entre les tiers
-    \item Prévoir la scalabilité de chaque tier
-    \item Implémenter des tests par tier
-    \item Gérer les erreurs et exceptions de manière cohérente
-    \item Optimiser les performances par tier
-\end{itemize}
-\end{conseil}
+  \item \textbf{Maintenabilité accrue} : les modifications apportées à un tier n’impactent
+  pas directement les autres. Par exemple, faire évoluer l’interface utilisateur n’exige
+  aucune modification du backend, et ajuster une règle métier n’implique pas de modifier
+  les composants graphiques. Cette isolation réduit fortement les risques de régressions.
 
-\begin{jury}
-\begin{itemize}
-    \item Comment justifiez-vous votre architecture 3 tiers ?
-    \item Quels sont les avantages de votre approche ?
-    \item Comment gérez-vous la communication entre les tiers ?
-    \item Votre architecture est-elle scalable ?
-    \item Comment testez-vous chaque tier ?
-    \item Quels sont les points de performance de votre architecture ?
+  \item \textbf{Scalabilité} : chaque tier peut être optimisé ou dimensionné indépendamment.  
+  Le frontend peut être déployé sur un CDN, le backend peut être répliqué derrière un
+  load balancer, et la base PostgreSQL peut évoluer (indexation, montée en charge,
+  réplications). Cette modularité permet d’adapter l’application si plusieurs clubs
+  utilisent la plateforme en parallèle (multi-tenant).
+
+  \item \textbf{Sécurité renforcée} : le backend impose des contrôles d’accès stricts
+  (JWT, rôles, guards Nest.js), et la base est isolée via des repositories qui empêchent
+  l’accès direct depuis le frontend. Les données critiques (membres, certificats,
+  événements, paiements) ne sont accessibles qu’à travers des règles métier validées.
+
+  \item \textbf{Performance optimisée} : l’API REST peut être optimisée indépendamment du
+  frontend, les requêtes SQL peuvent être indexées ou réécrites sans changer le code
+  métier, et le frontend peut bénéficier du rendu serveur de Next.js pour améliorer
+  l’expérience utilisateur sur mobile.
+
+  \item \textbf{Facilité de tests} : chaque tier peut être testé séparément :
+  tests unitaires sur les services Nest.js, tests d’intégration sur les repositories,
+  tests end-to-end sur l’API, et tests d’interface sur les composants React.
+  Cette séparation améliore la qualité globale du projet.
 \end{itemize}
-\end{jury}
+
+Cette architecture permet ainsi à \textit{Diving O Club} de rester cohérente, évolutive,
+sécurisée et adaptée à un contexte multi-tenant où plusieurs clubs peuvent utiliser
+simultanément la plateforme.
+
 
 \section{Développement Frontend}
 
-Dans cette section, vous devez présenter votre approche de développement frontend et expliquer vos choix techniques. Le jury attend une compréhension claire de votre architecture frontend et des bonnes pratiques appliquées.
+\section*{5.2 Développement Frontend}
 
-\textbf{Technologies choisies :} \textit{[React, Vue, Angular, ou autre ? Justifiez votre choix]}
+Dans cette section, le développement frontend de \textit{Diving O Club} est présenté sous
+l’angle des choix techniques, de l’architecture des composants, ainsi que des bonnes pratiques
+d’accessibilité et de performances. L’objectif est de proposer une interface utilisateur moderne,
+responsive, fiable et adaptée à une utilisation mobile-first, comme exigé dans le cahier des
+charges.
 
-\textbf{Architecture des composants :} \textit{[Décrivez votre organisation des composants et leur réutilisabilité]}
+\subsubsection*{Technologies choisies}
 
-\textbf{Accessibilité et UX :} \textit{[Expliquez comment vous respectez les standards RGAA/WCAG et utilisez Lighthouse pour mesurer les performances]}
+Le frontend repose sur le framework \textbf{Next.js} (React 18) avec \textbf{TypeScript}. Cette
+technologie a été choisie pour plusieurs raisons :
 
-\begin{exemple}
-\textbf{Structure des composants :}
+\begin{itemize}
+  \item \textbf{Performances} : le rendu serveur (SSR) et le pré-rendu (SSG) améliorent
+  les temps de chargement, notamment sur mobile.
+  \item \textbf{Sécurité et robustesse} : TypeScript réduit les erreurs grâce au typage
+  statique et à l’autocomplétion.
+  \item \textbf{État global} : Redux Toolkit permet de centraliser l’état utilisateur
+  (authentification, club courant, rôle, tokens).
+  \item \textbf{UI professionnelle} : Material UI (MUI) assure une cohérence visuelle
+  et des composants accessibles.
+  \item \textbf{Communication API} : Axios est utilisé pour consommer l’API REST du backend.
+  \item \textbf{Routing avancé} : le routeur intégré de Next.js facilite la navigation et
+  le découpage des pages.
+\end{itemize}
+
+\subsubsection*{Architecture des composants}
+
+L’architecture du frontend suit une organisation modulaire inspirée des bonnes pratiques
+React, avec une séparation claire entre composants réutilisables, hooks, services, stores et
+pages. Cette organisation améliore la maintenabilité et facilite la réutilisation du code.
+
 \begin{verbatim}
 src/
-+-- components/                    # Composants réutilisables
-|   +-- common/
++-- components/              # Composants réutilisables
+|   +-- common/              # Composants génériques
 |   |   +-- Button.tsx
 |   |   +-- Modal.tsx
 |   |   +-- LoadingSpinner.tsx
-|   +-- projects/                  # Fonctionnalité projets
-|   |   +-- ProjectList.tsx
-|   |   +-- ProjectCard.tsx
-|   |   +-- ProjectForm.tsx
-|   +-- tasks/                     # Fonctionnalité tâches
-|       +-- TaskList.tsx
-|       +-- TaskItem.tsx
-+-- hooks/                         # Hooks personnalisés
-+-- services/                      # Appels API
-+-- utils/                         # Fonctions utilitaires
+|   |
+|   +-- auth/                # Pages et vues liées à l'authentification
+|   |   +-- LoginForm.tsx
+|   |   +-- RegisterForm.tsx
+|   |
+|   +-- events/              # Fonctionnalité événements
+|   |   +-- EventCard.tsx
+|   |   +-- EventList.tsx
+|   |   +-- EventForm.tsx
+|   |
+|   +-- members/             # Fonctionnalité membres
+|       +-- MemberCard.tsx
+|       +-- MemberList.tsx
+|
++-- pages/                   # Pages Next.js
++-- store/                   # Redux Toolkit (slices + store global)
++-- hooks/                   # Hooks personnalisés
++-- services/                # Appels API (Axios)
++-- utils/                   # Fonctions utilitaires
 \end{verbatim}
-\end{exemple}
 
-\textbf{Exemple de composant accessible :}
-\begin{lstlisting}[language=JavaScript]
-const ProjectCard = ({ project, onEdit }) => {
+Cette organisation par domaine fonctionnel (Events, Members, Auth, Clubs) permet un
+découplage clair, facilite les tests et réduit la duplication de code. Les composants sont pensés
+pour être réutilisables (boutons, formulaires, cartes, listes, modales), tandis que les vues
+composent ces briques pour construire les pages finales.
+
+\subsubsection*{Accessibilité et UX}
+
+L'application respecte les bonnes pratiques RGAA/WCAG afin d’assurer une expérience
+inclusive : contrastes suffisants, gestion des focus, attributs ARIA, composants accessibles via
+Material UI, navigation clavier et alternatives textuelles.
+
+Des audits automatisés via \textbf{Lighthouse} ont été réalisés pour mesurer les performances,
+l’accessibilité et les bonnes pratiques. Les scores obtenus montrent une interface optimisée sur
+mobile et desktop.
+
+\paragraph{Exemple de composant accessible :}
+
+\begin{verbatim}
+const EventCard = ({ event, onOpen }) => {
   return (
     <div
-      className="project-card"
+      className="event-card"
       role="article"
-      aria-labelledby={`project-${project.id}-title`}
+      aria-labelledby={`event-${event.id}-title`}
     >
-      <h3 id={`project-${project.id}-title`}>
-        {project.name}
-      </h3>
-      <p>{project.description}</p>
+      <h3 id={`event-${event.id}-title`}>{event.title}</h3>
+      <p>{event.description}</p>
+
       <button
-        onClick={() => onEdit(project.id)}
-        aria-label={`Modifier le projet ${project.name}`}
+        onClick={() => onOpen(event.id)}
+        aria-label={`Voir les détails de ${event.title}`}
       >
-        Modifier
+        Détails
       </button>
     </div>
   );
 };
-\end{lstlisting}
+\end{verbatim}
 
-\begin{exemple}
-\textbf{Exemple de rapport Lighthouse (1/2) :}
-\begin{lstlisting}[language=json]
+\paragraph{Exemple de rapport Lighthouse :}
+
+\begin{verbatim}
 {
   "categories": {
-    "performance": { "score": 0.92 },
-    "accessibility": { "score": 0.95 },
-    "best-practices": { "score": 0.88 },
-    "seo": { "score": 0.90 }
+    "performance": { "score": 0.90 },
+    "accessibility": { "score": 0.96 },
+    "best-practices": { "score": 0.89 },
+    "seo": { "score": 0.92 }
   }
 }
-\end{lstlisting}
-\end{exemple}
+\end{verbatim}
 
-\begin{exemple}
-\textbf{Exemple de rapport Lighthouse (2/2) :}
-\begin{lstlisting}[language=json]
-  "audits": {
-    "first-contentful-paint": { "score": 0.95 },
-    "largest-contentful-paint": { "score": 0.88 },
-    "color-contrast": { "score": 1.0 },
-    "aria-allowed-attr": { "score": 1.0 }
-  }
-}
-\end{lstlisting}
-\end{exemple}
+\paragraph{Tests, qualité et sécurité}
 
-\begin{conseil}
 \begin{itemize}
-    \item Organiser les composants par fonctionnalité métier
-    \item Respecter les standards d'accessibilité RGAA/WCAG
-    \item Utiliser Lighthouse pour mesurer les performances et l'accessibilité
-    \item Implémenter la protection XSS avec React
-    \item Utiliser TypeScript pour la sécurité des types
-    \item Tester les composants avec Jest et React Testing Library
+  \item Les composants sont testés avec \textbf{Jest} et \textbf{React Testing Library}.
+  \item La protection XSS est assurée grâce au modèle de rendu de React et aux entrées
+  validées par le backend.
+  \item L’état global est typé avec TypeScript pour limiter les incohérences.
+  \item Les performances sont contrôlées via Lighthouse et l’optimisation des assets
+  (images, fonts, lazy loading).
 \end{itemize}
-\end{conseil}
 
-\begin{jury}
-\begin{itemize}
-    \item Comment organisez-vous votre code frontend ?
-    \item Vos composants respectent-ils l'accessibilité ?
-    \item Quels sont vos scores Lighthouse pour les performances et l'accessibilité ?
-    \item Comment protégez-vous contre les attaques XSS ?
-    \item Utilisez-vous TypeScript ? Pourquoi ?
-    \item Comment testez-vous vos composants ?
-\end{itemize}
-\end{jury}
+L’approche frontend proposée garantit une interface fluide, accessible, mobile-first et capable
+d’évoluer pour accueillir plusieurs clubs dans un contexte multi-tenant.
+
 
 \section{Développement Backend}
 
-Le backend implémente une API REST avec Express.js suivant le pattern Controller/Service/Repository pour séparer les responsabilités. La validation des données utilise Joi ou Zod pour garantir la cohérence des entrées. La gestion d'erreur centralisée assure des réponses API cohérentes et facilite le debugging.
+\section*{5.3 Développement Backend}
 
-L'authentification JWT sécurise les endpoints sensibles avec des middlewares de vérification. La documentation OpenAPI/Swagger facilite l'intégration frontend et la maintenance de l'API.
+Le backend de \textit{Diving O Club} est développé avec le framework \textbf{Nest.js} en
+TypeScript. Il expose une API REST structurée selon le pattern
+\textbf{Controller / Service / Repository}, garantissant une séparation claire des responsabilités.
+Les contrôleurs gèrent les requêtes HTTP, les services encapsulent la logique métier, et les
+repositories (DAO) assurent l'accès aux données via Prisma et PostgreSQL.
 
-\begin{exemple}
-\textbf{Structure backend :}
+Nest.js fournit une architecture modulaire qui facilite l'organisation par domaines
+fonctionnels : \texttt{AuthModule}, \texttt{EventsModule}, \texttt{MembersModule},
+\texttt{ClubsModule}, \texttt{PaymentsModule}. Chaque module contient ses propres
+contrôleurs, services, DTO et repositories, ce qui renforce la cohérence globale de
+l'application.
+
+\subsubsection*{Validation des données}
+
+Les données entrantes sont validées via les \textbf{DTO} (Data Transfer Objects) de Nest.js,
+associés à des decorators comme \texttt{@IsString}, \texttt{@IsEmail}, \texttt{@IsInt}, etc., fournis
+par la bibliothèque \textbf{class-validator}. Cette approche garantit la conformité des données
+dès la réception de la requête, avant l'exécution de la logique métier.
+
+Une validation incorrecte retourne automatiquement une erreur HTTP 400 grâce au
+\textbf{ValidationPipe} global de Nest.js, assurant une gestion homogène des réponses d’erreur.
+
+\subsubsection*{Gestion des erreurs}
+
+Nest.js utilise un système d’exceptions centralisé basé sur les classes telles que
+\texttt{BadRequestException}, \texttt{UnauthorizedException}, \texttt{ForbiddenException} ou
+\texttt{NotFoundException}. Une erreur levée dans un service est interceptée et transformée en
+réponse JSON standardisée. Cette approche simplifie le debugging et garantit des réponses
+cohérentes entre les différents endpoints.
+
+\subsubsection*{Authentification et sécurité}
+
+L’authentification repose sur des tokens \textbf{JWT} (access token et refresh token).  
+Les endpoints sensibles sont protégés via des \textbf{guards} Nest.js :
+
+\begin{itemize}
+  \item \texttt{AuthGuard} : vérifie la présence et la validité du token JWT.
+  \item \texttt{RolesGuard} : vérifie le rôle et les permissions de l'utilisateur.
+\end{itemize}
+
+Les tokens contiennent uniquement les informations minimales nécessaires :
+\texttt{id}, \texttt{role}, \texttt{clubId}, assurant la compatibilité avec l’approche multi-tenant.
+
+Une fois authentifié, l'utilisateur peut accéder aux opérations autorisées pour son rôle :
+membres, encadrants, administrateurs du club.
+
+\subsubsection*{Documentation API}
+
+L’API est documentée avec \textbf{Swagger} (OpenAPI), intégré nativement à Nest.js.  
+La documentation comprend :
+
+\begin{itemize}
+  \item la liste des endpoints disponibles,
+  \item les paramètres attendus,
+  \item les DTO utilisés,
+  \item les schémas de réponses,
+  \item les erreurs possibles.
+\end{itemize}
+
+Cette documentation facilite l’intégration frontend, la communication avec les futurs
+développeurs et les tests end-to-end.
+
+\subsubsection*{Structure du backend}
+
 \begin{verbatim}
 src/
-+-- controllers/                   # Gestion des requêtes HTTP
-|   +-- projectController.js
-|   +-- taskController.js
-+-- services/                      # Logique métier
-|   +-- projectService.js
-|   +-- taskService.js
-+-- repositories/                  # Accès aux données
-|   +-- projectRepository.js
-|   +-- taskRepository.js
-+-- middleware/                    # Middlewares Express
-|   +-- auth.js
-|   +-- validation.js
-|   +-- errorHandler.js
-+-- routes/                        # Définition des routes
-    +-- projects.js
-    +-- tasks.js
++-- auth/
+|   +-- auth.controller.ts
+|   +-- auth.service.ts
+|   +-- auth.repository.ts
+|   +-- dto/
+|
++-- events/
+|   +-- events.controller.ts
+|   +-- events.service.ts
+|   +-- events.repository.ts
+|   +-- dto/
+|
++-- members/
+|   +-- members.controller.ts
+|   +-- members.service.ts
+|   +-- members.repository.ts
+|   +-- dto/
+|
++-- prisma/
+|   +-- prisma.service.ts
+|
++-- guards/
+|   +-- auth.guard.ts
+|   +-- roles.guard.ts
+|
++-- main.ts
 \end{verbatim}
 
-\textbf{Exemple de contrôleur avec validation :}
-\begin{lstlisting}[language=JavaScript]
-const createProject = async (req, res, next) => {
-  try {
-    // Validation des données
-    const { error, value } = projectSchema.validate(req.body);
-    if (error) {
-      return res.status(400).json({
-        error: 'Données invalides',
-        details: error.details
-      });
-    }
+Cette structure met en évidence la séparation des responsabilités : les contrôleurs sont
+fins, les services regroupent les règles métier, et les repositories assurent l'interaction avec
+la couche données.
 
-    // Appel du service métier
-    const project = await projectService.createProject(value, req.user.id);
+\subsubsection*{Exemple de contrôleur Nest.js avec validation et sécurité}
 
-    // Log de l'action
-    await auditService.logAction('project_created', req.user.id, {
-      projectId: project.id
-    });
+\begin{verbatim}
+@Post()
+@UseGuards(AuthGuard, RolesGuard)
+@Roles('coach', 'admin')
+async createEvent(
+  @Body() dto: CreateEventDto,
+  @CurrentUser() user
+) {
+  return await this.eventsService.create(dto, user);
+}
+\end{verbatim}
 
-    res.status(201).json(project);
-  } catch (error) {
-    next(error);
-  }
-};
-\end{lstlisting}
-\end{exemple}
+Cet exemple illustre le fonctionnement complet :  
+validation via DTO, protection via guards, et délégation de la logique métier au service.
 
-\begin{conseil}
+\paragraph{À faire / À vérifier}
+
 \begin{itemize}
-    \item Séparer clairement les responsabilités (Controller/Service/Repository)
-    \item Valider systématiquement les données d'entrée
-    \item Implémenter une gestion d'erreur centralisée
-    \item Documenter l'API avec OpenAPI/Swagger
-    \item Logger toutes les actions importantes
+  \item Séparer clairement les responsabilités (Controller / Service / Repository).
+  \item Valider systématiquement les données via DTO + ValidationPipe.
+  \item Utiliser une gestion centralisée des erreurs.
+  \item Documenter l’API avec Swagger (OpenAPI).
+  \item Logger les actions importantes (créations, suppressions, erreurs).
 \end{itemize}
-\end{conseil}
 
-\begin{jury}
-\begin{itemize}
-    \item Comment structurez-vous votre API REST ?
-    \item Quels middlewares utilisez-vous ?
-    \item Comment gérez-vous la validation des données ?
-    \item Avez-vous documenté votre API ?
-    \item Comment tracez-vous les erreurs ?
-\end{itemize}
-\end{jury}
+Ce backend modulaire, typé et sécurisé permet à \textit{Diving O Club} d’évoluer vers un
+environnement multi-tenant tout en garantissant lisibilité, maintenabilité et robustesse.
+
 
 \section{Gestion des données}
 
-La couche données utilise un ORM (Prisma) pour PostgreSQL et le driver natif pour MongoDB. Les transactions garantissent la cohérence des données critiques, tandis que les requêtes optimisées avec des index améliorent les performances. Le pattern Repository abstrait l'accès aux données et facilite les tests.
+\section*{5.4 Gestion des données}
 
-PostgreSQL gère les données transactionnelles avec des contraintes strictes, MongoDB stocke les logs et rapports avec des pipelines d'agrégation pour les analytics. Cette séparation optimise les performances selon le type d'opération.
+La couche données de \textit{Diving O Club} repose principalement sur une base
+\textbf{PostgreSQL}, utilisée pour gérer l’ensemble des données métier critiques :
+utilisateurs, clubs, membres, événements, inscriptions, certificats, paiements, rôles, etc.
+PostgreSQL offre un modèle relationnel robuste, des transactions fiables et des contraintes
+d’intégrité strictes (clés étrangères, unicité, règles de cohérence) indispensables pour une
+application multi-tenant.
 
-\begin{exemple}
-\textbf{Exemple de repository PostgreSQL :}
-\begin{lstlisting}[language=JavaScript]
-class ProjectRepository {
-  async create(projectData) {
-    return await prisma.project.create({
+L'accès aux données PostgreSQL est réalisé via l’ORM \textbf{Prisma}. Celui-ci génère des
+modèles fortement typés en TypeScript, simplifie la rédaction des requêtes et applique un
+système de migrations cohérent avec l’évolution du schéma. Le pattern Repository utilisé dans
+l’architecture backend isole complètement la logique métier de la persistance afin de faciliter
+les tests et la maintenabilité.
+
+En complément, une base \textbf{MongoDB} peut être utilisée pour stocker des logs techniques,
+rapports ou données non-structurées (par exemple l’activité du club ou les événements
+système). MongoDB est adapté aux données volumineuses ou faiblement structurées, et ses
+pipelines d’agrégation permettent d’effectuer des analyses avancées sans impacter la base
+transactionnelle.
+
+La séparation entre données relationnelles (PostgreSQL) et données analytiques ou
+techniques (MongoDB) optimise les performances et garantit la stabilité des opérations
+critiques. Les transactions Prisma assurent la cohérence lors d'opérations complexes, comme
+l’inscription d’un membre à un événement ou la validation d’un paiement.
+
+\subsubsection*{Exemple de repository PostgreSQL (Prisma)}
+
+\begin{verbatim}
+@Injectable()
+export class EventsRepository {
+  constructor(private readonly prisma: PrismaService) {}
+
+  async create(dto: CreateEventDto) {
+    return await this.prisma.event.create({
       data: {
-        name: projectData.name,
-        description: projectData.description,
-        userId: projectData.userId
+        title: dto.title,
+        description: dto.description,
+        startDate: dto.startDate,
+        endDate: dto.endDate,
+        maxParticipants: dto.maxParticipants,
+        clubId: dto.clubId,
+        location: dto.location
       },
       include: {
-        tasks: true,
-        user: { select: { id: true, email: true } }
+        club: { select: { id: true, name: true } },
+        subscriptions: true
       }
     });
   }
 
-  async findByUser(userId) {
-    return await prisma.project.findMany({
-      where: { userId },
-      include: { tasks: true }
+  async findByClub(clubId: number) {
+    return await this.prisma.event.findMany({
+      where: { clubId },
+      include: { subscriptions: true }
     });
   }
 }
-\end{lstlisting}
+\end{verbatim}
 
-\textbf{Exemple de pipeline MongoDB :}
-\begin{lstlisting}[language=JavaScript]
-// Pipeline d'agrégation pour les statistiques
-const getProjectStats = async (projectId, dateRange) => {
+Cet exemple montre comment Prisma permet de gérer les relations SQL et de structurer
+les retours sans exposer la base directement aux services.
+
+\subsubsection*{Exemple de pipeline MongoDB (logs techniques)}
+
+\begin{verbatim}
+// Pipeline d'agrégation pour les statistiques d'activité
+const getEventStats = async (eventId, dateRange) => {
   return await activityLogs.aggregate([
     {
       $match: {
-        'metadata.projectId': projectId,
+        'metadata.eventId': eventId,
         timestamp: { $gte: dateRange.start, $lte: dateRange.end }
       }
     },
@@ -470,28 +818,24 @@ const getProjectStats = async (projectId, dateRange) => {
     }
   ]);
 };
-\end{lstlisting}
-\end{exemple}
+\end{verbatim}
 
-\begin{conseil}
-\begin{itemize}
-    \item Utiliser un ORM pour simplifier les requêtes SQL
-    \item Optimiser les requêtes avec des index appropriés
-    \item Implémenter des transactions pour la cohérence
-    \item Séparer les données transactionnelles et analytiques
-    \item Tester les requêtes avec des données réalistes
-\end{itemize}
-\end{conseil}
+L’usage de MongoDB est optionnel dans \textit{Diving O Club}, mais permet d’externaliser
+les analyses volumineuses sans impacter les performances PostgreSQL.
 
-\begin{jury}
+\paragraph{À faire / À vérifier}
+
 \begin{itemize}
-    \item Comment gérez-vous les transactions ?
-    \item Avez-vous optimisé vos requêtes avec des index ?
-    \item Pourquoi utiliser Prisma plutôt que du SQL brut ?
-    \item Comment gérez-vous la cohérence entre PostgreSQL et MongoDB ?
-    \item Avez-vous testé les performances de vos requêtes ?
+  \item Utiliser un ORM (Prisma) pour simplifier et typer les requêtes SQL.
+  \item Optimiser les requêtes via des index appropriés (recherches par club, par utilisateur).
+  \item Implémenter des transactions pour les opérations critiques.
+  \item Séparer données transactionnelles (PostgreSQL) et analytiques (MongoDB).
+  \item Tester les requêtes sur des jeux de données réalistes.
 \end{itemize}
-\end{jury}
+
+Cette gestion des données garantit la cohérence, la performance et l’évolutivité de
+\textit{Diving O Club}, notamment dans un contexte multi-tenant où plusieurs clubs utilisent la
+plateforme simultanément.
 
 \section{Liens utiles}
 
