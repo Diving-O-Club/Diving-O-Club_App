@@ -1,241 +1,202 @@
 \chapter{Conception fonctionnelle et technique}
 
-\textbf{IMPORTANT :} Cette phase de conception est \textbf{CRUCIALE} et doit être \textbf{COMPLÈTEMENT TERMINÉE} avant de commencer le développement. Le jury attend une conception solide et documentée qui justifie tous vos choix techniques.
+\textbf{Approche de conception :}\\[0.2cm]
+Dans le cadre du projet \textit{Diving O Club}, j’ai adopté une démarche de conception itérative et guidée par les besoins métier réels des clubs de plongée. La conception a été menée \textbf{avant tout développement}, en lien étroit avec le club pilote (Aquaclub 21) afin de sécuriser les choix fonctionnels et techniques et de limiter au maximum les refactorisations ultérieures.
 
-Dans ce chapitre, vous devez présenter votre conception fonctionnelle et technique complète. Cette phase détermine la réussite de votre projet et doit être soigneusement planifiée et documentée.
+Je suis parti d’un recueil des besoins sous forme d’ateliers, d’entretiens informels et de retours d’expérience des membres du comité directeur, des encadrants et des adhérents. Ces échanges ont permis de formaliser une première vision produit, puis de la traduire en \textbf{épics} et \textbf{user stories} priorisées (méthode MoSCoW) dans un backlog structuré. Chaque user story est associée à des critères d’acceptation clairs (méthode Gherkin), ce qui assure une traçabilité directe entre le besoin métier, la conception et les futurs tests.
 
-\textbf{Votre approche de conception :} \textit{[Décrivez votre méthodologie de conception et votre processus de validation]}
-
-\begin{conseil}
-\textbf{Pourquoi la conception est-elle si importante ?}
+À partir de ce socle fonctionnel, j’ai structuré la conception en plusieurs axes complémentaires :
 \begin{itemize}
-    \item \textbf{Évite les refactorisations coûteuses} : Une bonne conception évite de reprendre le code
-    \item \textbf{Guide le développement} : Chaque développeur sait exactement quoi faire
-    \item \textbf{Facilite les tests} : Les cas d'usage définis permettent de créer des tests pertinents
-    \item \textbf{Réduit les risques} : Les problèmes sont identifiés avant le développement
-    \item \textbf{Améliore la communication} : Tous les acteurs comprennent le système
+    \item \textbf{Conception fonctionnelle} : modélisation des acteurs et des cas d’usage (UML), description des parcours utilisateurs clés (inscription, gestion des certificats, inscriptions aux événements, suivi des paiements, etc.) et identification des flux alternatifs et cas d’erreur.
+    \item \textbf{Conception des interfaces} : élaboration de zonings \emph{mobile first}, puis de wireframes basse fidélité et de maquettes haute fidélité alignées sur une charte graphique cohérente avec l’univers de la plongée. Ces éléments servent de base au découpage en composants front-end réutilisables.
+    \item \textbf{Conception des données} : modélisation du \textbf{MCD}, puis du \textbf{MLD} et du \textbf{MPD} (méthode Merise) pour la partie relationnelle (PostgreSQL), en complément d’un schéma documentaire pour les journaux et traces techniques (MongoDB).
+    \item \textbf{Conception technique} : définition d’une architecture 3 tiers (présentation, logique métier, données), choix des technologies (React/Next.js, API Node.js/Nest.js, PostgreSQL, MongoDB), et formalisation des principaux flux via des diagrammes de séquence.
 \end{itemize}
 
-\textbf{Checklist de conception complète :}
+Le \textbf{processus de validation} repose sur plusieurs boucles courtes :
 \begin{itemize}
-    \item \mycheckmark Diagrammes de cas d'usage (Use Cases) validés
-    \item \mycheckmark Diagrammes de séquence pour les flux principaux
-    \item \mycheckmark Modèle de données (MCD/MLD/MPD) défini
-    \item \mycheckmark Architecture technique choisie et justifiée
-    \item \mycheckmark User stories détaillées avec critères d'acceptation
-    \item \mycheckmark Maquettes et wireframes validés
-    \item \mycheckmark Charte graphique définie
-    \item \mycheckmark Plan de tests établi
+    \item Relecture et ajustement des cas d’usage et des maquettes avec les représentants métier (comité directeur, encadrants).
+    \item Vérification de la cohérence des modèles de données et des diagrammes de séquence avec les user stories et les scénarios d’utilisation.
+    \item Alignement des choix techniques avec les contraintes du projet (sécurité, volumétrie, multi-club à terme, maintenabilité) et validation avec mes encadrants pédagogiques.
 \end{itemize}
-\end{conseil}
+
+Ce travail de conception, documenté et versionné (diagrammes, maquettes, modèles de données, backlog), sert ainsi de référence pour le développement, les tests et la maintenance de \textit{Diving O Club}. Les sections suivantes détaillent chacune de ces dimensions (Use Cases, interfaces, base de données, architecture 3 tiers) et montrent comment elles s’articulent pour former un ensemble cohérent.
+
 
 \section{Use Cases et diagrammes UML}
 
-Les Use Cases modélisent les interactions entre les acteurs et le système pour identifier les fonctionnalités essentielles. Cette approche centrée utilisateur garantit que le système répond aux besoins métier réels. Les diagrammes UML facilitent la communication entre les équipes techniques et métier, réduisant les risques d'incompréhension.
+Les Use Cases modélisent les interactions entre les acteurs et le système pour identifier les fonctionnalités essentielles. Cette approche centrée utilisateur garantit que l'application réponde aux besoins réels des clubs de plongée et des différents profils utilisateurs (adhérents, moniteurs, membres du comité directeur, administrateur de plateforme).
 
-La modélisation des cas d'usage permet d'identifier les flux principaux et alternatifs, ainsi que les cas d'erreur à gérer. Cette analyse préalable guide la conception technique et les tests d'acceptation.
+Même si je suis l’unique développeur du projet, les diagrammes UML jouent un rôle structurant dans la conception. Ils facilitent la communication avec les parties prenantes du club pilote (Aquaclub21), notamment lors des ateliers de validation fonctionnelle. Ils permettent également d’éviter les ambiguïtés, de clarifier les périmètres fonctionnels et de sécuriser les décisions avant le développement.
 
-\begin{exemple}
-\textbf{Diagramme Use Case simplifié :}
-\begin{verbatim}
-                    +-------------------+
-                    |   Système de      |
-                    |   Gestion         |
-                    |   Projets         |
-                    +---------+---------+
-                              |
-        +---------------------+---------------------+
-        |                     |                     |
-   +----+----+            +----+----+            +----+----+
-   |Chef de  |            |Dévelop-|            |Manager |
-   |projet   |            |peur    |            |        |
-   +---------+            +---------+            +---------+
-        |                     |                     |
-        | Créer projet        | Mettre à jour       | Générer
-        | Assigner tâches     | statut             | rapport
-        | Suivre avancement   | Consulter          | Analyser
-                              | tâches             | performance
-\end{verbatim}
-\end{exemple}
+Le diagramme global des cas d’usage présenté ci-dessous regroupe l’ensemble des interactions possibles selon les rôles utilisateurs. Il met également en évidence l’intégration du service externe HelloAsso pour la gestion des paiements et du statut des transactions.
 
-\begin{conseil}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{assets/use_case_complet.png}
+    \caption{Diagramme global des cas d’usage de l’application Diving O Club}
+\end{figure}
+
+La modélisation des cas d’usage a permis d’identifier :
 \begin{itemize}
-    \item Identifier tous les acteurs du système
-    \item Modéliser les cas d'usage principaux et alternatifs
-    \item Documenter les préconditions et postconditions
-    \item Prévoir les cas d'erreur et exceptions
-    \item Valider les Use Cases avec les utilisateurs métier
+    \item les fonctionnalités accessibles selon le statut utilisateur (non connecté, connecté sans club, adhérent, moniteur, comité directeur, super administrateur),
+    \item les héritages fonctionnels progressifs selon les rôles,
+    \item les interactions critiques nécessitant une validation métier (adhésion, certificats médicaux, gestion des inscriptions),
+    \item les dépendances externes (HelloAsso),
+    \item les cas alternatifs et erreurs à gérer (refus d’adhésion, capacité maximale atteinte, paiement échoué).
 \end{itemize}
-\end{conseil}
 
-\begin{jury}
+Cette analyse structurante a servi de base :
 \begin{itemize}
-    \item Quels sont vos acteurs principaux ?
-    \item Avez-vous modélisé tous les cas d'usage critiques ?
-    \item Comment gérez-vous les cas d'erreur ?
-    \item Vos Use Cases sont-ils validés par les utilisateurs ?
-    \item Avez-vous prévu les flux alternatifs ?
+    \item à la définition du backlog et des User Stories,
+    \item à la priorisation des versions (MVP, Bêta, V1),
+    \item à la conception des APIs et des règles de gestion,
+    \item aux scénarios de tests d’acceptation.
 \end{itemize}
-\end{jury}
+
 
 \section{Diagrammes de séquence}
 
-Les diagrammes de séquence détaillent les interactions temporelles entre les différents composants du système pour chaque cas d'usage. Cette modélisation précise les responsabilités de chaque couche (présentation, logique métier, données) et facilite l'implémentation technique. Les diagrammes servent également de référence pour les tests d'intégration.
+Les diagrammes de séquence détaillent les interactions temporelles entre les différents composants du système pour chaque cas d'usage. Ils constituent un support essentiel pour clarifier la circulation des données, les responsabilités techniques et les enchaînements conditionnels avant la phase de développement.
 
-La modélisation des séquences permet d'identifier les points de synchronisation, les appels asynchrones, et les mécanismes de gestion d'erreur. Cette analyse technique guide l'architecture et l'implémentation des APIs.
+Dans le cadre de l’application Diving O Club, ces diagrammes permettent de structurer l’architecture autour des trois couches du projet : le frontend (Next.js), la couche API (Nest.js) et la couche données (PostgreSQL et services externes tels que HelloAsso). Ils servent également de référence pour la rédaction des tests d’intégration et pour la validation des exigences fonctionnelles auprès des responsables du club pilote.
 
-\begin{exemple}
-\textbf{Diagramme de séquence - Création de projet :}
-\begin{verbatim}
-User    Frontend    Backend    Database
- |         |          |           |
- |--POST-->|          |           |
- |         |--POST--> |           |
- |         |          |--INSERT-> |
- |         |          |<--OK------|
- |         |<--201----|           |
- |<--200---|          |           |
-\end{verbatim}
+\subsection*{Diagramme de séquence : Authentification utilisateur}
 
-\textbf{Exemple de séquence avec gestion d'erreur :}
-\begin{verbatim}
-User    Frontend    Backend    Database
- |         |          |           |
- |--POST-->|          |           |
- |         |--POST--> |           |
- |         |          |--INSERT-> |
- |         |          |<--ERROR--|
- |         |<--400----|           |
- |<--400---|          |           |
-\end{verbatim}
-\end{exemple}
+Le premier diagramme présente le processus complet de connexion d’un utilisateur, depuis la saisie des identifiants jusqu’à l’obtention du jeton JWT et la redirection selon la situation de l’utilisateur (rattaché ou non à un club). Ce diagramme met en évidence :
 
-\begin{conseil}
 \begin{itemize}
-    \item Modéliser les séquences pour chaque cas d'usage critique
-    \item Prévoir la gestion des erreurs et exceptions
-    \item Identifier les appels synchrones et asynchrones
-    \item Documenter les timeouts et retry policies
-    \item Valider les séquences avec l'équipe technique
+    \item la vérification des identifiants en base de données,
+    \item la génération sécurisée du token JWT,
+    \item la gestion des erreurs d’authentification,
+    \item la récupération du club associé à l’utilisateur,
+    \item la logique conditionnelle de redirection.
 \end{itemize}
-\end{conseil}
 
-\begin{jury}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{assets/diagramme_sequence_authentification.png}
+    \caption{Diagramme de séquence – Processus de connexion utilisateur}
+\end{figure}
+
+\subsection*{Diagramme de séquence : Inscription à un événement et paiement}
+
+Le second diagramme décrit le flux complet d’inscription à un événement, en distinguant les deux scénarios possibles : événement gratuit et événement payant. Il illustre notamment :
+
 \begin{itemize}
-    \item Avez-vous modélisé les séquences critiques ?
-    \item Comment gérez-vous les erreurs dans vos séquences ?
-    \item Vos diagrammes sont-ils cohérents avec l'architecture ?
-    \item Avez-vous prévu les cas de timeout ?
-    \item Comment validez-vous vos modèles de séquence ?
+    \item la vérification du nombre de places disponibles,
+    \item la création de l’inscription en base,
+    \item la détection du caractère payant de l’événement,
+    \item la redirection vers HelloAsso,
+    \item le traitement du webhook de confirmation,
+    \item la mise à jour du statut de participation.
 \end{itemize}
-\end{jury}
 
-\section{Conception de l'interface graphique}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{assets/diagramme_sequence_inscription_evenement_et_paiement.png}
+    \caption{Diagramme de séquence – Inscription à un événement avec gestion du paiement}
+\end{figure}
 
-La conception graphique s'appuie sur une charte graphique cohérente avec l'identité visuelle de l'entreprise. Le zoning et les wireframes définissent la structure des interfaces avant le développement des maquettes haute fidélité. Cette approche progressive valide les choix UX et facilite l'implémentation front-end.
+Les diagrammes de séquence ont permis d’identifier les points sensibles du système, notamment la synchronisation des paiements, la gestion des erreurs réseau, la cohérence transactionnelle et la nécessité de sécuriser les échanges par jetons signés. Ils constituent une référence directe pour l’implémentation des services backend et pour la définition des contrats API.
 
-L'expérience utilisateur (UX) privilégie la simplicité et l'efficacité pour réduire la courbe d'apprentissage et améliorer l'adoption. Les tests utilisateur permettent de valider les choix de conception et d'optimiser l'interface.
+
+\section{Conception de l’interface graphique}
+
+La conception de l’interface graphique de l’application Diving O Club s’inscrit dans une approche \textbf{Mobile First}, en cohérence avec les usages réels des adhérents de clubs de plongée, dont la majorité consulte leurs informations depuis un smartphone. À ce stade du projet, seules les interfaces mobiles ont été conçues afin de garantir une expérience fluide, rapide et intuitive pour les utilisateurs prioritaires : adhérents, encadrants et membres du comité.
+
+Cette démarche progressive permet de structurer l’ergonomie avant d’étendre la conception aux formats tablettes et desktop. La simplicité, la lisibilité et la réduction du nombre d’actions nécessaires guident l’ensemble des choix UX afin de favoriser l’adoption et limiter la charge cognitive. Les wireframes et zonings servent de base aux maquettes haute fidélité et facilitent la mise en œuvre front-end dans Next.js.
 
 \subsection{Zoning}
 
-Dans cette sous-section, vous devez présenter l'organisation spatiale de vos interfaces. Le jury attend une analyse claire de la hiérarchie visuelle et de l'organisation des éléments.
+Le zoning constitue la première étape de structuration visuelle des interfaces. Il permet de définir l’organisation spatiale des éléments principaux sans se concentrer sur l’aspect graphique final. Cette étape clarifie la hiérarchie de l’information, les zones d’interaction, les points d’attention de l’utilisateur et les parcours fonctionnels.
 
-\textbf{Votre zoning :} \textit{[Décrivez l'organisation spatiale de vos pages principales]}
+Elle sert de support pour valider :
+\begin{itemize}
+    \item la disposition des blocs fonctionnels,
+    \item la cohérence des parcours utilisateurs,
+    \item la lisibilité des actions principales,
+    \item la séparation entre navigation, contenu et éléments contextuels.
+\end{itemize}
 
-\begin{exemple}
-\textbf{Zoning d'une page projet :}
-\begin{center}
-\begin{tabular}{|p{4cm}|p{6cm}|p{3cm}|}
-\hline
-\multicolumn{3}{|c|}{\textbf{Header - Navigation principale}} \\
-\hline
-\textbf{Sidebar} & \textbf{Contenu principal} & \textbf{Panel latéral} \\
-\hline
-• Menu navigation & • Titre du projet & • Actions rapides \\
-• Filtres & • Liste des tâches & • Statistiques \\
-• Recherche & • Tableau de données & • Notifications \\
-• Paramètres & • Pagination & • Aide contextuelle \\
-\hline
-\multicolumn{3}{|c|}{\textbf{Footer - Informations légales}} \\
-\hline
-\end{tabular}
-\end{center}
-\end{exemple}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{assets/schema_zoning.png}
+    \caption{Zoning Mobile First – organisation des pages principales}
+\end{figure}
 
-\subsection{Wireframe}
+Le zoning réalisé met en avant une structure simple et intuitive : une zone supérieure dédiée à l'identité visuelle du club ou de l'application, une zone centrale contenant l’élément fonctionnel principal de chaque écran (recherche de clubs, connexion, calendrier, informations du tableau de bord), et une zone inférieure réservée à la navigation persistante. Ce choix permet à l’utilisateur de se repérer facilement, de réaliser les actions essentielles en un minimum d’interactions et de limiter la charge visuelle.
 
-Dans cette sous-section, vous devez présenter vos wireframes pour les pages principales. Le jury attend une représentation claire de la structure et des interactions.
 
-\textbf{Vos wireframes :} \textit{[Présentez vos wireframes pour les pages principales]}
 
-\begin{exemple}
-\textbf{Exemple de wireframe - Page de connexion :}
-\begin{center}
-\begin{tabular}{|p{8cm}|}
-\hline
-\multicolumn{1}{|c|}{\textbf{LOGO DE L'APPLICATION}} \\
-\hline
-\multicolumn{1}{|c|}{} \\
-\multicolumn{1}{|c|}{\textbf{Connexion}} \\
-\multicolumn{1}{|c|}{} \\
-\multicolumn{1}{|c|}{Email : [\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_]} \\
-\multicolumn{1}{|c|}{} \\
-\multicolumn{1}{|c|}{Mot de passe : [\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_]} \\
-\multicolumn{1}{|c|}{} \\
-\multicolumn{1}{|c|}{[    Se connecter    ]} \\
-\multicolumn{1}{|c|}{} \\
-\multicolumn{1}{|c|}{Mot de passe oublié ?} \\
-\multicolumn{1}{|c|}{} \\
-\hline
-\end{tabular}
-\end{center}
-\end{exemple}
+\subsection{Wireframes}
+
+Les wireframes représentent la seconde étape de la conception d’interface après le zoning. Ils permettent de détailler la structure fonctionnelle des écrans en intégrant les premiers éléments interactifs, les libellés, les champs de formulaire et la logique de navigation. Contrairement aux maquettes, les wireframes restent volontairement neutres visuellement afin de se concentrer sur l’expérience utilisateur et les parcours fonctionnels.
+
+Cette étape est essentielle pour :
+\begin{itemize}
+    \item valider les parcours utilisateurs avant développement,
+    \item préciser les interactions clés (connexion, inscription, navigation),
+    \item identifier les contraintes ergonomiques sur mobile,
+    \item limiter le risque de révisions tardives et coûteuses,
+    \item servir de référence au développement front-end dans Next.js.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{assets/schema_wireframe.png}
+    \caption{Wireframes Mobile First – écrans principaux de l’application}
+\end{figure}
+
+Les wireframes définis pour Diving O Club se concentrent sur les écrans prioritaires du MVP :
+\begin{itemize}
+    \item \textbf{Accueil non connecté} : recherche de club et accès à l’authentification,
+    \item \textbf{Connexion} : formulaire simple, clair, avec accès à la création de compte,
+    \item \textbf{Calendrier des évènements} : visualisation des prochains évènements du club,
+    \item \textbf{Accueil après connexion} : accès aux évènements et aux derniers paiements.
+\end{itemize}
+
+Les choix UX mettent l’accent sur :
+\begin{itemize}
+    \item une navigation inférieure persistante pour un repérage immédiat,
+    \item des actions principales accessibles en un seul clic,
+    \item une information hiérarchisée pour limiter la charge cognitive,
+    \item des composants réutilisables facilitant l’implémentation et la cohérence visuelle.
+\end{itemize}
+
+Cette étape a permis de sécuriser les parcours essentiels avant la réalisation des maquettes haute fidélité.
+
 
 \subsection{Maquettage}
 
-Dans cette sous-section, vous devez présenter vos maquettes haute fidélité. Le jury attend une représentation visuelle fidèle au rendu final.
+Les maquettes haute fidélité viendront définir l’identité visuelle finale de l’application. Elles s’appuieront sur une charte graphique inspirée de l’univers de la plongée sous-marine, avec une dominante de couleurs bleu, blanc et noir. Le bleu évoque l’environnement aquatique, la profondeur et la sérénité ; le blanc apporte de la clarté et renforce la lisibilité ; le noir permet de structurer et de créer un contraste élégant.
 
-\textbf{Vos maquettes :} \textit{[Décrivez vos maquettes haute fidélité et leur évolution]}
+L’esthétique générale intégrera des éléments visuels rappelant l’exploration sous-marine, tels que des dégradés évoquant les variations de lumière sous l’eau, des illustrations stylisées de bulles d’air, de poissons ou de végétation marine. L’objectif est de proposer une interface moderne et immersive, tout en restant sobre et fonctionnelle.
 
-\begin{exemple}
-\textbf{Évolution des maquettes :}
-\begin{center}
-\begin{tabular}{|p{3cm}|p{3cm}|p{3cm}|p{3cm}|}
-\hline
-\textbf{Version 1} & \textbf{Version 2} & \textbf{Version 3} & \textbf{Final} \\
-\hline
-Maquettes basiques & Intégration charte & Maquettes interactives & Maquettes validées \\
-Placeholders & Couleurs définies & Animations & Tests utilisateurs \\
-Structure simple & Typographie & Micro-interactions & Optimisations UX \\
-\hline
-\end{tabular}
-\end{center}
-\end{exemple}
+L’interface adoptera également une approche inclusive à destination des utilisateurs peu familiers avec les outils numériques : le nombre de boutons sera volontairement limité, chaque action sera clairement identifiable, et les libellés seront explicites et non techniques. Ces choix visent à réduire la charge cognitive, éviter la confusion et permettre une prise en main immédiate, y compris pour les adhérents non technophiles.
+
+Cette approche permet d’assurer une cohérence visuelle sur l’ensemble des écrans, de renforcer l’identité du projet et d’améliorer l’expérience utilisateur en créant un environnement graphique harmonieux et identifiable.
+
 
 \subsection{Outils de conception et diagrammes}
 
-Dans cette sous-section, vous devez présenter les outils que vous utilisez pour créer vos diagrammes de qualité professionnelle. Le jury attend des diagrammes clairs et bien conçus qui facilitent la compréhension de votre architecture.
+Pour la réalisation des différents schémas et supports visuels nécessaires à la conception du projet, plusieurs outils complémentaires ont été utilisés afin d’obtenir un rendu professionnel, structuré et adapté aux besoins techniques.
 
-\textbf{Vos outils de diagrammes :} \textit{[Listez les outils que vous utilisez et justifiez vos choix]}
+Les diagrammes de séquence ont été créés avec \textbf{PlantUML}, un outil basé sur la génération de diagrammes à partir de code textuel. Ce choix permet une grande précision dans la structuration des interactions, une meilleure maintenabilité et la possibilité de modifier ou itérer rapidement sans devoir reconstruire le schéma visuellement. Cette approche s’est révélée particulièrement efficace pour des séquences complexes impliquant plusieurs acteurs, services et couches applicatives.
 
-\begin{conseil}
-\textbf{Outils recommandés pour des diagrammes de qualité :}
+L’ensemble des autres diagrammes — including les Use Cases, le MCD, le MLD, le MPD, l’architecture 3 tiers et les schémas organisationnels — ont été réalisés avec \textbf{app.diagrams}. Cet outil offre une interface graphique intuitive, des gabarits adaptés aux standards UML, des options de connecteurs intelligents et des fonctionnalités facilitant l’alignement, la lisibilité et la mise en page. Ces capacités sont particulièrement utiles pour produire des schémas visuels nets, hiérarchisés et facilement exploitables dans la documentation.
+
+L’usage combiné de ces deux outils permet :
 \begin{itemize}
-    \item \textbf{Draw.io (diagrams.net) :} Gratuit, intégré à GitHub, parfait pour les diagrammes UML
-    \item \textbf{Lucidchart :} Professionnel, templates UML, collaboration en équipe
-    \item \textbf{PlantUML :} Code-based, versioning Git, intégration LaTeX
-    \item \textbf{Mermaid :} Intégré GitHub, syntaxe simple, diagrammes de flux
+    \item une production rapide et cohérente des diagrammes,
+    \item une meilleure lisibilité pour les parties prenantes non techniques,
+    \item une mise à jour simplifiée des schémas lors de l'évolution du projet,
+    \item une compatibilité directe avec l’exportation en formats PDF et PNG pour intégration au dossier,
+    \item une homogénéité visuelle dans l’ensemble de la documentation.
 \end{itemize}
 
-\textbf{Conseils pour des diagrammes professionnels :}
-\begin{itemize}
-    \item Utilisez des couleurs cohérentes et une légende
-    \item Respectez les conventions UML (acteurs, cas d'usage, relations)
-    \item Gardez vos diagrammes simples et lisibles
-    \item Versionnez vos diagrammes avec votre code
-    \item Intégrez-les dans votre documentation GitHub
-\end{itemize}
-\end{conseil}
+Cette organisation garantit une documentation claire, professionnelle et alignée avec les attentes du jury, tout en favorisant une communication efficace autour du projet.
+
 
 \subsection{Charte graphique}
 
@@ -253,215 +214,290 @@ Dans cette sous-section, vous devez détailler votre charte graphique complète.
 
 \textbf{Votre logo et son utilisation :} \textit{[Décrivez votre logo et ses variantes]}
 
-\begin{exemple}
-\textbf{Charte graphique :}
-\begin{center}
-\begin{tabular}{|p{3cm}|p{4cm}|p{5cm}|}
-\hline
-\textbf{Couleurs} & \textbf{Typographie} & \textbf{Composants} \\
-\hline
-Primaire: \#FFD700 & Inter (titres) & Boutons arrondis \\
-Secondaire: \#101820 & Arial (corps) & Cartes avec ombres \\
-Neutre: \#333A40 & Monospace (code) & Icônes Material Design \\
-Accent: \#007BFF & & \\
-\hline
-\textbf{Espacement} & \textbf{Grille 8px} & \textbf{Marges cohérentes} \\
-\hline
-\end{tabular}
-\end{center}
-\end{exemple}
-
-\begin{conseil}
-\begin{itemize}
-    \item Définir une charte graphique cohérente
-    \item Créer des wireframes pour toutes les pages principales
-    \item Développer des maquettes haute fidélité
-    \item Tester l'accessibilité et la responsivité
-    \item Utiliser Lighthouse pour valider les performances et l'accessibilité
-    \item Valider les choix UX avec les utilisateurs
-\end{itemize}
-\end{conseil}
-
-\begin{jury}
-\begin{itemize}
-    \item Votre charte graphique est-elle cohérente ?
-    \item Avez-vous testé vos interfaces avec les utilisateurs ?
-    \item Vos maquettes respectent-elles l'accessibilité ?
-    \item Quels sont vos scores Lighthouse pour l'accessibilité ?
-    \item Comment gérez-vous la responsivité ?
-    \item Avez-vous défini des composants réutilisables ?
-\end{itemize}
-\end{jury}
 
 \section{Conception de base de données}
 
-La conception de base de données suit la méthode Merise avec un Modèle Conceptuel de Données (MCD), un Modèle Logique de Données (MLD), et un Modèle Physique de Données (MPD). Cette approche progressive garantit la cohérence et l'optimisation des données. Les contraintes d'intégrité et les index optimisent les performances et la fiabilité.
+La conception de la base de données s’appuie sur la méthode Merise, en suivant une progression structurée du Modèle Conceptuel de Données (MCD) vers le Modèle Logique de Données (MLD), puis vers le Modèle Physique de Données (MPD). Cette démarche permet de garantir la cohérence du modèle, la conformité avec les besoins fonctionnels et l’optimisation du stockage des informations essentielles à la gestion des clubs de plongée, des adhérents, des événements et des paiements.
 
-PostgreSQL gère les données transactionnelles avec des contraintes strictes, tandis que MongoDB stocke les logs et rapports avec une structure flexible. Cette architecture hybride optimise les performances selon le type de données.
+L’architecture retenue repose sur une double logique de stockage : \textbf{PostgreSQL} pour la gestion des données transactionnelles (adhésions, rôles, certificats, inscriptions aux événements, paiements) avec intégrité forte, et \textbf{MongoDB} pour le stockage des journaux d’activité, rapports et suivis applicatifs nécessitant une structure flexible et évolutive. Cette répartition permet d’optimiser la performance selon la nature des données, tout en garantissant la fiabilité, la traçabilité et l’évolutivité du système.
+
+Les contraintes d’intégrité, les clés primaires, les clés étrangères, ainsi que les index sont définis pour assurer la robustesse du modèle et optimiser les performances sur les opérations les plus fréquentes. L’approche retenue permet également d’accompagner l’évolution progressive du projet au fil des versions (MVP, Bêta, V1) sans restructuration majeure du socle applicatif.
 
 \subsection{MCD (Modèle Conceptuel de Données)}
 
-Dans cette sous-section, vous devez présenter votre modèle conceptuel de données. Le jury attend une représentation claire des entités et de leurs relations.
+Le Modèle Conceptuel de Données (MCD) représente les entités principales du système Diving O Club ainsi que leurs relations. Il permet de structurer les informations nécessaires au fonctionnement de la plateforme : gestion des utilisateurs, clubs, adhésions, événements, inscriptions et paiements. Ce modèle garantit que les besoins fonctionnels exprimés dans les cas d’usage se traduisent en données correctement organisées, cohérentes et exploitables pour les versions MVP, Bêta et V1 du projet.
 
-\textbf{Votre MCD :} \textit{[Présentez votre modèle conceptuel avec les entités et relations principales]}
+\begin{figure}[H]
+\centering
+\includegraphics[width=17cm]{assets/schema_mcd.png}
+\caption{Modèle Conceptuel de Données de l'application Diving O Club}
+\end{figure}
+
+\subsubsection*{Principales entités}
+
+\begin{itemize}
+    \item \textbf{Utilisateur} : représente l’ensemble des membres de la plateforme (visiteurs inscrits, adhérents, moniteurs, membres du comité directeur). Contient les informations d'identité, de contact et de profil.
+    \item \textbf{Club} : correspond aux structures associatives affiliées FFESSM pouvant accueillir des adhérents et organiser des événements.
+    \item \textbf{Adhésion} : associe un utilisateur à un club, avec un rôle (adhérent, moniteur, comité directeur) et un statut (en attente, validée, refusée).
+    \item \textbf{Certificat Médical} : document attaché à un utilisateur, permettant de contrôler la conformité à la réglementation FFESSM.
+    \item \textbf{Événement} : sorties plongée, entraînements piscine, voyages… organisés par un club.
+    \item \textbf{Inscription Événement} : lie un utilisateur à un événement, avec présence, annulation ou liste d’attente.
+    \item \textbf{Paiement} : stocke le statut de paiement d’un utilisateur pour un événement, synchronisé avec HelloAsso.
+\end{itemize}
+
+\subsubsection*{Relations principales}
+
+\begin{itemize}
+    \item Un \textbf{Utilisateur} peut appartenir à plusieurs \textbf{Clubs} via les \textbf{Adhésions}.
+    \item Un \textbf{Club} peut organiser plusieurs \textbf{Événements}.
+    \item Un \textbf{Utilisateur} peut s’inscrire à plusieurs \textbf{Événements}.
+    \item Un \textbf{Certificat Médical} appartient à un seul \textbf{Utilisateur}.
+    \item Un \textbf{Paiement} est lié à une \textbf{Inscription Événement}.
+\end{itemize}
+
+\subsubsection*{Contraintes d’intégrité}
+
+\begin{itemize}
+    \item \textbf{Un utilisateur ne peut avoir qu’un seul certificat médical actif} : garantit la conformité légale et la cohérence des données.
+    \item \textbf{Un paiement est obligatoirement rattaché à une inscription à un événement} : empêche tout paiement isolé ou impossible à associer.
+\end{itemize}
 
 \subsection{MLD (Modèle Logique de Données)}
 
-Dans cette sous-section, vous devez détailler votre modèle logique de données. Le jury attend une traduction du MCD en structure de base de données.
+Le Modèle Logique de Données (MLD) traduit le MCD en un ensemble de tables relationnelles adaptées à PostgreSQL. Il formalise les clés primaires, les clés étrangères et les cardinalités entre les entités, en respectant les règles métier identifiées pour Diving O Club : gestion des utilisateurs, des clubs, des adhésions, des événements, des inscriptions et des paiements.
 
-\textbf{Votre MLD :} \textit{[Décrivez votre modèle logique avec les tables et relations]}
+\begin{figure}[H]
+\centering
+\includegraphics[width=17cm]{assets/schema_mld.png}
+\caption{Modèle Logique de Données de l'application Diving O Club}
+\end{figure}
+
+Le MLD est structuré autour des tables principales suivantes :
+
+\begin{itemize}
+    \item \textbf{UTILISATEUR} : table centrale pour l’authentification et le profil des membres de la plateforme (adhérents, moniteurs, membres du comité directeur, etc.).
+    \item \textbf{CLUB} : représente les clubs de plongée pouvant accueillir des adhérents et organiser des événements.
+    \item \textbf{ROLE} : liste les rôles possibles au sein d’un club (adhérent, moniteur, comité directeur) afin de ne pas les dupliquer dans plusieurs tables.
+    \item \textbf{ADHESION} : table d’association entre \texttt{UTILISATEUR}, \texttt{CLUB} et \texttt{ROLE}, permettant de gérer l’appartenance d’un utilisateur à un club ainsi que son rôle et le statut de l’adhésion.
+    \item \textbf{CERTIFICAT\_MEDICAL} : stocke les certificats médicaux associés aux utilisateurs, avec leur statut (en attente, validé, refusé) et leurs dates de validité.
+    \item \textbf{EVENEMENT} : regroupe les événements créés par un club (sorties mer, entraînements piscine, etc.), avec les informations de lieu, horaires, niveau requis et capacité.
+    \item \textbf{INSCRIPTION\_EVENEMENT} : table d’association entre \texttt{UTILISATEUR} et \texttt{EVENEMENT}, permettant de gérer les inscriptions, désinscriptions et listes d’attente.
+    \item \textbf{PAIEMENT} : contient les informations de paiement liées aux inscriptions, y compris le montant, le statut et la référence HelloAsso.
+\end{itemize}
+
+Les relations entre les tables, représentées en notation « crow’s foot » dans le schéma, garantissent notamment que :
+\begin{itemize}
+    \item un \textbf{UTILISATEUR} peut avoir plusieurs \textbf{ADHESIONS} mais une adhésion ne concerne qu’un seul utilisateur et un seul club ;
+    \item un \textbf{CLUB} peut organiser plusieurs \textbf{EVENEMENTS} ;
+    \item un \textbf{UTILISATEUR} peut avoir plusieurs \textbf{CERTIFICAT\_MEDICAL} au cours du temps (historique) ;
+    \item un \textbf{EVENEMENT} peut avoir plusieurs \textbf{INSCRIPTION\_EVENEMENT}, chacune liée à un utilisateur ;
+    \item un \textbf{PAIEMENT} est toujours rattaché à une \textbf{INSCRIPTION\_EVENEMENT}, ce qui évite les paiements « orphelins ».
+\end{itemize}
+
+Ce modèle logique sert de base directe à la construction du Modèle Physique de Données (MPD), dans lequel chaque table est enrichie avec les types de données PostgreSQL, les contraintes d’unicité, les clés étrangères et les index nécessaires aux performances.
 
 \subsection{MPD (Modèle Physique de Données)}
 
-Dans cette sous-section, vous devez présenter votre modèle physique de données. Le jury attend une implémentation concrète avec les contraintes et index.
+Le Modèle Physique de Données (MPD) constitue la traduction du MLD en structures concrètes adaptées au SGBD retenu pour l’application : PostgreSQL. Il définit les types de données, les clés primaires, les clés étrangères, les contraintes d’unicité ainsi que les index nécessaires pour optimiser les performances des opérations les plus courantes (recherche de clubs, gestion des adhésions, inscriptions aux événements et suivi des paiements).
 
-\textbf{Votre MPD :} \textit{[Détaillez votre modèle physique avec les contraintes, index et optimisations]}
+\begin{figure}[h!]
+\centering
+\includegraphics[width=17cm]{assets/schema_mpd.png}
+\caption{Modèle Physique de Données de l'application Diving O Club}
+\end{figure}
 
-\begin{exemple}
-\textbf{MCD simplifié :}
-\begin{verbatim}
-PROJET (id, nom, description, date_debut, date_fin)
-    |
-    | 1,n
-    |
-TACHE (id, titre, description, statut, priorite)
-    |
-    | n,1
-    |
-UTILISATEUR (id, email, nom, prenom, role)
-\end{verbatim}
+Les tables sont typées selon les besoins fonctionnels, avec notamment :
+
+\begin{itemize}
+    \item \textbf{UUID} pour les identifiants (\texttt{id\_utilisateur}, \texttt{id\_club}, \texttt{id\_evenement}) afin de permettre l’évolutivité multi-tenant et la sécurité ;
+    \item \textbf{VARCHAR} pour les champs texte structurés (nom, email, intitulés) ;
+    \item \textbf{BOOLEAN} pour les statuts logiques (validation, présence, désactivation) ;
+    \item \textbf{DATE} ou \textbf{TIMESTAMP} pour les éléments temporels ;
+    \item \textbf{ENUM} ou \textbf{CHECK} pour les statuts métiers (adhésion, certificat, paiement).
+\end{itemize}
+
+Les clés primaires (PK) garantissent l’unicité de chaque enregistrement, tandis que les clés étrangères (FK) assurent la cohérence des relations entre :
+
+\begin{itemize}
+    \item utilisateur et adhésion ;
+    \item club et événement ;
+    \item événement et inscription ;
+    \item inscription et paiement ;
+    \item utilisateur et certificat médical.
+\end{itemize}
+
+Des index sont ajoutés afin d’améliorer les performances sur les opérations récurrentes, notamment :
+
+\begin{itemize}
+    \item recherche par club (\texttt{idx\_utilisateur\_club}) ;
+    \item accès aux événements futurs (\texttt{idx\_evenement\_date}) ;
+    \item statut des adhésions et certificats (\texttt{idx\_adhesion\_statut}, \texttt{idx\_certificat\_statut}) ;
+    \item synchronisation HelloAsso (\texttt{idx\_paiement\_statut}).
+\end{itemize}
+
+\subsubsection*{Contraintes d’intégrité physiques}
+
+\begin{itemize}
+    \item \textbf{Un utilisateur ne peut pas s’inscrire deux fois au même événement} \\
+    (contrainte d’unicité sur \texttt{(id\_utilisateur, id\_evenement)} dans \texttt{INSCRIPTION\_EVENEMENT})
+    \item \textbf{Un paiement ne peut exister sans inscription associée} \\
+    (FK obligatoire \texttt{id\_inscription\_evenement} dans \texttt{PAIEMENT})
+\end{itemize}
+
+Le MPD permet ainsi de garantir la fiabilité des données, la conformité réglementaire FFESSM sur les certificats médicaux, ainsi qu’une base solide pour l’évolution du système vers la gestion multi-clubs et l’intégration avancée HelloAsso prévue en V1.
+
 
 \textbf{Exemple de contraintes PostgreSQL :}
-\begin{lstlisting}[language=SQL]
--- Contraintes d'intégrité
-ALTER TABLE taches ADD CONSTRAINT fk_tache_projet
-    FOREIGN KEY (projet_id) REFERENCES projets(id)
+
+
+
+
+\subsection*{Contraintes d'intégrité dans la base de données}
+
+Dans le cadre de la conception du Modèle Physique de Données (MPD), plusieurs contraintes d’intégrité ont été ajoutées afin de garantir la cohérence et la fiabilité des informations stockées dans la base PostgreSQL. Ci-dessous sont présentées deux des contraintes principales mises en place.
+
+\subsubsection*{1. Contrainte d’unicité sur l’email utilisateur}
+
+\noindent Cette contrainte permet de garantir qu’aucun utilisateur ne puisse partager la même adresse email. Elle empêche la création de doublons et assure une identification unique lors de l’authentification.
+
+\begin{verbatim}
+ALTER TABLE utilisateur
+  ADD CONSTRAINT uq_utilisateur_email UNIQUE(email);
+\end{verbatim}
+
+\subsubsection*{2. Intégrité référentielle entre les inscriptions et les événements}
+
+\noindent Cette contrainte garantit qu’une inscription ne peut exister que si l’événement associé est présent dans le système. L’option \texttt{ON DELETE CASCADE} assure qu’en cas de suppression d’un événement, les inscriptions liées seront automatiquement supprimées, évitant ainsi des données orphelines.
+
+\begin{verbatim}
+ALTER TABLE inscription_evenement
+  ADD CONSTRAINT fk_inscription_evenement
+    FOREIGN KEY (id_evenement) REFERENCES evenement(id_evenement)
     ON DELETE CASCADE;
+\end{verbatim}
 
--- Index pour optimiser les performances
-CREATE INDEX idx_taches_statut ON taches(statut);
-CREATE INDEX idx_taches_projet_statut ON taches(projet_id, statut);
 
--- Contrainte de validation
-ALTER TABLE projets ADD CONSTRAINT chk_dates
-    CHECK (date_fin > date_debut);
-\end{lstlisting}
+\subsection*{Exemple de document MongoDB (logs et audit)}
 
-\textbf{Exemple de document MongoDB :}
+En complément de la base de données relationnelle PostgreSQL, MongoDB est utilisé pour stocker des journaux techniques (logs) et des informations d’audit sous forme de documents JSON. Cette approche permet de conserver un historique détaillé des actions des utilisateurs sans alourdir le schéma transactionnel principal.
+
+\noindent L’exemple ci-dessous illustre un document MongoDB représentant l’enregistrement d’une inscription à un événement :
+
 \begin{lstlisting}[language=JSON]
 {
   "_id": ObjectId("..."),
-  "userId": "user123",
-  "action": "task_created",
-  "timestamp": ISODate("2025-01-15T10:30:00Z"),
+  "userId": "u_123",
+  "clubId": "c_456",
+  "action": "event_registration_created",
+  "timestamp": ISODate("2026-03-15T19:30:00Z"),
   "metadata": {
-    "projectId": "proj456",
-    "taskId": "task789",
-    "ipAddress": "192.168.1.100"
+    "evenementId": "e_789",
+    "inscriptionId": "i_1011",
+    "statutInscription": "inscrit",
+    "ipAddress": "192.168.1.42",
+    "userAgent": "Mozilla/5.0 (Mobile; iOS 17)"
   }
 }
 \end{lstlisting}
-\end{exemple}
 
-\begin{conseil}
+\noindent Ce type de structure JSON permet de conserver des informations contextuelles riches (adresse IP, navigateur, identifiants internes, statut de l’inscription, etc.) de manière flexible, tout en séparant clairement les données d’audit des données métiers transactionnelles gérées dans PostgreSQL.
+
+\subsection*{Prévision des migrations et évolution du schéma}
+
+L’évolution progressive de la base de données est prise en compte dès la conception, afin d’accompagner les différentes étapes du projet (MVP, version Bêta, version 1). Les migrations seront gérées de manière structurée à l’aide d’outils de versionnement du schéma, permettant de modifier ou d’étendre les tables sans perte de données.
+
+\noindent Les principales étapes prévues sont les suivantes :
 \begin{itemize}
-    \item Modéliser le MCD avec toutes les entités et relations
-    \item Définir les contraintes d'intégrité référentielle
-    \item Optimiser avec des index appropriés
-    \item Prévoir la migration et l'évolution du schéma
-    \item Documenter les choix de conception
+    \item ajout de nouvelles colonnes sans interruption de service (ex : données supplémentaires utilisateur) ;
+    \item évolution de certaines tables pour introduire de nouvelles fonctionnalités (ex : paiements et rôles avancés) ;
+    \item création de tables complémentaires lorsque nécessaire (ex : statistiques, logs, modules optionnels) ;
+    \item conservation des données existantes via des scripts de migration contrôlés ;
+    \item traçabilité et possibilité de retour arrière grâce au versionnement du schéma.
 \end{itemize}
-\end{conseil}
 
-\begin{jury}
+\noindent Cette approche garantit que la base de données pourra évoluer de manière fiable et contrôlée tout au long du cycle de développement, sans impact sur les utilisateurs ou sur l’intégrité des données.
+
 \begin{itemize}
-    \item Montrez votre MCD et expliquez 2 contraintes d'intégrité
-    \item Comment optimisez-vous les performances de vos requêtes ?
-    \item Avez-vous prévu la migration des données ?
-    \item Pourquoi utiliser PostgreSQL ET MongoDB ?
-    \item Comment gérez-vous la cohérence entre les deux bases ?
+\item PostgreSQL est utilisé pour toutes les données métiers structurées du système (utilisateurs, clubs, adhésions, événements, inscriptions et paiements). Son modèle relationnel garantit l’intégrité, les contraintes, les transactions ACID et la cohérence nécessaire au fonctionnement administratif d’un club de plongée.
+\item MongoDB est utilisé en complément pour stocker des données non structurées ou volumétriques telles que les logs d’activité, l’audit des actions, les traces techniques ou les retours bruts de l’API HelloAsso. Son modèle documentaire permet une flexibilité d’évolution sans impacter le schéma transactionnel.
 \end{itemize}
-\end{jury}
+\noindent L’utilisation combinée des deux systèmes permet donc d’optimiser chaque type de donnée avec la technologie la plus adaptée tout en maintenant des performances et une structure claire.
 
+\begin{itemize}
+\item PostgreSQL reste la \textbf{source de vérité} du système : toutes les données fonctionnelles et métier y sont stockées et validées.
+\item MongoDB ne stocke que des informations dérivées, techniques ou historiques (logs, audit, réponses externes), et ne contient aucune donnée nécessaire au fonctionnement métier.
+\item Les documents MongoDB incluent systématiquement des identifiants provenant de PostgreSQL (ex : \texttt{userId}, \texttt{evenementId}, \texttt{inscriptionId}), garantissant la correspondance entre les deux systèmes.
+\item La suppression ou modification des données métier n’impacte pas l’intégrité du système, car MongoDB n’est jamais utilisé pour prendre une décision fonctionnelle.
+\end{itemize}
+\noindent De cette manière, il n’existe pas de risque d’incohérence applicative, et chaque base joue un rôle distinct et maîtrisé dans l’architecture globale.
+
+\clearpage
 \section{Architecture 3 tiers}
 
-L'architecture 3 tiers sépare clairement les responsabilités : couche présentation (React), couche logique métier (Node.js), et couche données (PostgreSQL/MongoDB). Cette séparation facilite la maintenance, la scalabilité et les tests. Chaque tier peut évoluer indépendamment selon les besoins techniques et métier.
+L'application \textit{Diving O Club} repose sur une architecture 3 tiers, organisée en trois couches clairement séparées : la présentation, la logique métier et les données. Cette approche est particulièrement adaptée à une application web moderne multi-utilisateurs, car elle permet de séparer les responsabilités, de faciliter la maintenance et de faire évoluer chaque couche de manière indépendante. Elle s'intègre naturellement avec la stack technique choisie (Next.js / React pour le front-end, Nest.js / Node.js pour le back-end, PostgreSQL et MongoDB pour les données).
 
-Les flux de données sont optimisés pour minimiser les appels réseau et garantir la cohérence transactionnelle. L'API REST assure une communication standardisée entre les couches et facilite l'intégration avec d'autres systèmes.
+\subsection*{Schéma global de l’architecture}
 
-\begin{exemple}
-\textbf{Schéma architecture 3 tiers :}
+Le schéma ci-dessous illustre l’architecture 3 tiers mise en place pour \textit{Diving O Club} :
+
 \begin{verbatim}
-+----------------------------------+
-|        TIER 1: PRESENTATION      |
-+-------+-------+-------+----------+
-| React | Router| State |         |
-| Comp. |       | Mgr.  |         |
-+-------+-------+-------+----------+
-                |
-                | HTTP/HTTPS
-                v
-+----------------------------------+
-|        TIER 2: LOGIQUE METIER    |
-+-------+-------+-------+----------+
-|Express|Services| Auth  |         |
-|Routes | Layer  | Middleware      |
-+-------+-------+-------+----------+
-                |
-                | SQL/NoSQL
-                v
-+----------------------------------+
-|        TIER 3: DONNEES           |
-+-------+-------+-------+----------+
-|PostgreSQL|MongoDB| Redis|       |
-|(Transactions)|(Logs)|(Cache)    |
-+-------+-------+-------+----------+
++--------------------------------------------------------+
+|                 TIER 1 : PRESENTATION                  |
++--------------------------------------------------------+
+|  Next.js (React)                                       |
+|  - Pages et composants UI                              |
+|  - Navigation (Next Router)                            |
+|  - Formulaires et validation côté client               |
+|  - Gestion d'état (Context / React Query, etc.)        |
++-------------------------------+------------------------+
+                                |
+                                | HTTPS (API REST / JSON)
+                                v
++--------------------------------------------------------+
+|               TIER 2 : LOGIQUE METIER                  |
++--------------------------------------------------------+
+|  Nest.js (Node.js)                                     |
+|  - Controllers (endpoints REST)                        |
+|  - Services (règles métier : adhésions, événements,    |
+|    inscriptions, paiements)                            |
+|  - Gestion des rôles (adhérent, moniteur, comité,      |
+|    super admin) et de l'authentification               |
+|  - Intégration des services externes (API HelloAsso)   |
++-------------------------------+------------------------+
+                                |
+                                | SQL / NoSQL
+                                v
++--------------------------------------------------------+
+|                   TIER 3 : DONNÉES                     |
++--------------------------------------------------------+
+|  PostgreSQL                                            |
+|  - Utilisateurs, clubs, adhésions                      |
+|  - Événements, inscriptions, paiements                 |
+|                                                        |
+|  MongoDB                                               |
+|  - Logs techniques et audit                            |
+|  - Traces des actions et réponses HelloAsso            |
++--------------------------------------------------------+
 \end{verbatim}
 
-\textbf{Exemple de flux de données :}
-\begin{lstlisting}[language=JavaScript]
-// Tier 1: Frontend (React)
-const createProject = async (projectData) => {
-  const response = await fetch('/api/projects', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(projectData)
-  });
-  return response.json();
-};
+\subsection*{Justification de l’architecture choisie}
 
-// Tier 2: Backend (Node.js/Express)
-app.post('/api/projects', authenticateUser, async (req, res) => {
-  try {
-    const project = await projectService.createProject(req.body);
-    await auditService.logAction('project_created', req.user.id);
-    res.status(201).json(project);
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-});
-\end{lstlisting}
-\end{exemple}
+Cette architecture 3 tiers a été retenue pour plusieurs raisons :
 
-\begin{conseil}
 \begin{itemize}
-    \item Documenter clairement les responsabilités de chaque tier
-    \item Définir les interfaces entre les couches
-    \item Prévoir la scalabilité horizontale et verticale
-    \item Implémenter des mécanismes de cache appropriés
-    \item Tester l'intégration entre les tiers
-\end{itemize}
-\end{conseil}
+  \item \textbf{Séparation claire des responsabilités} : la couche présentation se concentre sur l’interface et l’expérience utilisateur (UX), la couche métier sur les règles propres aux clubs de plongée (adhésions, certificats, rôles, inscriptions aux événements), et la couche données sur la persistance et l’intégrité des informations. Cela limite le couplage entre les parties de l’application.
 
-\begin{jury}
-\begin{itemize}
-    \item Quelles sont les responsabilités de chaque tier ?
-    \item Comment gérez-vous la communication entre les tiers ?
-    \item Votre architecture est-elle scalable ?
-    \item Avez-vous prévu la gestion des erreurs inter-tiers ?
-    \item Comment optimisez-vous les performances ?
+  \item \textbf{Évolutivité et maintenabilité} : chaque tier peut évoluer indépendamment. Par exemple, l’interface Next.js peut être refondue (nouvelle charte graphique, nouvelles pages) sans réécrire la logique métier, et la base PostgreSQL peut être optimisée (index, migrations) sans impacter le front-end.
+
+  \item \textbf{Alignement avec la stack moderne web} : Next.js (React) s’intègre naturellement avec une API REST Nest.js, ce qui permet d’exposer des endpoints clairs (\texttt{/api/clubs}, \texttt{/api/events}, etc.) et de gérer l’authentification par jetons. PostgreSQL est utilisé comme base relationnelle robuste pour les données critiques, tandis que MongoDB sert de support flexible pour les logs et l’audit.
+
+  \item \textbf{Facilité de tests et de déploiement} : la séparation des tiers facilite les tests unitaires et d’intégration (tests des services Nest.js indépendamment de l’UI) ainsi que le déploiement sur plusieurs environnements (développement, pré-production, production). L’API peut être testée et validée sans dépendre du front-end.
+
+  \item \textbf{Préparation à la montée en charge} : l’architecture 3 tiers permet, à terme, de faire évoluer l’infrastructure (mise en place de réplicas PostgreSQL, scaling horizontal de Nest.js derrière un reverse proxy, ajout de mécanismes de cache) sans remettre en cause le modèle général.
 \end{itemize}
-\end{jury}
+
+Cette structuration en trois couches contribue ainsi à rendre \textit{Diving O Club} plus robuste, plus lisible et plus facilement extensible dans la perspective d’une ouverture à plusieurs clubs et d’une évolution fonctionnelle sur le long terme.
+
 
 \section{Liens utiles}
 
@@ -477,3 +513,5 @@ app.post('/api/projects', authenticateUser, async (req, res) => {
     \item PlantUML (diagrammes): \url{https://plantuml.com/}
     \item Mermaid (diagrammes): \url{https://mermaid-js.github.io/mermaid/}
 \end{itemize}
+
+
