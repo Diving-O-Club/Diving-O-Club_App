@@ -28,8 +28,22 @@ Le besoin métier principal consiste donc à mettre en place un outil simple, co
 
 \vspace{0.5cm}
 
+\subsection{Lien avec les compétences du référentiel CDA}
 
+Le projet \textit{Diving O Club} constitue une mise en situation professionnelle complète permettant de mobiliser l’ensemble des compétences attendues du titre \textit{Concepteur Développeur d’Applications} (RNCP).
 
+Dans ce cadre, mon rôle couvre les blocs de compétences suivants :
+\begin{itemize}
+    \item \textbf{Analyse des besoins et cadrage du projet} : recueil des besoins réels des clubs de plongée, analyse des processus administratifs existants, identification des contraintes métier et utilisateurs.
+    \item \textbf{Conception de la solution applicative} : modélisation fonctionnelle et technique (diagrammes UML, schémas d’architecture, modélisation des données) afin de structurer une solution adaptée aux usages.
+    \item \textbf{Développement de l’application} : conception et implémentation d’une application web full-stack, incluant les interfaces utilisateur, la logique métier et les interactions avec la base de données.
+    \item \textbf{Sécurité et protection des données} : prise en compte des enjeux de sécurité applicative, d’authentification, de gestion des accès et de conformité au RGPD.
+    \item \textbf{Déploiement, tests et maintenance} : mise en place d’un environnement de déploiement, d’une chaîne CI/CD, de tests de qualité et d’une démarche d’amélioration continue.
+\end{itemize}
+
+À travers ce projet, je mets en œuvre de façon concrète et cohérente les compétences professionnelles attendues d’un concepteur développeur d’applications.
+
+\vspace{0.5cm}
 \textbf{Durée et planning :} J'ai démarré mon alternance le 1\textsuperscript{er} septembre 2025, à raison de trois jours en entreprise (lundi, mardi, mercredi) et deux jours en formation (jeudi et vendredi). Ce dossier a été rédigé durant la phase de conception du projet, de septembre à décembre 2025.
 
 
@@ -82,7 +96,11 @@ L’objectif est de remplacer la multiplicité des outils actuels par une soluti
 \section{Problématique et objectifs SMART}
 
 \noindent\textbf{Problématique centrale :}\\[0.2cm]
-\textit{Comment accompagner efficacement un public majoritairement adulte et peu technophile, tout en réduisant significativement la charge administrative des clubs, dans un contexte où les outils actuels sont fragmentés, peu ergonomiques et insuffisamment adaptés aux processus associatifs réels ?}
+\textit{Comment concevoir et déployer une plateforme web simple, centralisée et sécurisée permettant de réduire d’au moins 50~\% la charge administrative des clubs de plongée affiliés à la FFESSM, tout en restant accessible à un public majoritairement peu technophile et hétérogène en termes d’usages numériques~?
+}
+
+Cette problématique s’illustre notamment à travers le profil d’adhérents peu à l’aise avec les outils numériques, comme Marc, 52 ans, plongeur loisir, qui rencontre des difficultés à gérer des démarches administratives réparties sur plusieurs supports. La fragmentation des outils et le manque d’ergonomie constituent pour ce type d’utilisateur un frein à l’inscription et à la participation aux activités du club. Ce constat a guidé les choix fonctionnels et ergonomiques du projet.
+
 
 \vspace{0.5cm}
 La gestion quotidienne d’un club associatif de plongée repose aujourd’hui sur une multitude d’outils hétérogènes : VPDive, tableurs, formulaires externes, Google Drive, messageries, documents papier.
@@ -207,10 +225,48 @@ Afin d’évaluer objectivement la réussite globale du projet, trois indicateur
 \end{itemize}
 
 
+\subsection{Synthèse des objectifs SMART et indicateurs de performance}
+
+\begin{center}
+\begin{tabular}{|p{4.5cm}|p{4.2cm}|p{3cm}|p{3.3cm}|}
+\hline
+\textbf{Objectif SMART} & \textbf{KPI associé} & \textbf{Mesure cible} & \textbf{Temporalité} \\
+\hline
+Accessibilité des adhérents non technophiles &
+Taux de complétion sans assistance &
+80~\% des parcours complets, $<$ 10 demandes d’aide &
+Phase bêta (février $\rightarrow$ avril 2026) \\
+\hline
+Réduction de la charge administrative &
+Temps de gestion administrative hebdomadaire &
+30--60 min/semaine (réduction $\geq$ 50~\%) &
+Février $\rightarrow$ avril 2026 \\
+\hline
+Adoption de la bêta par le club pilote &
+Nombre d’utilisateurs actifs et inscriptions &
+$\geq$ 20 utilisateurs actifs et $\geq$ 20 inscriptions &
+1 mois après déploiement de la bêta \\
+\hline
+Performance et stabilité de l’API &
+Latence des requêtes serveur (P95) &
+95~\% des requêtes $<$ 300\,ms &
+Mesure continue à partir de février 2026 \\
+\hline
+Sécurisation des données et conformité RGPD &
+Couverture des routes sensibles et incidents &
+100~\% des routes protégées, 0 incident &
+Bêta Release (avril 2026) \\
+\hline
+\end{tabular}
+\end{center}
+
+
+\vspace{0.5cm}
+
 \textbf{Bénéfices attendus :}
 L’application a pour objectif de centraliser l’ensemble des opérations nécessaires à la gestion d’un club de plongée dans un seul outil, afin de simplifier le travail des encadrants et d’améliorer l’expérience des adhérents. Elle remplace plusieurs outils dispersés par une plateforme unique, intuitive et maintenable dans le temps. La gestion des adhérents, des événements, des certificats et des inscriptions est unifiée, ce qui réduit les risques d’erreur et de perte d’information. Grâce à une interface adaptée aux publics peu familiers du numérique, l’application fluidifie la participation aux activités et diminue les frictions administratives. Enfin, la solution pourra évoluer à l’échelle fédérale afin d’assurer une cohérence numérique au sein des structures FFESSM.
 
-
+\vspace{0.5cm}
 
 \textbf{Diagramme de contexte :}
 
@@ -222,6 +278,10 @@ L’application a pour objectif de centraliser l’ensemble des opérations néc
     \includegraphics[height=14cm, keepaspectratio]{assets/diagramme_contexte_doc.png}
     \caption{Diagramme de contexte du projet}
 \end{figure}
+
+\paragraph{Analyse du diagramme de contexte}
+
+Le diagramme de contexte met en évidence les trois acteurs principaux du système : les adhérents, les encadrants et le comité directeur du club. Il illustre les flux essentiels liés aux processus administratifs du club, notamment les inscriptions, la gestion des certificats médicaux, la participation aux événements et les paiements. Cette représentation permet d’identifier clairement les responsabilités de chaque acteur ainsi que les échanges critiques à centraliser. Elle justifie la mise en place d’une plateforme unique afin de réduire la fragmentation des outils existants, de fiabiliser les données et de limiter les interventions manuelles, en cohérence avec la problématique et les objectifs métier du projet.
 
 
 \section{Liens utiles}
