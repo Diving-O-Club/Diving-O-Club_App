@@ -60,3 +60,4 @@ Thumbs.db
 # Keep fonts directory
 !fonts/
 !fonts/*.ttf
+main.xdv
