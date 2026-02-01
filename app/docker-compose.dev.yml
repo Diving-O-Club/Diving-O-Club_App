@@ -1,9 +1,7 @@
-version: "3.9"
-
 services:
   db:
     image: postgres:16
-    container_name: diving-db
+    container_name: diving-db-dev
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -17,7 +15,7 @@ services:
     build:
       context: ./backend
       target: dev
-    container_name: diving-api
+    container_name: diving-api-dev
     environment:
       API_PORT: ${API_PORT}
       DB_HOST: ${DB_HOST}
@@ -37,7 +35,7 @@ services:
     build:
       context: ./frontend
       target: dev
-    container_name: diving-web
+    container_name: diving-web-dev
     environment:
       FRONT_PORT: ${FRONT_PORT}
     ports:
@@ -48,5 +46,20 @@ services:
     depends_on:
       - backend
 
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: diving-pgadmin-dev
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+
 volumes:
   db-data:
+  pgadmin-data:
