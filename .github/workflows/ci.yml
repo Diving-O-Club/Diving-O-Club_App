@@ -21,10 +21,10 @@ jobs:
     
     - name: Build and push Backend
       run: |
-        docker build -t minifrizz/diving-club-backend:latest ./app/backend
+        docker build --target prod -t minifrizz/diving-club-backend:latest ./app/backend
         docker push minifrizz/diving-club-backend:latest
     
     - name: Build and push Frontend
       run: |
-        docker build -t minifrizz/diving-club-frontend:latest ./app/frontend
+        docker build --target prod -t minifrizz/diving-club-frontend:latest ./app/frontend
         docker push minifrizz/diving-club-frontend:latest
