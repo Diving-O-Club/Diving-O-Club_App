@@ -5,11 +5,11 @@ Stack déclarée : **Next.js / React — Node.js / Nest.js — PostgreSQL + Mong
 
 ---
 
-## 001 — Stack Frontend : Next.js + React
+## 001 — Stack Frontend : Next.js
 - **Statut** : Acceptée
 - **Contexte** : Application “mobile-first”, besoin de pages statiques + dynamiques, SEO minimal (page publique), simplicité de déploiement.
 - **Décision** : Next.js 14 (App Router), React 18, Tailwind.
-- **Alternatives** : Vite + React (SPA), Nuxt (Vue), SvelteKit.
+- **Alternatives** : Vite, Nuxt (Vue), SvelteKit.
 - **Conséquences** : + PRERENDER possible, + performances, + routing intégré ; – courbe d’apprentissage App Router.
 - **Mesure/critères** : LCP mobile p95 < 2.5 s, bundle optimisé, temps build < 40s.
 
