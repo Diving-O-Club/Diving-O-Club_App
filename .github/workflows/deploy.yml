@@ -1,0 +1,32 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Deploy to EC2 via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd ~/Diving-O-Club_App/app
+            echo "📥 Pulling latest changes..."
+            git pull origin main
+            echo "❌ Stopping containers..."
+            sudo docker compose down
+            echo "🔨📑 Building backend..."
+            sudo docker compose build backend
+            echo "🔨⚙️ Building frontend..."
+            sudo docker compose build frontend
+            echo "📦 Starting containers..."
+            sudo docker compose up -d
+            echo "🟢 Diving O Club deployed successfully!"
+            sudo docker compose ps
