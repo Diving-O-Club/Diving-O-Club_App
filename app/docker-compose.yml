@@ -1,12 +1,12 @@
 services:
   backend:
-    build: ./backend
+    image: minifrizz/diving-o-club-backend:latest
     ports:
       - "3001:3001"
     restart: unless-stopped
 
   frontend:
-    build: ./frontend
+    image: minifrizz/diving-o-club-frontend:latest
     ports:
       - "80:3000"
     environment:
