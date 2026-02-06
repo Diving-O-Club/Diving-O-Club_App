@@ -8,7 +8,7 @@ services:
   frontend:
     image: minifrizz/diving-o-club-frontend:latest
     ports:
-      - "80:3000"
+      - "3000:3000"
     environment:
       DB_ENABLED: "false"
     depends_on:
