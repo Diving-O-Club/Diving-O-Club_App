@@ -20,9 +20,9 @@ const dbEnabled = process.env.DB_ENABLED === 'true';
             autoLoadEntities: true,
             synchronize: true,
           }),
+          UsersModule,
         ]
       : []),
-    UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService],
