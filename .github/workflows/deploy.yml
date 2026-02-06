@@ -40,6 +40,7 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
             echo "🎆 Pulling images..."
+            cd app
             sudo docker compose pull
             echo "🔄 Restarting containers..."
             sudo docker compose up -d
