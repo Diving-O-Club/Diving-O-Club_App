@@ -34,6 +34,8 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             cd ~/Diving-O-Club_App
+            echo "🧹 Cleaning old Docker data..."
+            sudo docker image prune -af
             echo "↪️ Pulling latest changes..."
             git fetch origin main
             git reset --hard origin/main
@@ -41,5 +43,7 @@ jobs:
             sudo docker compose pull
             echo "🔄 Restarting containers..."
             sudo docker compose up -d
+            echo "🔄 Restarting Nginx..."
+            sudo systemctl restart nginx
             echo "🟢 Deployed successfully!"
             sudo docker compose ps
