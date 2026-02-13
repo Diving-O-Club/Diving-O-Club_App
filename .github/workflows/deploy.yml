@@ -1,11 +1,14 @@
 name: Deploy to EC2
+
 on:
   push:
     branches:
       - main
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -34,17 +37,43 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             cd ~/Diving-O-Club_App
+            
             echo "🧹 Cleaning old Docker data..."
             sudo docker image prune -af
+            
             echo "↪️ Pulling latest changes..."
             git fetch origin main
             git reset --hard origin/main
+            
+            echo "🔐 Verifying .env file..."
+            if [ ! -f app/.env ]; then
+              echo "❌ ERROR: app/.env file not found!"
+              echo "Please create it from .env.example and add your credentials"
+              exit 1
+            fi
+            
             echo "🎆 Pulling images..."
             cd app
             sudo docker compose pull
-            echo "🔄 Restarting containers..."
+            
+            echo "🔄 Stopping containers..."
+            sudo docker compose down
+            
+            echo "🚀 Starting all services..."
             sudo docker compose up -d
+            
+            echo "⏳ Waiting for services to be healthy..."
+            sleep 10
+            
+            echo "📊 Services status:"
+            sudo docker compose ps
+            
+            echo "🔍 Health check:"
+            sudo docker compose exec -T postgres pg_isready -U diving_admin || echo "⚠️ PostgreSQL not ready yet"
+            sudo docker compose exec -T mongodb mongosh --eval "db.adminCommand('ping')" || echo "⚠️ MongoDB not ready yet"
+            
             echo "🔄 Restarting Nginx..."
             sudo systemctl restart nginx
-            echo "🟢 Deployed successfully!"
-            sudo docker compose ps
+            
+            echo "✅ Deployment complete!"
+            echo "📋 Logs available with: sudo docker compose logs -f"
