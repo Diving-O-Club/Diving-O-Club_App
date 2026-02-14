@@ -9,6 +9,8 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5432:5432"
     networks:
       - diving-network
     restart: unless-stopped
@@ -29,6 +31,8 @@ services:
     volumes:
       - mongodb_data:/data/db
       - mongodb_config:/data/configdb
+    ports:
+      - "127.0.0.1:27017:27017"
     networks:
       - diving-network
     restart: unless-stopped
