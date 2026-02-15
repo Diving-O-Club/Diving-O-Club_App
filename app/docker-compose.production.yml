@@ -1,8 +1,8 @@
 services:
-  # PostgreSQL Database
+  # PostgreSQL Database - PRODUCTION
   postgres:
     image: postgres:16-alpine
-    container_name: diving-postgres
+    container_name: diving-postgres-prod
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -15,15 +15,15 @@ services:
       - diving-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U diving_admin -d diving_o_club"]
+      test: ["CMD-SHELL", "pg_isready -U diving_admin -d diving_o_club_prod"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  # MongoDB Database
+  # MongoDB Database - PRODUCTION
   mongodb:
     image: mongo:7-jammy
-    container_name: diving-mongodb
+    container_name: diving-mongodb-prod
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
@@ -42,10 +42,10 @@ services:
       timeout: 5s
       retries: 5
 
-  # Backend Service
+  # Backend Service - PRODUCTION
   backend:
     image: minifrizz/diving-o-club-backend:latest
-    container_name: diving-backend
+    container_name: diving-backend-prod
     ports:
       - "3001:3001"
     environment:
@@ -64,15 +64,15 @@ services:
       - diving-network
     restart: unless-stopped
 
-  # Frontend Service
+  # Frontend Service - PRODUCTION
   frontend:
     image: minifrizz/diving-o-club-frontend:latest
-    container_name: diving-frontend
+    container_name: diving-frontend-prod
     ports:
       - "3000:3000"
     environment:
       DB_ENABLED: "true"
-      REACT_APP_API_URL: http://backend:3001
+      NEXT_PUBLIC_API_URL: https://divingoclub.com/api
       NODE_ENV: production
     depends_on:
       - backend
@@ -80,7 +80,7 @@ services:
       - diving-network
     restart: unless-stopped
 
-# Persistent volumes for databases
+# Volumes persistants pour les données PRODUCTION
 volumes:
   postgres_data:
     driver: local
@@ -89,7 +89,7 @@ volumes:
   mongodb_config:
     driver: local
 
-# Internal network for service communication
+# Réseau interne pour la communication entre services PRODUCTION
 networks:
   diving-network:
     driver: bridge

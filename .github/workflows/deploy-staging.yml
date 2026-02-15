@@ -1,0 +1,80 @@
+name: Deploy to Staging
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  build-and-deploy-staging:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      
+      - name: Build and push backend image
+        run: |
+          docker build -t minifrizz/diving-o-club-backend:latest ./app/backend
+          docker push minifrizz/diving-o-club-backend:latest
+      
+      - name: Build and push frontend image
+        run: |
+          docker build -t minifrizz/diving-o-club-frontend:latest ./app/frontend
+          docker push minifrizz/diving-o-club-frontend:latest
+      
+      - name: Deploy to EC2 STAGING via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd ~/Diving-O-Club_App
+            
+            echo "🧹 Cleaning old Docker data..."
+            sudo docker image prune -af
+            
+            echo "↪️ Pulling latest changes..."
+            git fetch origin develop
+            git reset --hard origin/develop
+            
+            echo "🔐 Verifying .env.staging file..."
+            if [ ! -f app/.env.staging ]; then
+              echo "❌ ERROR: app/.env.staging file not found!"
+              echo "Please create it from .env.staging.example"
+              exit 1
+            fi
+            
+            echo "🎆 Pulling images from Docker Hub..."
+            cd app
+            sudo docker compose -f docker-compose.staging.yml --env-file .env.staging pull
+            
+            echo "🔄 Stopping STAGING containers..."
+            sudo docker compose -f docker-compose.staging.yml --env-file .env.staging down
+            
+            echo "🚀 Starting STAGING services..."
+            sudo docker compose -f docker-compose.staging.yml --env-file .env.staging up -d
+            
+            echo "⏳ Waiting for services to be healthy..."
+            sleep 10
+            
+            echo "📊 STAGING Services status:"
+            sudo docker compose -f docker-compose.staging.yml --env-file .env.staging ps
+            
+            echo "🔍 STAGING Health check:"
+            sudo docker compose -f docker-compose.staging.yml --env-file .env.staging exec -T postgres-staging pg_isready -U diving_admin || echo "⚠️ PostgreSQL not ready yet"
+            sudo docker compose -f docker-compose.staging.yml --env-file .env.staging exec -T mongodb-staging mongosh --eval "db.adminCommand('ping')" || echo "⚠️ MongoDB not ready yet"
+            
+            echo "🔄 Restarting Nginx..."
+            sudo systemctl restart nginx
+            
+            echo "✅ STAGING Deployment complete!"
+            echo "🌐 Access staging at: http://staging.divingoclub.com"
+            echo "📋 Logs: sudo docker compose -f docker-compose.staging.yml logs -f"
