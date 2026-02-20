@@ -1,0 +1,95 @@
+services:
+  # PostgreSQL Database - STAGING
+  postgres-staging:
+    image: postgres:16-alpine
+    container_name: diving-postgres-staging
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_staging_data:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5433:5432"
+    networks:
+      - diving-staging-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U diving_admin -d diving_o_club_staging"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # MongoDB Database - STAGING
+  mongodb-staging:
+    image: mongo:7-jammy
+    container_name: diving-mongodb-staging
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+      MONGO_INITDB_DATABASE: ${MONGO_DB}
+    volumes:
+      - mongodb_staging_data:/data/db
+      - mongodb_staging_config:/data/configdb
+    ports:
+      - "127.0.0.1:27018:27017"
+    networks:
+      - diving-staging-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend Service - STAGING
+  backend-staging:
+    image: minifrizz/diving-o-club-backend:latest
+    container_name: diving-backend-staging
+    ports:
+      - "4001:3001"
+    environment:
+      # Database connections
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres-staging:5432/${POSTGRES_DB}
+      MONGO_URL: mongodb://${MONGO_ROOT_USER}:${MONGO_ROOT_PASSWORD}@mongodb-staging:27017/${MONGO_DB}?authSource=admin
+      # Application config
+      NODE_ENV: staging
+      PORT: 3001
+    depends_on:
+      postgres-staging:
+        condition: service_healthy
+      mongodb-staging:
+        condition: service_healthy
+    networks:
+      - diving-staging-network
+    restart: unless-stopped
+
+  # Frontend Service - STAGING
+  frontend-staging:
+    image: minifrizz/diving-o-club-frontend:latest
+    container_name: diving-frontend-staging
+    ports:
+      - "4000:3000"
+    environment:
+      DB_ENABLED: "true"
+      NEXT_PUBLIC_API_URL: http://staging.divingoclub.com/api
+      NODE_ENV: staging
+    depends_on:
+      - backend-staging
+    networks:
+      - diving-staging-network
+    restart: unless-stopped
+
+# Volumes persistants pour les données STAGING
+volumes:
+  postgres_staging_data:
+    driver: local
+  mongodb_staging_data:
+    driver: local
+  mongodb_staging_config:
+    driver: local
+
+# Réseau interne pour la communication entre services STAGING
+networks:
+  diving-staging-network:
+    driver: bridge
