@@ -44,7 +44,7 @@ services:
 
   # Backend Service - STAGING
   backend-staging:
-    image: minifrizz/diving-o-club-backend:latest
+    image: minifrizz/diving-o-club-backend:staging
     container_name: diving-backend-staging
     ports:
       - "4001:3001"
@@ -66,7 +66,7 @@ services:
 
   # Frontend Service - STAGING
   frontend-staging:
-    image: minifrizz/diving-o-club-frontend:latest
+    image: minifrizz/diving-o-club-frontend:staging
     container_name: diving-frontend-staging
     ports:
       - "4000:3000"
