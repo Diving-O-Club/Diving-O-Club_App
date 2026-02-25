@@ -72,7 +72,7 @@ services:
       - "4000:3000"
     environment:
       DB_ENABLED: "true"
-      NEXT_PUBLIC_API_URL: http://staging.divingoclub.com/api
+      NEXT_PUBLIC_API_URL: https://staging.divingoclub.com/api
       NODE_ENV: staging
     depends_on:
       - backend-staging
