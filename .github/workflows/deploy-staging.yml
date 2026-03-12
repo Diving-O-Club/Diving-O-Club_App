@@ -10,8 +10,15 @@ jobs:
   build-and-deploy-staging:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
-    
+
     steps:
+      - name: Debug PR refs
+        run: |
+          echo "event_name=${{ github.event_name }}"
+          echo "base_ref=${{ github.base_ref }}"
+          echo "head_ref=${{ github.head_ref }}"
+          echo "merged=${{ github.event.pull_request.merged }}"
+
       - name: Checkout
         uses: actions/checkout@v4
       
