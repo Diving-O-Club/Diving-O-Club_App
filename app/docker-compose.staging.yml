@@ -80,7 +80,7 @@ services:
       - diving-staging-network
     restart: unless-stopped
 
-# Volumes persistants pour les données STAGING
+# Persistent volumes for database data in STAGING (local EC2 storage)
 volumes:
   postgres_staging_data:
     driver: local
@@ -89,7 +89,7 @@ volumes:
   mongodb_staging_config:
     driver: local
 
-# Réseau interne pour la communication entre services STAGING
+# Internal Docker network for services to communicate
 networks:
   diving-staging-network:
     driver: bridge
