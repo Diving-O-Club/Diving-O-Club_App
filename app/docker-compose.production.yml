@@ -8,7 +8,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - /mnt/postgres-data:/var/lib/postgresql/data
     ports:
       - "127.0.0.1:5432:5432"
     networks:
@@ -29,8 +29,8 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
       MONGO_INITDB_DATABASE: ${MONGO_DB}
     volumes:
-      - mongodb_data:/data/db
-      - mongodb_config:/data/configdb
+      - /mnt/mongo-data:/data/db
+      - /mnt/mongo-data/configdb:/data/configdb
     ports:
       - "127.0.0.1:27017:27017"
     networks:
@@ -80,16 +80,7 @@ services:
       - diving-network
     restart: unless-stopped
 
-# Volumes persistants pour les données PRODUCTION
-volumes:
-  postgres_data:
-    driver: local
-  mongodb_data:
-    driver: local
-  mongodb_config:
-    driver: local
-
-# Réseau interne pour la communication entre services PRODUCTION
+# Internal Docker network for services to communicate
 networks:
   diving-network:
     driver: bridge
