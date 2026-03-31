@@ -2,7 +2,12 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { UsersModule } from './users/users.module';
+
+import { Role } from './role/role.entity';
+import { Club } from './club/club.entity';
+import { AppUser } from './app-user/app-user.entity';
+import { Membership } from './membership/membership.entity';
+import { ClubEvent } from './event/event.entity';
 
 const dbEnabled = process.env.DB_ENABLED === 'true';
 
@@ -17,10 +22,11 @@ const dbEnabled = process.env.DB_ENABLED === 'true';
             username: process.env.DB_USER,
             password: process.env.DB_PASSWORD,
             database: process.env.DB_NAME,
-            autoLoadEntities: true,
-            synchronize: true,
+            entities: [Role, Club, AppUser, Membership, ClubEvent],
+            synchronize: false,
+            migrationsRun: true,
+            migrations: [__dirname + '/database/migrations/*{.ts,.js}'],
           }),
-          UsersModule,
         ]
       : []),
   ],
