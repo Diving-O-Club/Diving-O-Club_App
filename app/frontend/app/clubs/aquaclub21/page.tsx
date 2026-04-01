@@ -18,9 +18,9 @@ type Club = {
 };
 
 async function getClub(): Promise<Club> {
-  const res = await fetch('http://localhost:3001/clubs/aquaclub21', {
-    cache: 'no-store',
-  });
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/clubs/aquaclub21`, {
+        cache: 'no-store',
+    });
 
   if (!res.ok) {
     throw new Error('Failed to fetch club');
