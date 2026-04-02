@@ -40,7 +40,8 @@ async function seed() {
 
     const club = await clubRepo.save({
       name:          'Aquaclub21',
-      description:   'FFESSM-affiliated diving club based in Dijon. Founded in 1988, Aquaclub21 welcomes beginner and experienced divers in a friendly and safe environment.',
+      slug:          'aquaclub21',
+      description:   'FFESSM-affiliated diving club based in Dijon...',
       emailContact:  'contact@aquaclub21.fr',
       address:       '12 Avenue du Lac',
       postalCode:    '21000',

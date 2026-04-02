@@ -45,4 +45,7 @@ export class Club {
 
   @OneToMany(() => ClubEvent, (event) => event.club)
   events: ClubEvent[];
+
+  @Column({ type: 'varchar', length: 100, unique: true })
+  slug: string;
 }
