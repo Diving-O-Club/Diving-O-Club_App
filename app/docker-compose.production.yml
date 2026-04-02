@@ -49,12 +49,15 @@ services:
     ports:
       - "3001:3001"
     environment:
-      # Database connections
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
-      MONGO_URL: mongodb://${MONGO_ROOT_USER}:${MONGO_ROOT_PASSWORD}@mongodb:27017/${MONGO_DB}?authSource=admin
-      # Application config
       NODE_ENV: production
       PORT: 3001
+      DB_ENABLED: "true"
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_NAME: ${POSTGRES_DB}
+      MONGO_URL: mongodb://${MONGO_ROOT_USER}:${MONGO_ROOT_PASSWORD}@mongodb:27017/${MONGO_DB}?authSource=admin
     depends_on:
       postgres:
         condition: service_healthy
@@ -71,9 +74,8 @@ services:
     ports:
       - "3000:3000"
     environment:
-      DB_ENABLED: "true"
-      NEXT_PUBLIC_API_URL: https://divingoclub.com/api
       NODE_ENV: production
+      NEXT_PUBLIC_API_URL: https://divingoclub.com/api
     depends_on:
       - backend
     networks:
