@@ -34,46 +34,45 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
+          envs: ENV_PRODUCTION
           script: |
             cd ~/Diving-O-Club_App
-            
+
+            echo "🔐 Writing .env.production from GitHub Secrets..."
+            echo "$ENV_PRODUCTION" > app/.env.production
+
             echo "🧹 Cleaning old Docker data..."
             sudo docker image prune -af
-            
+
             echo "↪️ Pulling latest changes..."
             git fetch origin main
             git reset --hard origin/main
-            
-            echo "🔐 Verifying .env.production file..."
-            if [ ! -f app/.env.production ]; then
-              echo "❌ ERROR: app/.env.production file not found!"
-              echo "Please create it from .env.production.example"
-              exit 1
-            fi
-            
+
             echo "🎆 Pulling images from Docker Hub..."
             cd app
             sudo docker compose -f docker-compose.production.yml --env-file .env.production pull
-            
+
             echo "🔄 Stopping PRODUCTION containers..."
             sudo docker compose -f docker-compose.production.yml --env-file .env.production down
-            
+
             echo "🚀 Starting PRODUCTION services..."
             sudo docker compose -f docker-compose.production.yml --env-file .env.production up -d
-            
+
             echo "⏳ Waiting for services to be healthy..."
-            sleep 10
-            
+            sleep 15
+
+            echo "🗄️ Running migrations..."
+            sudo docker compose -f docker-compose.production.yml --env-file .env.production exec -T backend npm run migration:run
+
             echo "📊 PRODUCTION Services status:"
             sudo docker compose -f docker-compose.production.yml --env-file .env.production ps
-            
+
             echo "🔍 PRODUCTION Health check:"
             sudo docker compose -f docker-compose.production.yml --env-file .env.production exec -T postgres pg_isready -U diving_admin || echo "⚠️ PostgreSQL not ready yet"
             sudo docker compose -f docker-compose.production.yml --env-file .env.production exec -T mongodb mongosh --eval "db.adminCommand('ping')" || echo "⚠️ MongoDB not ready yet"
-            
+
             echo "🔄 Restarting Nginx..."
             sudo systemctl restart nginx
-            
+
             echo "✅ PRODUCTION Deployment complete!"
             echo "🌐 Access production at: https://divingoclub.com"
-            echo "📋 Logs: sudo docker compose -f docker-compose.production.yml logs -f"
