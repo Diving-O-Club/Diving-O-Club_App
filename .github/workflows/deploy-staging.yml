@@ -40,12 +40,15 @@ jobs:
 
       - name: Write .env.staging on EC2
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          ENV_STAGING: ${{ secrets.ENV_STAGING }}
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
+          envs: ENV_STAGING
           script: |
-            echo '${{ secrets.ENV_STAGING }}' > ~/Diving-O-Club_App/app/.env.staging
+            printf '%s' "$ENV_STAGING" > ~/Diving-O-Club_App/app/.env.staging
 
       - name: Deploy to EC2 STAGING via SSH
         uses: appleboy/ssh-action@v1.0.3
