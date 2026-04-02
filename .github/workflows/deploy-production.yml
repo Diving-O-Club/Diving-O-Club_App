@@ -28,17 +28,17 @@ jobs:
           docker tag minifrizz/diving-o-club-frontend:staging minifrizz/diving-o-club-frontend:latest
           docker push minifrizz/diving-o-club-frontend:latest
 
-      - name: Write .env.production on EC2
-        uses: appleboy/ssh-action@v1.0.3
-        env:
-          ENV_PRODUCTION: ${{ secrets.ENV_PRODUCTION }}
+      - name: Create .env.production locally
+        run: echo "${{ secrets.ENV_PRODUCTION }}" > .env.production
+
+      - name: Copy .env.production to EC2
+        uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          envs: ENV_PRODUCTION
-          script: |
-            printf '%s' "$ENV_PRODUCTION" > ~/Diving-O-Club_App/app/.env.production
+          source: ".env.production"
+          target: "/home/ubuntu/Diving-O-Club_App/app/"
 
       - name: Deploy to EC2 PRODUCTION via SSH
         uses: appleboy/ssh-action@v1.0.3
@@ -46,7 +46,6 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          envs: ENV_PRODUCTION
           script: |
             cd ~/Diving-O-Club_App
 
