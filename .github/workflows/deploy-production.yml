@@ -46,6 +46,7 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
+          envs: ENV_PRODUCTION
           script: |
             cd ~/Diving-O-Club_App
 
@@ -84,4 +85,3 @@ jobs:
 
             echo "✅ PRODUCTION Deployment complete!"
             echo "🌐 Access production at: https://divingoclub.com"
-            echo "📋 Logs: sudo docker compose -f docker-compose.production.yml logs -f"
