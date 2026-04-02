@@ -44,46 +44,49 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
+          envs: ENV_STAGING
           script: |
             cd ~/Diving-O-Club_App
-            
+
+            echo "🔐 Writing .env.staging from GitHub Secrets..."
+            echo "$ENV_STAGING" > app/.env.staging
+
             echo "🧹 Cleaning old Docker data..."
             sudo docker image prune -af
-            
+
             echo "↪️ Pulling latest changes..."
             git fetch origin develop
             git reset --hard origin/develop
-            
-            echo "🔐 Verifying .env.staging file..."
-            if [ ! -f app/.env.staging ]; then
-              echo "❌ ERROR: app/.env.staging file not found!"
-              echo "Please create it from .env.staging.example"
-              exit 1
-            fi
-            
+
             echo "🎆 Pulling images from Docker Hub..."
             cd app
             sudo docker compose -f docker-compose.staging.yml --env-file .env.staging pull
-            
+
             echo "🔄 Stopping STAGING containers..."
             sudo docker compose -f docker-compose.staging.yml --env-file .env.staging down
-            
+
             echo "🚀 Starting STAGING services..."
             sudo docker compose -f docker-compose.staging.yml --env-file .env.staging up -d
-            
+
             echo "⏳ Waiting for services to be healthy..."
-            sleep 10
-            
+            sleep 15
+
+            echo "🗄️ Running migrations..."
+            sudo docker compose -f docker-compose.staging.yml --env-file .env.staging exec -T backend-staging npm run migration:run
+
+            echo "🌱 Resetting and seeding database..."
+            sudo docker compose -f docker-compose.staging.yml --env-file .env.staging exec -T postgres-staging psql -U diving_admin -d diving_o_club_staging -c "TRUNCATE role, club, app_user, membership, event RESTART IDENTITY CASCADE;" || echo "⚠️ Tables may not exist yet"
+            sudo docker compose -f docker-compose.staging.yml --env-file .env.staging exec -T backend-staging npm run seed
+
             echo "📊 STAGING Services status:"
             sudo docker compose -f docker-compose.staging.yml --env-file .env.staging ps
-            
+
             echo "🔍 STAGING Health check:"
             sudo docker compose -f docker-compose.staging.yml --env-file .env.staging exec -T postgres-staging pg_isready -U diving_admin || echo "⚠️ PostgreSQL not ready yet"
             sudo docker compose -f docker-compose.staging.yml --env-file .env.staging exec -T mongodb-staging mongosh --eval "db.adminCommand('ping')" || echo "⚠️ MongoDB not ready yet"
-            
+
             echo "🔄 Restarting Nginx..."
             sudo systemctl restart nginx
-            
+
             echo "✅ STAGING Deployment complete!"
-            echo "🌐 Access staging at: http://staging.divingoclub.com"
-            echo "📋 Logs: sudo docker compose -f docker-compose.staging.yml logs -f"
+            echo "🌐 Access staging at: https://staging.divingoclub.com"
