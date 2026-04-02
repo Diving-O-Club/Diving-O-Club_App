@@ -93,8 +93,9 @@ jobs:
             sudo docker compose -f docker-compose.staging.yml --env-file .env.staging exec -T postgres-staging pg_isready -U diving_admin || echo "⚠️ PostgreSQL not ready yet"
             sudo docker compose -f docker-compose.staging.yml --env-file .env.staging exec -T mongodb-staging mongosh --eval "db.adminCommand('ping')" || echo "⚠️ MongoDB not ready yet"
 
-            echo "🔄 Restarting Nginx..."
-            sudo systemctl restart nginx
+            echo "🔧 Updating Nginx config..."
+            sudo cp ~/Diving-O-Club_App/nginx/staging.divingoclub.com /etc/nginx/sites-enabled/staging.divingoclub.com
+            sudo nginx -t && sudo systemctl reload nginx
 
             echo "✅ STAGING Deployment complete!"
             echo "🌐 Access staging at: https://staging.divingoclub.com"

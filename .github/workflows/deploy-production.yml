@@ -79,8 +79,9 @@ jobs:
             sudo docker compose -f docker-compose.production.yml --env-file .env.production exec -T postgres pg_isready -U diving_admin || echo "⚠️ PostgreSQL not ready yet"
             sudo docker compose -f docker-compose.production.yml --env-file .env.production exec -T mongodb mongosh --eval "db.adminCommand('ping')" || echo "⚠️ MongoDB not ready yet"
 
-            echo "🔄 Restarting Nginx..."
-            sudo systemctl restart nginx
+            echo "🔧 Updating Nginx config..."
+            sudo cp ~/Diving-O-Club_App/nginx/divingoclub /etc/nginx/sites-enabled/divingoclub
+            sudo nginx -t && sudo systemctl reload nginx
 
             echo "✅ PRODUCTION Deployment complete!"
             echo "🌐 Access production at: https://divingoclub.com"
