@@ -38,14 +38,17 @@ jobs:
           docker build -t minifrizz/diving-o-club-frontend:staging ./app/frontend
           docker push minifrizz/diving-o-club-frontend:staging
 
-      - name: Write .env.staging on EC2
-        uses: appleboy/ssh-action@v1.0.3
+      - name: Create .env.staging locally
+        run: echo "${{ secrets.ENV_STAGING }}" > .env.staging
+
+      - name: Copy .env.staging to EC2
+        uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            echo '${{ secrets.ENV_STAGING }}' > ~/Diving-O-Club_App/app/.env.staging
+          source: ".env.staging"
+          target: "/home/ubuntu/Diving-O-Club_App/app/"
 
       - name: Deploy to EC2 STAGING via SSH
         uses: appleboy/ssh-action@v1.0.3
@@ -90,8 +93,9 @@ jobs:
             sudo docker compose -f docker-compose.staging.yml --env-file .env.staging exec -T postgres-staging pg_isready -U diving_admin || echo "⚠️ PostgreSQL not ready yet"
             sudo docker compose -f docker-compose.staging.yml --env-file .env.staging exec -T mongodb-staging mongosh --eval "db.adminCommand('ping')" || echo "⚠️ MongoDB not ready yet"
 
-            echo "🔄 Restarting Nginx..."
-            sudo systemctl restart nginx
+            echo "🔧 Updating Nginx config..."
+            sudo cp ~/Diving-O-Club_App/nginx/staging.divingoclub.com /etc/nginx/sites-enabled/staging.divingoclub.com
+            sudo nginx -t && sudo systemctl reload nginx
 
             echo "✅ STAGING Deployment complete!"
             echo "🌐 Access staging at: https://staging.divingoclub.com"
