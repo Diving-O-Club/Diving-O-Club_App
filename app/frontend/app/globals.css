@@ -1,26 +1,42 @@
 @import "tailwindcss";
 
+@keyframes halo-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.08); }
+  50% { box-shadow: 0 0 40px 20px rgba(255, 255, 255, 0.12); }
+}
+
+.halo-pulse {
+  animation: halo-pulse 3s ease-in-out infinite;
+}
+
+html, body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
 :root {
+  --navy: #0d3b66;
+  --navy-light: #1b6ca8;
+  --cyan: #00b4d8;
+  --cyan-light: #48cae4;
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #0a1929;
 }
 
 @theme inline {
+  --color-navy: var(--navy);
+  --color-navy-light: var(--navy-light);
+  --color-cyan: var(--cyan);
+  --color-cyan-light: var(--cyan-light);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  overflow-x: hidden;
+  max-width: 100%;
 }
+
