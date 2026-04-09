@@ -35,7 +35,11 @@ jobs:
 
       - name: Build and push frontend image
         run: |
-          docker build --no-cache -t minifrizz/diving-o-club-frontend:staging ./app/frontend
+          docker build \
+            --no-cache \
+            --build-arg NEXT_PUBLIC_API_URL=https://staging.divingoclub.com/api \
+            -t minifrizz/diving-o-club-frontend:staging \
+            ./app/frontend
           docker push minifrizz/diving-o-club-frontend:staging
 
       - name: Create .env.staging locally
