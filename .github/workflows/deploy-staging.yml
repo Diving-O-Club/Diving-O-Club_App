@@ -35,7 +35,7 @@ jobs:
 
       - name: Build and push frontend image
         run: |
-          docker build -t minifrizz/diving-o-club-frontend:staging ./app/frontend
+          docker build --no-cache -t minifrizz/diving-o-club-frontend:staging ./app/frontend
           docker push minifrizz/diving-o-club-frontend:staging
 
       - name: Create .env.staging locally
@@ -59,19 +59,22 @@ jobs:
           script: |
             cd ~/Diving-O-Club_App
 
-            echo "🧹 Cleaning old Docker data..."
-            sudo docker image prune -af
-
             echo "↪️ Pulling latest changes..."
             git fetch origin develop
             git reset --hard origin/develop
 
-            echo "🎆 Pulling images from Docker Hub..."
-            cd app
-            sudo docker compose -f docker-compose.staging.yml --env-file .env.staging pull
-
             echo "🔄 Stopping STAGING containers..."
+            cd app
             sudo docker compose -f docker-compose.staging.yml --env-file .env.staging down
+
+            echo "🗑️ Removing old frontend image to force re-pull..."
+            sudo docker image rm minifrizz/diving-o-club-frontend:staging || true
+
+            echo "🧹 Cleaning old Docker data..."
+            sudo docker image prune -af
+
+            echo "🎆 Pulling images from Docker Hub..."
+            sudo docker compose -f docker-compose.staging.yml --env-file .env.staging pull
 
             echo "🚀 Starting STAGING services..."
             sudo docker compose -f docker-compose.staging.yml --env-file .env.staging up -d

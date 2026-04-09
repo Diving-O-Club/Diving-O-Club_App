@@ -46,23 +46,25 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          envs: ENV_PRODUCTION
           script: |
             cd ~/Diving-O-Club_App
-
-            echo "🧹 Cleaning old Docker data..."
-            sudo docker image prune -af
 
             echo "↪️ Pulling latest changes..."
             git fetch origin main
             git reset --hard origin/main
 
-            echo "🎆 Pulling images from Docker Hub..."
-            cd app
-            sudo docker compose -f docker-compose.production.yml --env-file .env.production pull
-
             echo "🔄 Stopping PRODUCTION containers..."
+            cd app
             sudo docker compose -f docker-compose.production.yml --env-file .env.production down
+
+            echo "🗑️ Removing old frontend image to force re-pull..."
+            sudo docker image rm minifrizz/diving-o-club-frontend:latest || true
+
+            echo "🧹 Cleaning old Docker data..."
+            sudo docker image prune -af
+
+            echo "🎆 Pulling images from Docker Hub..."
+            sudo docker compose -f docker-compose.production.yml --env-file .env.production pull
 
             echo "🚀 Starting PRODUCTION services..."
             sudo docker compose -f docker-compose.production.yml --env-file .env.production up -d
