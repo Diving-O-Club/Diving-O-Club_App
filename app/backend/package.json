@@ -21,7 +21,8 @@
     "migration:run": "typeorm-ts-node-commonjs migration:run -d src/database/data-source.ts",
     "migration:revert": "typeorm-ts-node-commonjs migration:revert -d src/database/data-source.ts",
     "migration:generate": "typeorm-ts-node-commonjs migration:generate -d src/database/data-source.ts",
-    "seed": "npx ts-node -r tsconfig-paths/register src/database/seeds/aquaclub21.seed.ts"
+    "seed": "npx ts-node -r tsconfig-paths/register src/database/seeds/seed.ts",
+    "db:reset": "PGPASSWORD='0xWVHJlb7o+vd3i1skfsQzd9yoVA3oJjrHZ/0XG/PbE=' psql -h localhost -p 15433 -U diving_admin -d diving_o_club_staging -c 'TRUNCATE role, club, app_user, membership, event RESTART IDENTITY CASCADE;' && npm run seed"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
