@@ -1,11 +1,12 @@
 import { Users, Calendar, FileCheck } from "lucide-react";
+import Link from "next/link";
 
 export default function HeroSection() {
   return (
     <section className="w-full bg-linear-to-br from-[#0d3b66] to-[#00b4d8] px-6 py-16 md:px-16 md:py-24">
       <div className="max-w-7xl mx-auto w-full flex flex-col md:flex-row items-center gap-12">
 
-        {/* Texte gauche */}
+        {/* Left text */}
         <div className="flex-1 text-white w-full">
           <h1 className="text-3xl md:text-6xl font-bold leading-tight mb-6">
             Simplifiez la gestion de votre club de plongée
@@ -18,18 +19,21 @@ export default function HeroSection() {
             <button className="bg-white text-[#0d3b66] font-semibold px-6 py-3 rounded-xl hover:bg-white/90 transition-colors">
               Créer un compte →
             </button>
-            <button className="border-2 border-white/60 text-white font-semibold px-6 py-3 rounded-xl hover:bg-white/10 transition-colors">
+            <Link
+              href="/clubs"
+              className="border-2 border-white/60 text-white font-semibold px-6 py-3 rounded-xl hover:bg-white/10 transition-colors text-center"
+            >
               Rechercher un club
-            </button>
+            </Link>
           </div>
         </div>
 
-        {/* Stats droite */}
+        {/* Right Stats */}
         <div className="hidden md:block flex-1 w-full">
           <div className="relative">
-            {/* Halo animé */}
-            <div className="absolute inset-0 bg-gradient-to-br from-[#48cae4] to-[#00b4d8] rounded-3xl blur-2xl opacity-30 animate-pulse"></div>
-            {/* Bloc glassmorphism */}
+            {/* Div Glow effect */}
+            <div className="absolute inset-0 bg-linear-to-br from-[#48cae4] to-[#00b4d8] rounded-3xl blur-2xl opacity-30 animate-pulse"></div>
+            {/* Atom Icon + description */}
             <div className="relative bg-white/10 backdrop-blur-md rounded-3xl p-8 border border-white/20">
               <div className="space-y-4">
 

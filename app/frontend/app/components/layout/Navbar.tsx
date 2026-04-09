@@ -2,23 +2,24 @@
 
 import { useState } from 'react';
 import { Waves } from 'lucide-react';
+import Link from 'next/link';
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <nav className="w-full bg-white shadow-sm top-0 z-50">
+    <nav className="w-full bg-white shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
         
         {/* Logo */}
-        <div className="flex items-center gap-2 shrink-0">
+        <Link href="/" className="flex items-center gap-2 shrink-0">
           <div className="w-9 h-9 bg-[#0d3b66] rounded-lg flex items-center justify-center">
             <Waves className="w-5 h-5 text-white" />
           </div>
           <span className="text-[#0d3b66] font-bold text-lg whitespace-nowrap">
             Diving O Club
           </span>
-        </div>
+        </Link>
 
         {/* Desktop */}
         <div className="hidden md:flex items-center gap-3">

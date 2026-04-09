@@ -1,5 +1,7 @@
 import FeatureCard from "../ui/FeatureCard";
+import CTACard from "../ui/CTACard";
 import { Users, Calendar, FileCheck, CreditCard } from "lucide-react";
+
 
 const features = [
   {
@@ -49,26 +51,19 @@ export default function FeaturesSection() {
         </div>
 
         {/* CTA */}
-        <div className="w-full bg-linear-to-br from-[#0d3b66] to-[#1b6ca8] rounded-3xl p-10 text-center shadow-xl">
-          <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">
-            Prêt à démarrer ?
-          </h2>
 
-          <p className="text-white/80 mb-8">
-            Rejoignez les clubs de plongée qui font confiance à notre plateforme
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="bg-white text-[#0d3b66] font-semibold px-6 py-3 rounded-xl hover:bg-white/90 transition-colors">
-              Créer un compte gratuit →
-            </button>
-
-            <button className="border-2 border-white/40 text-white font-semibold px-6 py-3 rounded-xl hover:bg-white/10 transition-colors">
-              Demander la création d'un club
-            </button>
-          </div>
-        </div>
+        <CTACard
+          variant="dark"
+          title="Prêt à démarrer ?"
+          description="Rejoignez les clubs de plongée qui font confiance à notre plateforme"
+          buttons={[
+            { label: 'Créer un compte gratuit →', href: '/register', variant: 'primary' },
+            { label: "Demander la création d'un club", href: '#', variant: 'secondary' },
+          ]}
+          className="w-full"
+        />
       </div>
+
     </section>
   );
 }
