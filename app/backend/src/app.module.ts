@@ -9,6 +9,7 @@ import { AppUser } from './app-user/app-user.entity';
 import { Membership } from './membership/membership.entity';
 import { ClubEvent } from './event/event.entity';
 import { ClubModule } from './club/club.module';
+import { AuthModule } from './auth/auth.module';
 
 const dbEnabled = process.env.DB_ENABLED === 'true';
 
@@ -29,6 +30,7 @@ const dbEnabled = process.env.DB_ENABLED === 'true';
             migrations: [__dirname + '/database/migrations/*{.ts,.js}'],
           }),
           ClubModule,
+          AuthModule,
         ]
       : []),
   ],

@@ -25,8 +25,8 @@ export class AppUser {
   @Column({ name: 'first_name', type: 'varchar', length: 100 })
   firstName: string;
 
-  @Column({ name: 'birth_date', type: 'date' })
-  birthDate: Date;
+  @Column({ name: 'birth_date', type: 'date', nullable: true })
+  birthDate: Date | null;
 
   @Column({
     name: 'ffessm_license_number',

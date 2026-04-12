@@ -23,12 +23,12 @@ export default function Navbar() {
 
         {/* Desktop */}
         <div className="hidden md:flex items-center gap-3">
-          <button className="text-[#0d3b66] font-medium px-4 py-2 text-sm hover:underline">
+          <Link href="/login" className="text-[#0d3b66] font-medium px-4 py-2 text-sm hover:underline">
             Connexion
-          </button>
-          <button className="bg-[#0d3b66] text-white font-medium px-5 py-2 text-sm rounded-lg hover:bg-[#1b6ca8] transition-colors">
+          </Link>
+          <Link href="/register" className="bg-[#0d3b66] text-white font-medium px-5 py-2 text-sm rounded-lg hover:bg-[#1b6ca8] transition-colors">
             Créer un compte
-          </button>
+          </Link>
         </div>
 
         {/* Mobile burger */}
