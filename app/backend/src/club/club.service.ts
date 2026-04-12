@@ -13,8 +13,11 @@ export class ClubService {
 
   async search(query: string) {
     return this.clubRepo.find({
-      where: { name: ILike(`%${query}%`) },
-      select: ['idClub', 'name', 'city', 'slug'],
+      where: [
+        { name: ILike(`%${query}%`) },
+        { city: ILike(`%${query}%`) },
+      ],
+      select: ['name', 'city', 'slug'],
     });
   }
 
