@@ -43,12 +43,12 @@ export default function Navbar() {
       {/* Menu mobile */}
       {menuOpen && (
         <div className="md:hidden absolute top-full left-0 right-0 bg-white shadow-lg px-6 py-4 flex flex-col gap-3 z-50">
-          <button className="text-[#0d3b66] font-medium py-2 text-left border-b border-gray-100">
+          <Link href="/login" className="text-[#0d3b66] font-medium py-2 text-left border-b border-gray-100">
             Connexion
-          </button>
-          <button className="bg-[#0d3b66] text-white font-medium px-4 py-3 rounded-lg text-center">
+          </Link>
+          <Link href="/register" className="bg-[#0d3b66] text-white font-medium px-4 py-3 rounded-lg text-center">
             Créer un compte
-          </button>
+          </Link>
         </div>
       )}
     </nav>
