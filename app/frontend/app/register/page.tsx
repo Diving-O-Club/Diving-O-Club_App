@@ -27,7 +27,7 @@ export default function RegisterPage() {
         <p className="text-[#006994] text-sm">Rejoignez Diving O Club et trouvez votre club de plongée</p>
       </div>
 
-      {/* Card formulaire */}
+      {/* Form cards */}
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
         {success ? (
           <div className="text-center py-6">
