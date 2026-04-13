@@ -16,9 +16,9 @@ export default function HeroSection() {
             certificats médicaux et paiements de votre club associatif.
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
-            <button className="bg-white text-[#0d3b66] font-semibold px-6 py-3 rounded-xl hover:bg-white/90 transition-colors">
+            <Link href="/register" className="bg-white text-[#0d3b66] font-semibold px-6 py-3 rounded-xl hover:bg-white/90 transition-colors">
               Créer un compte →
-            </button>
+            </Link>
             <Link
               href="/clubs"
               className="border-2 border-white/60 text-white font-semibold px-6 py-3 rounded-xl hover:bg-white/10 transition-colors text-center"

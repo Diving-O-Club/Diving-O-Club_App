@@ -1,15 +1,19 @@
-import { Injectable, ConflictException } from '@nestjs/common';
+import { Injectable, ConflictException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { JwtService } from '@nestjs/jwt';
+import { Response } from 'express';
 import * as argon2 from 'argon2';
 import { AppUser } from '../app-user/app-user.entity';
 import { RegisterDto } from './dto/register.dto';
+import { LoginDto } from './dto/login.dto';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(AppUser)
     private readonly userRepo: Repository<AppUser>,
+    private readonly jwtService: JwtService,
   ) {}
 
   async register(dto: RegisterDto): Promise<{ message: string }> {
@@ -29,5 +33,32 @@ export class AuthService {
 
     await this.userRepo.save(user);
     return { message: 'Compte créé avec succès' };
+  }
+
+  async login(dto: LoginDto, res: Response): Promise<{ message: string }> {
+    const user = await this.userRepo.findOneBy({ email: dto.email });
+    if (!user) throw new UnauthorizedException('Identifiants incorrects');
+
+    const valid = await argon2.verify(user.passwordHash, dto.password);
+    if (!valid) throw new UnauthorizedException('Identifiants incorrects');
+
+    const token = this.jwtService.sign({
+      sub:   user.idUser,
+      email: user.email,
+    });
+
+    res.cookie('access_token', token, {
+      httpOnly: true,
+      secure:   process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge:   7 * 24 * 60 * 60 * 1000,
+    });
+
+    return { message: 'Connexion réussie' };
+  }
+
+  async logout(res: Response): Promise<{ message: string }> {
+    res.clearCookie('access_token');
+    return { message: 'Déconnexion réussie' };
   }
 }
