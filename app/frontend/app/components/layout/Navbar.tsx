@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Waves, LogOut, User } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '../../context/AuthContext';
+import DashboardNav from '../ui/DashboardNav';
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -30,6 +31,11 @@ export default function Navbar() {
             Diving O Club
           </span>
         </Link>
+
+        {/* Center */}
+        <div className="hidden md:flex">
+          {user && <DashboardNav />}
+        </div>
 
         {/* Desktop */}
         <div className="hidden md:flex items-center gap-3">
@@ -59,7 +65,7 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* Mobile burger */}
+{/* Mobile burger */}
         <button
           className="md:hidden text-[#0d3b66] p-2"
           onClick={() => setMenuOpen(!menuOpen)}
@@ -70,20 +76,18 @@ export default function Navbar() {
 
       {/* Menu mobile */}
       {menuOpen && (
-        <div className="md:hidden absolute top-full left-0 right-0 bg-white shadow-lg px-6 py-4 flex flex-col gap-3 z-50">
+        <div className="md:hidden absolute top-full left-0 right-0 bg-white shadow-lg px-6 py-4 flex flex-col gap-1 z-50">
           {user ? (
             <>
-              <Link
-                href="/profile"
-                onClick={() => setMenuOpen(false)}
-                className="text-[#0d3b66] font-medium py-2 border-b border-gray-100"
-              >
-                Mon profil
-              </Link>
+              <Link href="/dashboard" onClick={() => setMenuOpen(false)} className="text-[#0d3b66] font-medium py-2 px-3 border-b border-gray-100">Accueil</Link>
+              <Link href="/dashboard/members" onClick={() => setMenuOpen(false)} className="text-[#0d3b66] font-medium py-2 px-3 border-b border-gray-100">Membres</Link>
+              <Link href="/dashboard/events" onClick={() => setMenuOpen(false)} className="text-[#0d3b66] font-medium py-2 px-3 border-b border-gray-100">Événements</Link>
+              <Link href="/profile" onClick={() => setMenuOpen(false)} className="text-[#0d3b66] font-medium py-2 px-3 border-b border-gray-100">Profil</Link>
               <button
                 onClick={handleLogout}
-                className="text-red-600 font-medium py-2 text-left"
+                className="flex items-center gap-2 text-red-600 font-medium py-2 px-3 mt-1 text-sm text-left"
               >
+                <LogOut className="w-4 h-4" />
                 Déconnexion
               </button>
             </>
