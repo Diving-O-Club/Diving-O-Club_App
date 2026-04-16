@@ -20,7 +20,16 @@ async function seed() {
   const eventRepo      = AppDataSource.getRepository(ClubEvent);
 
   try {
-    // ── 1. ROLES ─────────────────────────────────────────────────────────────
+    // ── 0. CLEAN ──────────────────────────────────────────────────────────────
+    console.log('\n🧹 Cleaning existing data...');
+    await membershipRepo.query('TRUNCATE TABLE membership CASCADE');
+    await eventRepo.query('TRUNCATE TABLE event CASCADE');
+    await userRepo.query('TRUNCATE TABLE app_user CASCADE');
+    await clubRepo.query('TRUNCATE TABLE club CASCADE');
+    await roleRepo.query('TRUNCATE TABLE role CASCADE');
+    console.log('  → Tables cleared');
+
+    // ── 1. ROLES ──────────────────────────────────────────────────────────────
     console.log('\n📋 Inserting roles...');
 
     const roles = await roleRepo.save([
@@ -120,10 +129,20 @@ async function seed() {
       );
     }
 
-    // ── 4. EVENTS ─────────────────────────────────────────────────────────────
+    // ── 4. USER SANS CLUB ─────────────────────────────────────────────────────
+    console.log('\n👤 Creating no-club user...');
+    await userRepo.save({
+      email:     'lea.moreau@gmail.com',
+      lastName:  'Moreau',
+      firstName: 'Léa',
+      birthDate: new Date('2001-09-14'),
+      passwordHash,
+    });
+    console.log('  → lea.moreau@gmail.com (no membership)');
+
+    // ── 5. EVENTS ─────────────────────────────────────────────────────────────
     console.log('\n📅 Creating events...');
 
-    // findOneBy returns AppUser | null — we assert non-null after checking
     const thomas = await userRepo.findOneBy({ email: 'thomas.dubois@aquaclub21.fr' });
     const sophie = await userRepo.findOneBy({ email: 'sophie.martin@aquaclub21.fr' });
 
@@ -131,7 +150,6 @@ async function seed() {
       throw new Error('Creators not found — make sure users were inserted first');
     }
 
-    // Define event type explicitly so TypeScript knows price is number | undefined
     type EventData = {
       title: string;
       description: string;
@@ -208,8 +226,8 @@ async function seed() {
         title:        'Weekly pool session',
         description:  'Weekly pool training. Technical drills, finning, ascents. Open to all levels.',
         eventType:    'pool_session',
-        startDatetime: new Date('2026-04-08T20:30:00'),
-        endDatetime:   new Date('2026-04-08T22:00:00'),
+        startDatetime: new Date('2026-05-06T20:30:00'),
+        endDatetime:   new Date('2026-05-06T22:00:00'),
         location:     'Piscine Équinoxe, Dijon',
         minimumLevel: 'all',
         maxCapacity:  20,
@@ -229,7 +247,7 @@ async function seed() {
     console.log('\n════════════════════════════════════════════════════════');
     console.log('  ✅  Seed completed successfully!');
     console.log(`  🏊  Club    : Aquaclub21`);
-    console.log(`  👤  Users   : ${usersData.length}`);
+    console.log(`  👤  Users   : ${usersData.length + 1}`);
     console.log(`  📅  Events  : ${eventsData.length}`);
     console.log('════════════════════════════════════════════════════════\n');
 
