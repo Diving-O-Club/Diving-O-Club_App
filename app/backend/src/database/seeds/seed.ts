@@ -1,5 +1,5 @@
 // src/database/seeds/seed.ts
-// Run with: npx ts-node -r tsconfig-paths/register src/database/seeds/seed.ts
+// Run in /backend : npx ts-node -r tsconfig-paths/register src/database/seeds/seed.ts
 
 import { AppDataSource } from '../data-source';
 import * as argon2 from 'argon2';
@@ -20,242 +20,315 @@ async function seed() {
   const eventRepo      = AppDataSource.getRepository(ClubEvent);
 
   try {
-    // ── 1. ROLES ─────────────────────────────────────────────────────────────
+    // ── 0. CLEAN ──────────────────────────────────────────────────────────────
+    console.log('\n🧹 Cleaning existing data...');
+    await membershipRepo.query('TRUNCATE TABLE membership CASCADE');
+    await eventRepo.query('TRUNCATE TABLE event CASCADE');
+    await userRepo.query('TRUNCATE TABLE app_user CASCADE');
+    await clubRepo.query('TRUNCATE TABLE club CASCADE');
+    await roleRepo.query('TRUNCATE TABLE role CASCADE');
+    console.log('  → Tables cleared');
+
+    // ── 1. ROLES ──────────────────────────────────────────────────────────────
     console.log('\n📋 Inserting roles...');
     const roles = await roleRepo.save([
-      { codeRole: 'member',      labelRole: 'Member' },
-      { codeRole: 'instructor',  labelRole: 'Instructor' },
-      { codeRole: 'committee',   labelRole: 'Board member' },
-      { codeRole: 'admin',       labelRole: 'Administrator' },
-      { codeRole: 'super_admin', labelRole: 'Super Administrator' },
+      { codeRole: 'member',      labelRole: 'Adhérent' },
+      { codeRole: 'instructor',  labelRole: 'Moniteur' },
+      { codeRole: 'committee',   labelRole: 'Membre du comité' },
+      { codeRole: 'admin',       labelRole: 'Administrateur' },
+      { codeRole: 'super_admin', labelRole: 'Super Administrateur' },
     ]);
+    const r = Object.fromEntries(roles.map(role => [role.codeRole, role]));
     console.log(`  → ${roles.length} roles inserted`);
-    const roleMap = Object.fromEntries(roles.map((r) => [r.codeRole, r]));
 
-    // ── 2. CLUBS (20) ─────────────────────────────────────────────────────────
+    // ── 2. CLUBS ──────────────────────────────────────────────────────────────
     console.log('\n🏊 Creating 20 clubs...');
-
     const clubsData = [
-      { name: 'Aquaclub21',            slug: 'aquaclub21',            city: 'Dijon',         postalCode: '21000', address: '12 Avenue du Lac',         email: 'contact@aquaclub21.fr' },
-      { name: 'Neptune Marseille',     slug: 'neptune-marseille',     city: 'Marseille',     postalCode: '13002', address: '5 Quai des Docks',          email: 'contact@neptune-marseille.fr' },
-      { name: 'Atlantis Lyon',         slug: 'atlantis-lyon',         city: 'Lyon',          postalCode: '69001', address: '8 Rue du Rhône',            email: 'contact@atlantis-lyon.fr' },
-      { name: 'Océan Bleu Paris',      slug: 'ocean-bleu-paris',      city: 'Paris',         postalCode: '75013', address: '42 Rue de la Plongée',      email: 'contact@ocean-bleu-paris.fr' },
-      { name: 'Poseidon Bordeaux',     slug: 'poseidon-bordeaux',     city: 'Bordeaux',      postalCode: '33000', address: '17 Cours de la Garonne',    email: 'contact@poseidon-bordeaux.fr' },
-      { name: 'Dauphin Nantes',        slug: 'dauphin-nantes',        city: 'Nantes',        postalCode: '44000', address: '3 Rue de la Loire',         email: 'contact@dauphin-nantes.fr' },
-      { name: 'Corail Toulon',         slug: 'corail-toulon',         city: 'Toulon',        postalCode: '83000', address: '9 Boulevard Maritime',      email: 'contact@corail-toulon.fr' },
-      { name: 'Triton Nice',           slug: 'triton-nice',           city: 'Nice',          postalCode: '06000', address: '22 Promenade des Plongeurs', email: 'contact@triton-nice.fr' },
-      { name: 'Méduse Montpellier',    slug: 'meduse-montpellier',    city: 'Montpellier',   postalCode: '34000', address: '7 Allée des Coraux',        email: 'contact@meduse-montpellier.fr' },
-      { name: 'Baleine Brest',         slug: 'baleine-brest',         city: 'Brest',         postalCode: '29200', address: '15 Rue de la Mer',          email: 'contact@baleine-brest.fr' },
-      { name: 'Requin Rennes',         slug: 'requin-rennes',         city: 'Rennes',        postalCode: '35000', address: '6 Place de la Plongée',     email: 'contact@requin-rennes.fr' },
-      { name: 'Pieuvre Perpignan',     slug: 'pieuvre-perpignan',     city: 'Perpignan',     postalCode: '66000', address: '11 Avenue de la Méditerranée', email: 'contact@pieuvre-perpignan.fr' },
-      { name: 'Étoile de Mer Cannes',  slug: 'etoile-de-mer-cannes',  city: 'Cannes',        postalCode: '06400', address: '28 Boulevard de la Croisette', email: 'contact@etoile-mer-cannes.fr' },
-      { name: 'Barracuda Grenoble',    slug: 'barracuda-grenoble',    city: 'Grenoble',      postalCode: '38000', address: '4 Rue des Alpes',           email: 'contact@barracuda-grenoble.fr' },
-      { name: 'Homard Lorient',        slug: 'homard-lorient',        city: 'Lorient',       postalCode: '56100', address: '2 Quai de Rohan',           email: 'contact@homard-lorient.fr' },
-      { name: 'Murène Strasbourg',     slug: 'murene-strasbourg',     city: 'Strasbourg',    postalCode: '67000', address: '19 Quai des Pêcheurs',      email: 'contact@murene-strasbourg.fr' },
-      { name: 'Raie Manta Clermont',   slug: 'raie-manta-clermont',   city: 'Clermont-Ferrand', postalCode: '63000', address: '31 Rue Blatin',         email: 'contact@raie-manta-clermont.fr' },
-      { name: 'Orque Lille',           slug: 'orque-lille',           city: 'Lille',         postalCode: '59000', address: '5 Rue Nationale',           email: 'contact@orque-lille.fr' },
-      { name: 'Thon Rouge Bayonne',    slug: 'thon-rouge-bayonne',    city: 'Bayonne',       postalCode: '64100', address: '8 Allée Boufflers',         email: 'contact@thon-rouge-bayonne.fr' },
-      { name: 'Langouste La Rochelle', slug: 'langouste-la-rochelle', city: 'La Rochelle',   postalCode: '17000', address: '14 Cours des Dames',        email: 'contact@langouste-la-rochelle.fr' },
+      { name: 'Aquaclub21',          slug: 'aquaclub21',          city: 'Dijon',          postalCode: '21000', address: '12 Avenue du Lac',           emailContact: 'contact@aquaclub21.fr' },
+      { name: 'Neptune Marseille',   slug: 'neptune-marseille',   city: 'Marseille',      postalCode: '13000', address: '3 Quai du Port',             emailContact: 'contact@neptune-marseille.fr' },
+      { name: 'Atlantis Lyon',       slug: 'atlantis-lyon',       city: 'Lyon',           postalCode: '69000', address: '18 Rue de la Plongée',       emailContact: 'contact@atlantis-lyon.fr' },
+      { name: 'Océan Bleu Paris',    slug: 'ocean-bleu-paris',    city: 'Paris',          postalCode: '75001', address: '5 Rue des Plongeurs',        emailContact: 'contact@oceanblueparis.fr' },
+      { name: 'Poseidon Bordeaux',   slug: 'poseidon-bordeaux',   city: 'Bordeaux',       postalCode: '33000', address: '22 Allée des Dauphins',      emailContact: 'contact@poseidon-bordeaux.fr' },
+      { name: 'Dauphin Nantes',      slug: 'dauphin-nantes',      city: 'Nantes',         postalCode: '44000', address: '8 Boulevard Maritime',       emailContact: 'contact@dauphin-nantes.fr' },
+      { name: 'Corail Toulon',       slug: 'corail-toulon',       city: 'Toulon',         postalCode: '83000', address: '14 Rue du Corail',           emailContact: 'contact@corail-toulon.fr' },
+      { name: 'Triton Nice',         slug: 'triton-nice',         city: 'Nice',           postalCode: '06000', address: '9 Promenade des Plongeurs',  emailContact: 'contact@triton-nice.fr' },
+      { name: 'Méduse Montpellier',  slug: 'meduse-montpellier',  city: 'Montpellier',    postalCode: '34000', address: '31 Rue de la Méduse',        emailContact: 'contact@meduse-montpellier.fr' },
+      { name: 'Barracuda Strasbourg',slug: 'barracuda-strasbourg',city: 'Strasbourg',     postalCode: '67000', address: '2 Quai des Bateliers',       emailContact: 'contact@barracuda-strasbourg.fr' },
+      { name: 'Manta Toulouse',      slug: 'manta-toulouse',      city: 'Toulouse',       postalCode: '31000', address: '45 Avenue de la Garonne',    emailContact: 'contact@manta-toulouse.fr' },
+      { name: 'Requin Rennes',       slug: 'requin-rennes',       city: 'Rennes',         postalCode: '35000', address: '7 Rue des Plongeurs',        emailContact: 'contact@requin-rennes.fr' },
+      { name: 'Baleine Lille',       slug: 'baleine-lille',       city: 'Lille',          postalCode: '59000', address: '19 Rue du Nord',             emailContact: 'contact@baleine-lille.fr' },
+      { name: 'Pieuvre Grenoble',    slug: 'pieuvre-grenoble',    city: 'Grenoble',       postalCode: '38000', address: '3 Avenue des Alpes',         emailContact: 'contact@pieuvre-grenoble.fr' },
+      { name: 'Morse Brest',         slug: 'morse-brest',         city: 'Brest',          postalCode: '29200', address: '11 Rue du Ponant',           emailContact: 'contact@morse-brest.fr' },
+      { name: 'Étoile de Mer Perpignan', slug: 'etoile-mer-perpignan', city: 'Perpignan', postalCode: '66000', address: '6 Avenue du Roussillon',    emailContact: 'contact@etoilemer-perpignan.fr' },
+      { name: 'Murène Clermont',     slug: 'murene-clermont',     city: 'Clermont-Ferrand',postalCode: '63000', address: '28 Rue Blatin',            emailContact: 'contact@murene-clermont.fr' },
+      { name: 'Orque Rouen',         slug: 'orque-rouen',         city: 'Rouen',          postalCode: '76000', address: '4 Quai de la Bourse',        emailContact: 'contact@orque-rouen.fr' },
+      { name: 'Crevette Angers',     slug: 'crevette-angers',     city: 'Angers',         postalCode: '49000', address: '15 Rue du Maine',            emailContact: 'contact@crevette-angers.fr' },
+      { name: 'Oursin Caen',         slug: 'oursin-caen',         city: 'Caen',           postalCode: '14000', address: '23 Avenue de la Côte',       emailContact: 'contact@oursin-caen.fr' },
     ];
 
     const clubs = await clubRepo.save(clubsData.map(c => ({
-      name:          c.name,
-      slug:          c.slug,
-      description:   `Club de plongée basé à ${c.city}. Formation, sorties et événements pour tous les niveaux.`,
-      emailContact:  c.email,
-      address:       c.address,
-      postalCode:    c.postalCode,
-      city:          c.city,
+      ...c,
+      description:   `Club de plongée affilié FFESSM basé à ${c.city}. Formation, sorties et événements pour tous les niveaux.`,
       clubStatus:    'active',
       structureType: 'club',
     })));
-
     console.log(`  → ${clubs.length} clubs created`);
 
-    // ── 3. USERS (100) ────────────────────────────────────────────────────────
-    console.log('\n👤 Creating 100 users...');
+    // ── 3. USERS ──────────────────────────────────────────────────────────────
+    console.log('\n👤 Creating 20 users...');
+    const pw = await argon2.hash('Plongee2025!');
 
-    const passwordHash = await argon2.hash('Plongee2025!');
-
-    const firstNames = [
-      'Kevin', 'Sophie', 'Thomas', 'Marc', 'Chloé', 'Pierre', 'Julie', 'Antoine', 'Léa', 'Nicolas',
-      'Camille', 'Romain', 'Emma', 'Lucas', 'Manon', 'Hugo', 'Inès', 'Maxime', 'Laura', 'Théo',
-      'Élise', 'Julien', 'Marie', 'Baptiste', 'Clara', 'Alexandre', 'Alice', 'Florian', 'Pauline', 'Adrien',
-      'Lucie', 'Guillaume', 'Sarah', 'Mathieu', 'Anaïs', 'Valentin', 'Charlotte', 'Sébastien', 'Margot', 'Clément',
-      'Océane', 'Raphaël', 'Amandine', 'Thibault', 'Estelle', 'Quentin', 'Laure', 'Alexis', 'Aurélie', 'Vincent',
-      'Nathalie', 'Éric', 'Isabelle', 'Patrick', 'Christine', 'François', 'Sandrine', 'Stéphane', 'Valérie', 'Benoît',
-      'Catherine', 'Philippe', 'Monique', 'Jean-Pierre', 'Brigitte', 'Michel', 'Martine', 'Alain', 'Sylvie', 'Pascal',
-      'Delphine', 'Arnaud', 'Virginie', 'Christophe', 'Céline', 'Laurent', 'Nadia', 'Olivier', 'Agnès', 'David',
-      'Mélanie', 'Frédéric', 'Patricia', 'Xavier', 'Véronique', 'Yannick', 'Hélène', 'Damien', 'Stéphanie', 'Thierry',
-      'Annabelle', 'Grégoire', 'Corinne', 'Élodie', 'Sonia', 'Nathan', 'Fanny', 'Dylan', 'Jade', 'Mathis',
-    ];
-
-    const lastNames = [
-      'Lavier', 'Martin', 'Dubois', 'Dupont', 'Petit', 'Lambert', 'Moreau', 'Bernard', 'Rousseau', 'Garcia',
-      'Lefebvre', 'Simon', 'Durand', 'Leroy', 'Girard', 'Bonnet', 'Morel', 'Fontaine', 'Muller', 'Mercier',
-      'Faure', 'Aubert', 'Lemaire', 'Perez', 'Blanc', 'Henry', 'Renard', 'Vincent', 'Lucas', 'Thomas',
-      'Robert', 'Richard', 'Roux', 'David', 'Bertrand', 'Morin', 'Fournier', 'Giraud', 'Bonnet', 'Chevalier',
-      'Robin', 'Clement', 'Gauthier', 'Perrin', 'Roussel', 'Mathieu', 'Legrand', 'Colin', 'Bouchard', 'Lacroix',
-      'Noel', 'Meunier', 'Denis', 'Picard', 'Meyer', 'Leclerc', 'Guillaume', 'Caron', 'Gilles', 'Garnier',
-      'Vidal', 'Ferreira', 'Lopez', 'Martinez', 'Bertrand', 'Leblanc', 'Guerin', 'Francois', 'Brun', 'Gilles',
-      'Barbier', 'Arnaud', 'Michaud', 'Pichon', 'Masse', 'Blondel', 'Delaunay', 'Tessier', 'Lecomte', 'Bouvet',
-      'Carpentier', 'Salmon', 'Renault', 'Collin', 'Regnier', 'Marty', 'Pascal', 'Schneider', 'Pons', 'Delorme',
-      'Briand', 'Lebrun', 'Leclercq', 'Gros', 'Lepage', 'Barriere', 'Levy', 'Perret', 'Chauvin', 'Besson',
-    ];
-
-    const levels = ['N1', 'N1', 'N2', 'N2', 'N2', 'N3', 'N3', 'N4', 'MF1', 'MF2'];
-    const domains = ['gmail.com', 'yahoo.fr', 'hotmail.fr', 'outlook.fr', 'orange.fr', 'free.fr', 'sfr.fr'];
-
-    const usersData = firstNames.map((firstName, i) => {
-      const lastName = lastNames[i];
-      const email    = `${firstName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z]/g, '')}.${lastName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z]/g, '')}${i}@${domains[i % domains.length]}`;
-      const year     = 1960 + (i % 45);
-      const month    = String((i % 12) + 1).padStart(2, '0');
-      const day      = String((i % 28) + 1).padStart(2, '0');
-      const deptCode = String(10 + (i % 90)).padStart(2, '0');
-      const licNum   = `${deptCode}-${String(i + 1).padStart(3, '0')}-${String(i + 1).padStart(4, '0')}`;
-
-      return {
-        email,
-        firstName,
-        lastName,
-        birthDate:           new Date(`${year}-${month}-${day}`),
-        ffessmLicenseNumber: licNum,
-        technicalLevel:      levels[i % levels.length],
-        phone:               `06 ${String(i).padStart(2, '0')} ${String(i % 100).padStart(2, '0')} ${String(i % 100).padStart(2, '0')} ${String(i % 100).padStart(2, '0')}`,
-        passwordHash,
-      };
+    // Super admin — no club
+    const superAdmin = await userRepo.save({
+      email: 'kevin.lavier@divingoclub.com', passwordHash: pw,
+      firstName: 'Kevin',   lastName: 'Lavier',
+      birthDate: new Date('1995-06-15'),
+      ffessmLicenseNumber: 'SA-000-0001', technicalLevel: 'N4', phone: '06 00 00 00 00',
     });
+    console.log(`  → [super_admin ] Kevin Lavier (sans club)`);
 
-    const users = await userRepo.save(usersData);
-    console.log(`  → ${users.length} users created`);
+    // 5 users no club
+    const noClubUsers = await userRepo.save([
+      { email: 'lea.moreau@gmail.com',      passwordHash: pw, firstName: 'Léa',      lastName: 'Moreau',    birthDate: new Date('2001-09-14') },
+      { email: 'hugo.bernard@gmail.com',    passwordHash: pw, firstName: 'Hugo',     lastName: 'Bernard',   birthDate: new Date('1998-03-22') },
+      { email: 'camille.simon@gmail.com',   passwordHash: pw, firstName: 'Camille',  lastName: 'Simon',     birthDate: new Date('1995-11-05') },
+      { email: 'pierre.leroy@gmail.com',    passwordHash: pw, firstName: 'Pierre',   lastName: 'Leroy',     birthDate: new Date('1988-07-30') },
+      { email: 'marie.petit@gmail.com',     passwordHash: pw, firstName: 'Marie',    lastName: 'Petit',     birthDate: new Date('2000-01-18') },
+    ]);
+    console.log(`  → 5 users sans club`);
 
-    // ── 4. MEMBERSHIPS ────────────────────────────────────────────────────────
-    console.log('\n🔗 Creating memberships...');
+    // 5 members
+    const membersData = [
+      { email: 'marc.dupont@gmail.com',       firstName: 'Marc',    lastName: 'Dupont',    birthDate: new Date('1972-11-08'), ffessmLicenseNumber: '21-001-0001', technicalLevel: 'N2', phone: '06 00 00 01 01', club: clubs[0] },
+      { email: 'julie.martin@gmail.com',      firstName: 'Julie',   lastName: 'Martin',    birthDate: new Date('1990-04-12'), ffessmLicenseNumber: '13-002-0001', technicalLevel: 'N1', phone: '06 00 00 01 02', club: clubs[1] },
+      { email: 'antoine.garcia@gmail.com',    firstName: 'Antoine', lastName: 'Garcia',    birthDate: new Date('1985-08-25'), ffessmLicenseNumber: '69-003-0001', technicalLevel: 'N3', phone: '06 00 00 01 03', club: clubs[2] },
+      { email: 'sarah.roux@gmail.com',        firstName: 'Sarah',   lastName: 'Roux',      birthDate: new Date('1993-02-14'), ffessmLicenseNumber: '75-004-0001', technicalLevel: 'N1', phone: '06 00 00 01 04', club: clubs[3] },
+      { email: 'nicolas.fournier@gmail.com',  firstName: 'Nicolas', lastName: 'Fournier',  birthDate: new Date('1980-06-03'), ffessmLicenseNumber: '33-005-0001', technicalLevel: 'N2', phone: '06 00 00 01 05', club: clubs[4] },
+    ];
 
-    const season    = '2025-2026';
-    const today     = new Date();
-    const roleCodes = ['member', 'member', 'member', 'member', 'member', 'member', 'instructor', 'instructor', 'committee', 'admin'];
-    type MembershipData = {
-        user: AppUser;
-        club: Club;
-        role: Role;
-        season: string;
-        membershipDate: Date;
-        decisionDate: Date;
-        status: string;
-        };
-
-    const memberships: MembershipData[] = [];
-
-    // Distribute users across clubs — each user in 1 or 2 clubs
-    for (let i = 0; i < users.length; i++) {
-      const primaryClub = clubs[i % clubs.length];
-      const roleCode    = i === 0 ? 'super_admin' : roleCodes[i % roleCodes.length];
-
-      memberships.push({
-        user:           users[i],
-        club:           primaryClub,
-        role:           roleMap[roleCode],
-        season,
-        membershipDate: today,
-        decisionDate:   today,
-        status:         'active',
-      });
-
-      // Every 5th user is also in a second club
-      if (i % 5 === 0 && i > 0) {
-        const secondaryClub = clubs[(i + 7) % clubs.length];
-        if (secondaryClub.idClub !== primaryClub.idClub) {
-          memberships.push({
-            user:           users[i],
-            club:           secondaryClub,
-            role:           roleMap['member'],
-            season,
-            membershipDate: today,
-            decisionDate:   today,
-            status:         'active',
-          });
-        }
-      }
+    const members: AppUser[] = [];
+    for (const { club, ...userData } of membersData) {
+      const user = await userRepo.save({ ...userData, passwordHash: pw });
+      await membershipRepo.save({ user, club, role: r['member'], season: '2025-2026', membershipDate: new Date(), decisionDate: new Date(), status: 'active' });
+      members.push(user);
+      console.log(`  → [member      ] ${user.firstName} ${user.lastName} → ${club.name}`);
     }
 
-    await membershipRepo.save(memberships);
-    console.log(`  → ${memberships.length} memberships created`);
+    // 5 instructors
+    const instructorsData = [
+      { email: 'thomas.dubois@aquaclub21.fr',    firstName: 'Thomas',    lastName: 'Dubois',    birthDate: new Date('1987-07-22'), ffessmLicenseNumber: '21-001-0010', technicalLevel: 'MF1', phone: '06 00 00 02 01', club: clubs[0] },
+      { email: 'claire.bonnet@neptune.fr',       firstName: 'Claire',    lastName: 'Bonnet',    birthDate: new Date('1983-09-10'), ffessmLicenseNumber: '13-002-0010', technicalLevel: 'MF2', phone: '06 00 00 02 02', club: clubs[1] },
+      { email: 'lucas.mercier@atlantis.fr',      firstName: 'Lucas',     lastName: 'Mercier',   birthDate: new Date('1991-01-28'), ffessmLicenseNumber: '69-003-0010', technicalLevel: 'MF1', phone: '06 00 00 02 03', club: clubs[2] },
+      { email: 'emma.lambert@oceanblueparis.fr', firstName: 'Emma',      lastName: 'Lambert',   birthDate: new Date('1986-05-17'), ffessmLicenseNumber: '75-004-0010', technicalLevel: 'MF1', phone: '06 00 00 02 04', club: clubs[3] },
+      { email: 'paul.girard@poseidon.fr',        firstName: 'Paul',      lastName: 'Girard',    birthDate: new Date('1979-12-04'), ffessmLicenseNumber: '33-005-0010', technicalLevel: 'MF2', phone: '06 00 00 02 05', club: clubs[4] },
+    ];
 
-    // ── 5. EVENTS ─────────────────────────────────────────────────────────────
-    console.log('\n📅 Creating events...');
+    const instructors: AppUser[] = [];
+    for (const { club, ...userData } of instructorsData) {
+      const user = await userRepo.save({ ...userData, passwordHash: pw });
+      await membershipRepo.save({ user, club, role: r['instructor'], season: '2025-2026', membershipDate: new Date(), decisionDate: new Date(), status: 'active' });
+      instructors.push(user);
+      console.log(`  → [instructor  ] ${user.firstName} ${user.lastName} → ${club.name}`);
+    }
+
+    // 4 admins
+    const adminsData = [
+      { email: 'sophie.martin@aquaclub21.fr',  firstName: 'Sophie',  lastName: 'Martin',  birthDate: new Date('1982-03-15'), ffessmLicenseNumber: '21-001-0020', technicalLevel: 'N4', phone: '06 00 00 03 01', club: clubs[0] },
+      { email: 'julien.robert@neptune.fr',     firstName: 'Julien',  lastName: 'Robert',  birthDate: new Date('1979-06-10'), ffessmLicenseNumber: '13-002-0020', technicalLevel: 'N3', phone: '06 00 00 03 02', club: clubs[1] },
+      { email: 'alice.durand@atlantis.fr',     firstName: 'Alice',   lastName: 'Durand',  birthDate: new Date('1984-11-22'), ffessmLicenseNumber: '69-003-0020', technicalLevel: 'N4', phone: '06 00 00 03 03', club: clubs[2] },
+      { email: 'remi.chevalier@oceanblueparis.fr', firstName: 'Rémi', lastName: 'Chevalier', birthDate: new Date('1976-08-09'), ffessmLicenseNumber: '75-004-0020', technicalLevel: 'N3', phone: '06 00 00 03 04', club: clubs[3] },
+    ];
+
+    const admins: AppUser[] = [];
+    for (const { club, ...userData } of adminsData) {
+      const user = await userRepo.save({ ...userData, passwordHash: pw });
+      await membershipRepo.save({ user, club, role: r['admin'], season: '2025-2026', membershipDate: new Date(), decisionDate: new Date(), status: 'active' });
+      admins.push(user);
+      console.log(`  → [admin       ] ${user.firstName} ${user.lastName} → ${club.name}`);
+    }
+
+    // ── 4. EVENTS ──────────────────────────────────────────────────────────────
+    console.log('\n📅 Creating 20 events...');
 
     type EventData = {
-      title: string;
-      description: string;
-      eventType: string;
-      startDatetime: Date;
-      endDatetime: Date;
-      location: string;
-      minimumLevel: string;
-      maxCapacity: number;
-      isPaid: boolean;
-      price: number | undefined;
-      status: string;
-      creator: AppUser;
-      club: Club;
+      club: Club; creator: AppUser; title: string; description: string;
+      eventType: string; startDatetime: Date; endDatetime: Date;
+      location: string; minimumLevel: string; maxCapacity: number;
+      isPaid: boolean; price: number | undefined; status: string;
     };
 
-    const eventTypes = ['dive_trip', 'training', 'pool_session', 'social', 'initiation'];
-    const eventsData: EventData[] = [];
-
-    for (let i = 0; i < clubs.length; i++) {
-      const club    = clubs[i];
-      const creator = users[i % users.length];
-
-      eventsData.push({
-        title:         `Sortie plongée — ${club.city}`,
-        description:   `Sortie plongée organisée par ${club.name}. Tous niveaux bienvenus.`,
-        eventType:     'dive_trip',
-        startDatetime: new Date(`2026-0${(i % 9) + 1}-${String((i % 28) + 1).padStart(2, '0')}T08:00:00`),
-        endDatetime:   new Date(`2026-0${(i % 9) + 1}-${String((i % 28) + 1).padStart(2, '0')}T18:00:00`),
-        location:      `${club.city} (${club.postalCode.substring(0, 2)})`,
-        minimumLevel:  i % 3 === 0 ? 'N2' : 'all',
-        maxCapacity:   10 + (i % 10),
-        isPaid:        i % 2 === 0,
-        price:         i % 2 === 0 ? 25 + (i % 50) : undefined,
-        status:        'active',
-        creator,
-        club,
-      });
-
-      eventsData.push({
-        title:         `Formation ${['N1', 'N2', 'N3', 'MF1'][i % 4]} — ${club.city}`,
-        description:   `Formation complète organisée par ${club.name}.`,
-        eventType:     'training',
-        startDatetime: new Date(`2026-0${(i % 9) + 1}-15T09:00:00`),
-        endDatetime:   new Date(`2026-0${((i + 2) % 9) + 1}-15T18:00:00`),
-        location:      `Piscine municipale, ${club.city}`,
-        minimumLevel:  ['all', 'N1', 'N2', 'N3'][i % 4],
-        maxCapacity:   8 + (i % 8),
-        isPaid:        true,
-        price:         100 + (i % 100),
-        status:        'active',
-        creator,
-        club,
-      });
-    }
+    const eventsData: EventData[] = [
+      // Aquaclub21 (clubs[0]) — instructors[0] + admins[0]
+      {
+        club: clubs[0], creator: instructors[0],
+        title: 'Sortie plongée — Lac de Saint-Point',
+        description: 'Sortie en eau libre. Deux plongées à 15m et 25m. Départ covoiturage à 7h.',
+        eventType: 'dive_trip', startDatetime: new Date('2026-05-10T07:00:00'), endDatetime: new Date('2026-05-10T18:00:00'),
+        location: 'Lac de Saint-Point, Malbuisson (25)', minimumLevel: 'N2', maxCapacity: 12, isPaid: true, price: 35, status: 'active',
+      },
+      {
+        club: clubs[0], creator: instructors[0],
+        title: 'Formation Niveau 1 — Printemps 2026',
+        description: 'Formation complète N1 FFESSM. 6 séances piscine + 2 plongées milieu naturel.',
+        eventType: 'training', startDatetime: new Date('2026-04-19T09:00:00'), endDatetime: new Date('2026-06-14T18:00:00'),
+        location: 'Piscine Équinoxe, Dijon', minimumLevel: 'all', maxCapacity: 10, isPaid: true, price: 150, status: 'active',
+      },
+      {
+        club: clubs[0], creator: admins[0],
+        title: 'Assemblée Générale 2026',
+        description: 'Bilan annuel, présentation des projets 2026-2027, renouvellement du bureau.',
+        eventType: 'social', startDatetime: new Date('2026-05-03T14:00:00'), endDatetime: new Date('2026-05-03T17:00:00'),
+        location: 'Salle polyvalente Aquaclub21, Dijon', minimumLevel: 'all', maxCapacity: 50, isPaid: false, price: undefined, status: 'active',
+      },
+      {
+        club: clubs[0], creator: instructors[0],
+        title: 'Séance piscine hebdomadaire',
+        description: 'Entraînement hebdomadaire. Exercices techniques, palmage, remontées.',
+        eventType: 'pool_session', startDatetime: new Date('2026-04-22T20:30:00'), endDatetime: new Date('2026-04-22T22:00:00'),
+        location: 'Piscine Équinoxe, Dijon', minimumLevel: 'all', maxCapacity: 20, isPaid: false, price: undefined, status: 'active',
+      },
+      // Neptune Marseille (clubs[1])
+      {
+        club: clubs[1], creator: instructors[1],
+        title: 'Plongée Calanques — Sormiou',
+        description: 'Sortie plongée dans les calanques de Marseille. Faune méditerranéenne.',
+        eventType: 'dive_trip', startDatetime: new Date('2026-05-15T08:00:00'), endDatetime: new Date('2026-05-15T17:00:00'),
+        location: 'Calanque de Sormiou, Marseille', minimumLevel: 'N2', maxCapacity: 10, isPaid: true, price: 45, status: 'active',
+      },
+      {
+        club: clubs[1], creator: instructors[1],
+        title: 'Baptême de plongée — Piscine Luminy',
+        description: 'Découverte de la plongée en piscine. Matériel fourni, aucun prérequis.',
+        eventType: 'initiation', startDatetime: new Date('2026-05-08T10:00:00'), endDatetime: new Date('2026-05-08T12:00:00'),
+        location: 'Piscine de Luminy, Marseille', minimumLevel: 'all', maxCapacity: 8, isPaid: true, price: 20, status: 'active',
+      },
+      // Atlantis Lyon (clubs[2])
+      {
+        club: clubs[2], creator: instructors[2],
+        title: 'Sortie Lac du Bourget',
+        description: 'Plongée dans le plus grand lac naturel de France. Visibilité exceptionnelle.',
+        eventType: 'dive_trip', startDatetime: new Date('2026-05-24T07:30:00'), endDatetime: new Date('2026-05-24T18:00:00'),
+        location: 'Lac du Bourget, Aix-les-Bains', minimumLevel: 'N1', maxCapacity: 16, isPaid: true, price: 40, status: 'active',
+      },
+      {
+        club: clubs[2], creator: admins[2],
+        title: 'Soirée conviviale Atlantis',
+        description: 'Repas annuel du club. Remise des brevets de la saison.',
+        eventType: 'social', startDatetime: new Date('2026-06-07T19:00:00'), endDatetime: new Date('2026-06-07T23:00:00'),
+        location: 'Restaurant Le Nautilus, Lyon', minimumLevel: 'all', maxCapacity: 40, isPaid: true, price: 30, status: 'active',
+      },
+      // Océan Bleu Paris (clubs[3])
+      {
+        club: clubs[3], creator: instructors[3],
+        title: 'Stage perfectionnement N2',
+        description: 'Stage intensif de préparation à l\'examen Niveau 2 FFESSM.',
+        eventType: 'training', startDatetime: new Date('2026-05-17T09:00:00'), endDatetime: new Date('2026-05-17T18:00:00'),
+        location: 'Piscine Georges Vallerey, Paris', minimumLevel: 'N1', maxCapacity: 8, isPaid: true, price: 80, status: 'active',
+      },
+      {
+        club: clubs[3], creator: instructors[3],
+        title: 'Entraînement apnée',
+        description: 'Session apnée statique et dynamique. Encadrement par moniteur certifié.',
+        eventType: 'pool_session', startDatetime: new Date('2026-04-29T19:00:00'), endDatetime: new Date('2026-04-29T21:00:00'),
+        location: 'Piscine de la Butte-aux-Cailles, Paris', minimumLevel: 'all', maxCapacity: 12, isPaid: false, price: undefined, status: 'active',
+      },
+      // Poseidon Bordeaux (clubs[4])
+      {
+        club: clubs[4], creator: instructors[4],
+        title: 'Plongée épave — La Gironde',
+        description: 'Exploration d\'une épave historique dans l\'estuaire de la Gironde.',
+        eventType: 'dive_trip', startDatetime: new Date('2026-06-14T06:30:00'), endDatetime: new Date('2026-06-14T17:00:00'),
+        location: 'Estuaire de la Gironde, Bordeaux', minimumLevel: 'N2', maxCapacity: 8, isPaid: true, price: 55, status: 'active',
+      },
+      // Événements passés
+      {
+        club: clubs[0], creator: instructors[0],
+        title: 'Sortie plongée — Lac de Panthier',
+        description: 'Sortie passée. Plongée dans le lac de Panthier en Côte-d\'Or.',
+        eventType: 'dive_trip', startDatetime: new Date('2026-03-15T08:00:00'), endDatetime: new Date('2026-03-15T17:00:00'),
+        location: 'Lac de Panthier, Vandenesse-en-Auxois (21)', minimumLevel: 'N1', maxCapacity: 12, isPaid: true, price: 25, status: 'active',
+      },
+      {
+        club: clubs[1], creator: instructors[1],
+        title: 'Formation Nitrox — Mars 2026',
+        description: 'Formation à la plongée au nitrox. Théorie + pratique piscine.',
+        eventType: 'training', startDatetime: new Date('2026-03-22T09:00:00'), endDatetime: new Date('2026-03-22T17:00:00'),
+        location: 'Club Neptune, Marseille', minimumLevel: 'N2', maxCapacity: 6, isPaid: true, price: 120, status: 'active',
+      },
+      {
+        club: clubs[2], creator: instructors[2],
+        title: 'Baptême hivernal — Piscine de Gerland',
+        description: 'Session découverte de début d\'année. Tous niveaux.',
+        eventType: 'initiation', startDatetime: new Date('2026-02-14T10:00:00'), endDatetime: new Date('2026-02-14T12:00:00'),
+        location: 'Piscine de Gerland, Lyon', minimumLevel: 'all', maxCapacity: 10, isPaid: true, price: 15, status: 'active',
+      },
+      {
+        club: clubs[3], creator: admins[3],
+        title: 'AG Paris — Hiver 2026',
+        description: 'Assemblée générale ordinaire de l\'Océan Bleu Paris.',
+        eventType: 'social', startDatetime: new Date('2026-02-28T14:00:00'), endDatetime: new Date('2026-02-28T17:00:00'),
+        location: 'Mairie du 20e, Paris', minimumLevel: 'all', maxCapacity: 35, isPaid: false, price: undefined, status: 'active',
+      },
+      {
+        club: clubs[4], creator: instructors[4],
+        title: 'Séance technique — Janvier 2026',
+        description: 'Révision des techniques de sécurité. Gestion des pannes de détendeur.',
+        eventType: 'pool_session', startDatetime: new Date('2026-01-20T19:30:00'), endDatetime: new Date('2026-01-20T21:30:00'),
+        location: 'Piscine Judaïque, Bordeaux', minimumLevel: 'N1', maxCapacity: 14, isPaid: false, price: undefined, status: 'active',
+      },
+      // Clubs secondaires
+      {
+        club: clubs[5], creator: admins[0],
+        title: 'Plongée lac de Grand-Lieu',
+        description: 'Sortie lac à Nantes. Découverte de la faune locale.',
+        eventType: 'dive_trip', startDatetime: new Date('2026-05-30T08:00:00'), endDatetime: new Date('2026-05-30T17:00:00'),
+        location: 'Lac de Grand-Lieu, Saint-Philbert', minimumLevel: 'N1', maxCapacity: 10, isPaid: true, price: 30, status: 'active',
+      },
+      {
+        club: clubs[6], creator: admins[0],
+        title: 'Plongée Méditerranée — Presqu\'île de Giens',
+        description: 'Sortie mer au départ de Toulon. Tombant et faune méditerranéenne.',
+        eventType: 'dive_trip', startDatetime: new Date('2026-06-21T07:00:00'), endDatetime: new Date('2026-06-21T17:00:00'),
+        location: 'Presqu\'île de Giens, Toulon', minimumLevel: 'N2', maxCapacity: 10, isPaid: true, price: 50, status: 'active',
+      },
+      {
+        club: clubs[7], creator: admins[0],
+        title: 'Formation Niveau 2 — Été 2026',
+        description: 'Préparation au brevet N2. Sessions piscine et milieu naturel.',
+        eventType: 'training', startDatetime: new Date('2026-07-05T09:00:00'), endDatetime: new Date('2026-08-30T18:00:00'),
+        location: 'Piscine Jean Médecin + Mer, Nice', minimumLevel: 'N1', maxCapacity: 8, isPaid: true, price: 180, status: 'active',
+      },
+      {
+        club: clubs[8], creator: admins[0],
+        title: 'Randonnée palmée — Étang de Thau',
+        description: 'Sortie snorkeling dans l\'étang de Thau. Accessible à tous.',
+        eventType: 'initiation', startDatetime: new Date('2026-05-20T10:00:00'), endDatetime: new Date('2026-05-20T13:00:00'),
+        location: 'Étang de Thau, Sète', minimumLevel: 'all', maxCapacity: 20, isPaid: false, price: undefined, status: 'active',
+      },
+    ];
 
     for (const eventData of eventsData) {
-      const event = eventRepo.create(eventData);
+      const event = eventRepo.create({ ...eventData, price: eventData.price ?? undefined });
       await eventRepo.save(event);
+      console.log(`  → [${eventData.eventType.padEnd(12)}] ${eventData.title}`);
     }
 
-    console.log(`  → ${eventsData.length} events created`);
-
-    console.log('\n════════════════════════════════════════════════════════');
+    // ── RÉSUMÉ ────────────────────────────────────────────────────────────────
+    console.log('\n════════════════════════════════════════════════════════════════');
     console.log('  ✅  Seed completed successfully!');
-    console.log(`  🏊  Clubs       : ${clubs.length}`);
-    console.log(`  👤  Users       : ${users.length}`);
-    console.log(`  🔗  Memberships : ${memberships.length}`);
-    console.log(`  📅  Events      : ${eventsData.length}`);
-    console.log('════════════════════════════════════════════════════════\n');
+    console.log('  🏊  Clubs    : 20');
+    console.log('  👤  Users    : 20 (1 super admin, 5 sans club, 5 membres, 5 moniteurs, 4 admins)');
+    console.log('  📅  Events   : 20');
+    console.log('');
+    console.log('  🔑  Password for all accounts : Plongee2025!');
+    console.log('');
+    console.log('  Accounts:');
+    console.log('  super_admin → kevin.lavier@divingoclub.com');
+    console.log('  admin       → sophie.martin@aquaclub21.fr');
+    console.log('  instructor  → thomas.dubois@aquaclub21.fr');
+    console.log('  member      → marc.dupont@gmail.com');
+    console.log('  sans club   → lea.moreau@gmail.com');
+    console.log('════════════════════════════════════════════════════════════════\n');
 
   } catch (err) {
     console.error('❌ Seed failed:', err);
@@ -265,7 +338,7 @@ async function seed() {
   }
 }
 
-seed().catch((err) => {
+seed().catch(err => {
   console.error(err);
   process.exit(1);
 });
