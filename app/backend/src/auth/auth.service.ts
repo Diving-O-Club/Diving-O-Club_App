@@ -57,6 +57,15 @@ export class AuthService {
     return { message: 'Connexion réussie' };
   }
 
+  async me(userId: number): Promise<{ idUser: number; email: string; firstName: string | null }> {
+    const user = await this.userRepo.findOneBy({ idUser: userId });
+    return {
+      idUser:    user!.idUser,
+      email:     user!.email,
+      firstName: user!.firstName ?? null,
+    };
+  }
+
   async logout(res: Response): Promise<{ message: string }> {
     res.clearCookie('access_token');
     return { message: 'Déconnexion réussie' };
