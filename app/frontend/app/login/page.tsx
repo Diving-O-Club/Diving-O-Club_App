@@ -22,7 +22,16 @@ export default function LoginPage() {
       </div>
 
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
-        <form onSubmit={(e) => handleSubmit(e, () => router.push('/'))} className="space-y-4">
+        <form
+          onSubmit={(e) => handleSubmit(e, () => router.push('/dashboard'))}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              handleSubmit(e as any, () => router.push('/dashboard'));
+            }
+          }}
+          className="space-y-4"
+        >
 
           {apiError && (
             <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl px-4 py-3">
@@ -53,7 +62,8 @@ export default function LoginPage() {
               type="password"
               label=""
               value={form.password}
-              onChange={handleChange}
+              onChange={handleChange
+              }
               placeholder="••••••••"
               icon={Lock}
               error={errors.password}
