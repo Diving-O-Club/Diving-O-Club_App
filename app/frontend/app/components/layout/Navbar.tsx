@@ -43,7 +43,7 @@ export default function Navbar() {
             <>
               <Link href="/profile" className="flex items-center gap-2 text-[#0d3b66] font-medium px-4 py-2 text-sm hover:underline">
                 <User className="w-4 h-4" />
-                {user.email}
+                {user.firstName ?? user.email}
               </Link>
               <button
                 onClick={handleLogout}

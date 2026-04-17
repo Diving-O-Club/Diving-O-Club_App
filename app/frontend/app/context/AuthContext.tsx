@@ -5,6 +5,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 type User = {
   idUser: number;
   email: string;
+  firstName: string | null;
 };
 
 type AuthContextType = {
