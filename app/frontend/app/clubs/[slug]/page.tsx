@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { MapPin, Users, Calendar, ArrowLeft, ArrowRight, Mail, Shield } from 'lucide-react';
 import { getClub } from '../../lib/api';
+import JoinClubButton from './_components/JoinClubButton';
 
 export default async function ClubPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -104,11 +105,7 @@ export default async function ClubPage({ params }: { params: Promise<{ slug: str
           <p className="text-gray-500 mb-6 max-w-2xl mx-auto">
             Envoyez une demande d'adhésion au club. Le président examinera votre demande et vous contactera.
           </p>
-          <button className="inline-flex items-center gap-2 py-4 px-8 bg-linear-to-r from-[#0d3b66] to-[#006994] text-white rounded-xl hover:shadow-lg transition-all group">
-            <span>Demander à rejoindre</span>
-            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-          </button>
-          <p className="text-sm text-gray-400 mt-4">Connexion requise pour rejoindre un club</p>
+          <JoinClubButton clubId={club.idClub} />
         </div>
 
       </div>
