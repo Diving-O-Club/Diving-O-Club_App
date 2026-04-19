@@ -34,7 +34,9 @@ export class MembershipService {
   async getStatusForClub(
     userId: number,
     clubId: number,
-  ): Promise<{ status: 'active' | 'pending' | 'pending_other' | null; clubName?: string; clubSlug?: string }> {
+  ): Promise<{ status: 'active' | 'pending' | 'pending_other' | 'active_other' | null; clubName?: string; clubSlug?: string }> {
+    
+    // Check this specific club first
     const forThisClub = await this.membershipRepo.findOne({
       where: {
         user: { idUser: userId },
@@ -47,6 +49,25 @@ export class MembershipService {
       return { status: forThisClub.status as 'active' | 'pending' };
     }
 
+    // Check active membership on any other club
+    const activeElsewhere = await this.membershipRepo.findOne({
+      where: {
+        user: { idUser: userId },
+        status: 'active',
+        season: '2025-2026',
+      },
+      relations: ['club'],
+    });
+
+    if (activeElsewhere) {
+      return {
+        status: 'active_other',
+        clubName: activeElsewhere.club.name,
+        clubSlug: activeElsewhere.club.slug,
+      };
+    }
+
+    // Check pending request on any other club
     const pendingElsewhere = await this.membershipRepo.findOne({
       where: {
         user: { idUser: userId },
@@ -60,69 +81,118 @@ export class MembershipService {
       return {
         status: 'pending_other',
         clubName: pendingElsewhere.club.name,
-        clubSlug: pendingElsewhere.club.slug
+        clubSlug: pendingElsewhere.club.slug,
       };
     }
 
     return { status: null };
   }
-
   async requestMembership(
-    userId: number,
-    clubId: number,
-  ): Promise<{ status: string }> {
-    // Check no existing membership for this club
-    const existingForClub = await this.membershipRepo.findOne({
-      where: {
-        user: { idUser: userId },
-        club: { idClub: clubId },
-        season: '2025-2026',
-      },
-    });
+  userId: number,
+  clubId: number,
+): Promise<{ status: string }> {
+  // Check no existing membership for this club
+  const existingForClub = await this.membershipRepo.findOne({
+    where: {
+      user: { idUser: userId },
+      club: { idClub: clubId },
+      season: '2025-2026',
+    },
+  });
 
-    if (existingForClub) {
-      throw new ConflictException('Une demande existe déjà pour ce club cette saison');
-    }
-
-    // Check no pending request on any other club
-    const pendingElsewhere = await this.membershipRepo.findOne({
-      where: {
-        user: { idUser: userId },
-        status: 'pending',
-        season: '2025-2026',
-      },
-    });
-
-    if (pendingElsewhere) {
-      throw new ConflictException('Vous avez déjà une demande en attente sur un autre club');
-    }
-
-    const defaultRole = await this.roleRepo.findOneBy({ codeRole: 'member' });
-
-    await this.membershipRepo.save({
-      user:           { idUser: userId },
-      club:           { idClub: clubId },
-      role:           defaultRole!,
-      season:         '2025-2026',
-      membershipDate: new Date(),
-      status:         'pending',
-    });
-
-    return { status: 'pending' };
+  if (existingForClub) {
+    throw new ConflictException('Une demande existe déjà pour ce club cette saison');
   }
 
-  async cancelRequest(userId: number, clubId: number): Promise<void> {
-    const membership = await this.membershipRepo.findOne({
+  // Check no pending or active membership on any other club
+  const existingElsewhere = await this.membershipRepo.findOne({
+    where: {
+      user: { idUser: userId },
+      season: '2025-2026',
+    },
+  });
+
+  if (existingElsewhere) {
+    throw new ConflictException('Vous avez déjà un membership actif ou en attente sur un autre club');
+  }
+
+  const defaultRole = await this.roleRepo.findOneBy({ codeRole: 'member' });
+
+  await this.membershipRepo.save({
+    user:           { idUser: userId },
+    club:           { idClub: clubId },
+    role:           defaultRole!,
+    season:         '2025-2026',
+    membershipDate: new Date(),
+    status:         'pending',
+  });
+
+  return { status: 'pending' };
+}
+
+    async cancelRequest(userId: number, clubId: number): Promise<void> {
+      const membership = await this.membershipRepo.findOne({
+        where: {
+          user: { idUser: userId },
+          club: { idClub: clubId },
+          status: 'pending',
+          season: '2025-2026',
+        },
+      });
+
+      if (!membership) {
+        throw new NotFoundException('Aucune demande en attente pour ce club');
+      }
+
+      await this.membershipRepo.remove(membership);
+    }
+
+  async getPendingRequests(clubId: number): Promise<Membership[]> {
+    const memberships = await this.membershipRepo.find({
       where: {
-        user: { idUser: userId },
         club: { idClub: clubId },
         status: 'pending',
-        season: '2025-2026',
+      },
+      relations: ['user'],
+    });
+
+    return memberships.map((m) => {
+      const { passwordHash: _, ...safeUser } = m.user as any;
+      return { ...m, user: safeUser };
+    }) as Membership[];
+  }
+
+  async acceptRequest(membershipId: number, clubId: number): Promise<{ success: boolean }> {
+    const membership = await this.membershipRepo.findOne({
+      where: {
+        idMembership: membershipId,
+        club: { idClub: clubId },
+        status: 'pending',
       },
     });
 
     if (!membership) {
-      throw new NotFoundException('Aucune demande en attente pour ce club');
+      throw new NotFoundException('Demande introuvable');
+    }
+
+    membership.status = 'active';
+    membership.decisionDate = new Date();
+    await this.membershipRepo.save(membership);
+
+    return { success: true };
+  }
+
+  async rejectRequest(membershipId: number, clubId: number): Promise<void> {
+    const membership = await this.membershipRepo.findOne({
+      where: {
+        idMembership: membershipId,
+        club: { idClub: clubId },
+        status: 'pending',
+      },
+    });
+
+    if (!membership) {
+      throw new NotFoundException('Demande introuvable');
     }
 
     await this.membershipRepo.remove(membership);

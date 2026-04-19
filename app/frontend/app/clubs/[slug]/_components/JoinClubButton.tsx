@@ -8,7 +8,7 @@ import Link from 'next/link';
 
 type Props = { clubId: number };
 type StatusData = {
-  status: 'active' | 'pending' | 'pending_other' | null;
+  status: 'active' | 'pending' | 'pending_other' | 'active_other' | null;
   clubName?: string;
   clubSlug?: string;
 };
@@ -71,6 +71,20 @@ export default function JoinClubButton({ clubId }: Props) {
       </div>
     );
   }
+
+    if (statusData.status === 'active_other') {
+    return (
+        <div className="flex flex-col items-center gap-2 py-4 px-8 bg-gray-50 text-gray-500 rounded-xl border border-gray-200">
+        <p className="font-semibold text-sm">Vous êtes déjà membre de</p>
+        <Link
+            href={`/clubs/${statusData.clubSlug}`}
+            className="font-bold text-[#0d3b66] hover:underline"
+        >
+            {statusData.clubName}
+        </Link>
+        </div>
+    );
+    }
 
   if (statusData.status === 'pending') {
     return (
