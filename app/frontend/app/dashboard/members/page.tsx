@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
 import { useMembership } from '../../hooks/useMembership';
-import { Users } from 'lucide-react';
+import { Users, Check, X } from 'lucide-react';
 import Link from 'next/link';
 
 const LEVEL_COLORS: Record<string, string> = {
@@ -24,16 +24,66 @@ const ROLE_LABELS: Record<string, string> = {
   member:      'Adhérent',
 };
 
+const ADMIN_ROLES = ['admin', 'super_admin'];
+
+type PendingRequest = {
+  idMembership: number;
+  status: string;
+  user: {
+    idUser: number;
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+};
+
 export default function MembersPage() {
   const { user, loading: authLoading } = useAuth();
   const { membership, loading: membershipLoading } = useMembership();
   const router = useRouter();
+  const [pendingRequests, setPendingRequests] = useState<PendingRequest[]>([]);
+  const [loadingPending, setLoadingPending] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
       router.push('/login');
     }
   }, [user, authLoading, router]);
+
+  // Fetch pending requests if admin
+  useEffect(() => {
+    if (!membership) return;
+    if (!ADMIN_ROLES.includes(membership.role.codeRole)) return;
+
+    setLoadingPending(true);
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/membership/pending`, {
+      credentials: 'include',
+    })
+      .then(res => res.json())
+      .then(data => setPendingRequests(data))
+      .catch(() => setPendingRequests([]))
+      .finally(() => setLoadingPending(false));
+  }, [membership]);
+
+  const handleAccept = async (membershipId: number) => {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/membership/request/${membershipId}/accept`,
+      { method: 'PATCH', credentials: 'include' },
+    );
+    if (res.ok) {
+      setPendingRequests(prev => prev.filter(r => r.idMembership !== membershipId));
+    }
+  };
+
+  const handleReject = async (membershipId: number) => {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/membership/request/${membershipId}/reject`,
+      { method: 'DELETE', credentials: 'include' },
+    );
+    if (res.ok) {
+      setPendingRequests(prev => prev.filter(r => r.idMembership !== membershipId));
+    }
+  };
 
   if (authLoading || membershipLoading) {
     return (
@@ -72,6 +122,7 @@ export default function MembersPage() {
     );
   }
 
+  const isAdmin = ADMIN_ROLES.includes(membership.role.codeRole);
   const activeMembers = membership.club.memberships.filter(m => m.status === 'active');
 
   return (
@@ -84,6 +135,52 @@ export default function MembersPage() {
         </p>
       </div>
 
+      {/* Pending requests — admin only */}
+      {isAdmin && !loadingPending && pendingRequests.length > 0 && (
+        <div className="bg-white rounded-2xl shadow-xl overflow-hidden mb-6">
+          <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
+            <h2 className="font-bold text-[#0d3b66]">Demandes en attente</h2>
+            <span className="bg-yellow-100 text-yellow-700 text-xs font-medium px-2.5 py-0.5 rounded-full">
+              {pendingRequests.length}
+            </span>
+          </div>
+          <div className="divide-y divide-gray-50">
+            {pendingRequests.map(request => (
+              <div key={request.idMembership} className="px-6 py-4 flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-yellow-100 flex items-center justify-center text-yellow-700 text-sm font-semibold shrink-0">
+                    {request.user.firstName?.[0]}{request.user.lastName?.[0]}
+                  </div>
+                  <div>
+                    <p className="font-medium text-[#0d3b66]">
+                      {request.user.firstName} {request.user.lastName}
+                    </p>
+                    <p className="text-xs text-gray-400">{request.user.email}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    onClick={() => handleAccept(request.idMembership)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-green-50 text-green-700 text-sm font-medium rounded-lg hover:bg-green-100 transition-colors"
+                  >
+                    <Check className="w-4 h-4" />
+                    Accepter
+                  </button>
+                  <button
+                    onClick={() => handleReject(request.idMembership)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 text-red-600 text-sm font-medium rounded-lg hover:bg-red-100 transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                    Refuser
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Active members table */}
       <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 border-b border-gray-100">
