@@ -39,7 +39,7 @@ type PendingRequest = {
 
 export default function MembersPage() {
   const { user, loading: authLoading } = useAuth();
-  const { membership, loading: membershipLoading } = useMembership();
+  const { membership, loading: membershipLoading, refetch } = useMembership();
   const router = useRouter();
   const [pendingRequests, setPendingRequests] = useState<PendingRequest[]>([]);
   const [loadingPending, setLoadingPending] = useState(false);
@@ -55,14 +55,20 @@ export default function MembersPage() {
     if (!membership) return;
     if (!ADMIN_ROLES.includes(membership.role.codeRole)) return;
 
-    setLoadingPending(true);
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/membership/pending`, {
-      credentials: 'include',
-    })
-      .then(res => res.json())
-      .then(data => setPendingRequests(data))
-      .catch(() => setPendingRequests([]))
-      .finally(() => setLoadingPending(false));
+    const fetchPending = () => {
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}/membership/pending`, {
+        credentials: 'include',
+      })
+        .then(res => res.json())
+        .then(data => setPendingRequests(data))
+        .catch(() => setPendingRequests([]))
+        .finally(() => setLoadingPending(false));
+    };
+
+    fetchPending();
+    const interval = setInterval(fetchPending, 10000);
+
+    return () => clearInterval(interval);
   }, [membership]);
 
   const handleAccept = async (membershipId: number) => {
@@ -72,6 +78,7 @@ export default function MembersPage() {
     );
     if (res.ok) {
       setPendingRequests(prev => prev.filter(r => r.idMembership !== membershipId));
+      refetch();
     }
   };
 

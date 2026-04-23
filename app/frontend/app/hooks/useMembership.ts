@@ -63,15 +63,19 @@ export function useMembership() {
   const [membership, setMembership] = useState<MembershipData | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const fetchMembership = () => {
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/membership/me`, {
       credentials: 'include',
     })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => setMembership(data))
+      .then(res => (res.ok ? res.json() : null))
+      .then(data => setMembership(data))
       .catch(() => setMembership(null))
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchMembership();
   }, []);
 
-  return { membership, loading };
+  return { membership, loading, refetch: fetchMembership };
 }
