@@ -136,6 +136,8 @@ Pull Request
       ↓
 Develop (staging)
       ↓
+Pull Request
+      ↓
 Main (production)
 ```
 

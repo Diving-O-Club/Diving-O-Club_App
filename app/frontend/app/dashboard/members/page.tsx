@@ -194,7 +194,7 @@ export default function MembersPage() {
             <tr>
               <th className="text-left px-6 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Membre</th>
               <th className="text-left px-6 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wide hidden md:table-cell">Niveau</th>
-              <th className="text-left px-6 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Rôle</th>
+              <th className="text-left px-6 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wide hidden md:table-cell">Rôle</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
@@ -218,8 +218,8 @@ export default function MembersPage() {
                     {member.user.technicalLevel ?? '—'}
                   </span>
                 </td>
-                <td className="px-6 py-4">
-                  <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2.5 py-1 rounded-full">
+                <td className="px-6 py-4 hidden md:table-cell">
+                  <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2.5 py-1 rounded-full whitespace-nowrap">
                     {ROLE_LABELS[member.role.codeRole] ?? member.role.labelRole}
                   </span>
                 </td>
