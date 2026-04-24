@@ -21,10 +21,12 @@ jobs:
 
     - name: Install Playwright Browsers
       working-directory: app/frontend
-      run: npx playwright install --with-deps
+      run: npx playwright install --with-deps chromium
 
     - name: Run Playwright tests
       working-directory: app/frontend
+      env:
+        BASE_URL: https://staging.divingoclub.com
       run: npx playwright test
 
     - uses: actions/upload-artifact@v4
