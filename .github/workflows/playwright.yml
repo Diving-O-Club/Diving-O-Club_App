@@ -20,7 +20,7 @@ jobs:
       run: npm ci
 
     - name: Install Playwright Browsers
-      working-directory: frontend
+      working-directory: app/frontend
       run: npx playwright install --with-deps
 
     - name: Run Playwright tests
