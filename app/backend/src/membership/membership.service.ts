@@ -3,6 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Membership } from './membership.entity';
 import { Role } from '../role/role.entity';
+import { LogService } from '../log/log.service';
+
 
 @Injectable()
 export class MembershipService {
@@ -11,6 +13,7 @@ export class MembershipService {
     private readonly membershipRepo: Repository<Membership>,
     @InjectRepository(Role)
     private readonly roleRepo: Repository<Role>,
+    private readonly logService: LogService,
   ) {}
 
   async findMyMembership(userId: number): Promise<Membership | null> {
@@ -126,7 +129,8 @@ export class MembershipService {
     membershipDate: new Date(),
     status:         'pending',
   });
-
+  await this.logService.logMembership({ action: 'request_created', actorId: userId, clubId });
+  
   return { status: 'pending' };
 }
 
@@ -145,6 +149,7 @@ export class MembershipService {
       }
 
       await this.membershipRepo.remove(membership);
+      await this.logService.logMembership({ action: 'request_cancelled', actorId: userId, clubId });
     }
 
   async getPendingRequests(clubId: number): Promise<Membership[]> {
@@ -178,6 +183,7 @@ export class MembershipService {
     membership.status = 'active';
     membership.decisionDate = new Date();
     await this.membershipRepo.save(membership);
+    await this.logService.logMembership({ action: 'request_accepted', actorId: membership.user?.idUser, clubId });
 
     return { success: true };
   }
@@ -196,5 +202,6 @@ export class MembershipService {
     }
 
     await this.membershipRepo.remove(membership);
+    await this.logService.logMembership({ action: 'request_rejected', actorId: membership.user?.idUser, clubId });
   }
 }

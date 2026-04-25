@@ -7,6 +7,7 @@ import * as argon2 from 'argon2';
 import { AppUser } from '../app-user/app-user.entity';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { LogService } from '../log/log.service';
 
 @Injectable()
 export class AuthService {
@@ -14,11 +15,13 @@ export class AuthService {
     @InjectRepository(AppUser)
     private readonly userRepo: Repository<AppUser>,
     private readonly jwtService: JwtService,
+    private readonly logService: LogService,
   ) {}
 
   async register(dto: RegisterDto): Promise<{ message: string }> {
     const existing = await this.userRepo.findOneBy({ email: dto.email });
     if (existing) {
+      await this.logService.logAuth({ action: 'register_failure', email: dto.email });
       throw new ConflictException('Email déjà utilisé');
     }
 
@@ -32,16 +35,21 @@ export class AuthService {
     });
 
     await this.userRepo.save(user);
+    await this.logService.logAuth({ action: 'register', userId: user.idUser, email: user.email });
     return { message: 'Compte créé avec succès' };
   }
 
   async login(dto: LoginDto, res: Response): Promise<{ message: string }> {
     const user = await this.userRepo.findOneBy({ email: dto.email });
-    if (!user) throw new UnauthorizedException('Identifiants incorrects');
-
+    if (!user) {
+      await this.logService.logAuth({ action: 'login_failure', email: dto.email });
+      throw new UnauthorizedException('Identifiants incorrects');
+    }
     const valid = await argon2.verify(user.passwordHash, dto.password);
-    if (!valid) throw new UnauthorizedException('Identifiants incorrects');
-
+    if (!valid) {
+      await this.logService.logAuth({ action: 'login_failure', email: dto.email, userId: user.idUser });
+      throw new UnauthorizedException('Identifiants incorrects');
+    }
     const token = this.jwtService.sign({
       sub:   user.idUser,
       email: user.email,
@@ -54,6 +62,7 @@ export class AuthService {
       maxAge:   7 * 24 * 60 * 60 * 1000,
     });
 
+    await this.logService.logAuth({ action: 'login_success', userId: user.idUser, email: user.email });
     return { message: 'Connexion réussie' };
   }
 
@@ -68,6 +77,7 @@ export class AuthService {
 
   async logout(res: Response): Promise<{ message: string }> {
     res.clearCookie('access_token');
+    await this.logService.logAuth({ action: 'logout' });
     return { message: 'Déconnexion réussie' };
   }
 }
