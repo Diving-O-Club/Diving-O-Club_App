@@ -11,6 +11,8 @@ import { ClubEvent } from './event/event.entity';
 import { ClubModule } from './club/club.module';
 import { AuthModule } from './auth/auth.module';
 import { MembershipModule } from './membership/membership.module';
+import { MongooseModule } from '@nestjs/mongoose';
+import { LogModule } from './log/log.module';
 
 const dbEnabled = process.env.DB_ENABLED === 'true';
 
@@ -33,6 +35,8 @@ const dbEnabled = process.env.DB_ENABLED === 'true';
           ClubModule,
           AuthModule,
           MembershipModule,
+          MongooseModule.forRoot(process.env.MONGO_URL ?? ''),
+          LogModule,
         ]
       : []),
   ],

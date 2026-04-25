@@ -6,6 +6,7 @@ import { MembershipService } from './membership.service';
 import { Membership } from './membership.entity';
 import { Role } from '../role/role.entity';
 import { ConflictException, NotFoundException } from '@nestjs/common';
+import { LogService } from '../log/log.service';
 
 // ── Mocks ──────────────────────────────────────────────────────────────────
 const mockMembershipRepo = {
@@ -17,6 +18,12 @@ const mockMembershipRepo = {
 
 const mockRoleRepo = {
   findOneBy: jest.fn(),
+};
+
+const mockLogService = {
+  logAuth: jest.fn(),
+  logMembership: jest.fn(),
+  logError: jest.fn(),
 };
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -42,6 +49,7 @@ describe('MembershipService', () => {
         MembershipService,
         { provide: getRepositoryToken(Membership), useValue: mockMembershipRepo },
         { provide: getRepositoryToken(Role),       useValue: mockRoleRepo },
+        { provide: LogService, useValue: mockLogService },
       ],
     }).compile();
 
