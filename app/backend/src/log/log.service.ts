@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Log, LogDocument } from './schemas/log.schema';
 
+
 @Injectable()
 export class LogService {
   private readonly logger = new Logger(LogService.name);
