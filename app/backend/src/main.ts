@@ -8,7 +8,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   
   app.enableCors({
-    origin: ['http://localhost:3000', 'https://staging.divingoclub.com', 'https://divingoclub.com'],
+    origin: ['http://localhost:3000', 'http://192.168.1.21:3000', 'https://staging.divingoclub.com', 'https://divingoclub.com'],
     credentials: true,
   });
 
