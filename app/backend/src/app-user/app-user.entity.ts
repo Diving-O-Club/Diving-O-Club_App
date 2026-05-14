@@ -7,6 +7,7 @@ import {
 } from 'typeorm';
 import { Membership } from '../membership/membership.entity';
 import { ClubEvent } from '../event/event.entity';
+import { DivingLevel, InstructorLevel } from './app-user.enums';
 
 @Entity({ name: 'app_user' })
 export class AppUser {
@@ -28,25 +29,36 @@ export class AppUser {
   @Column({ name: 'birth_date', type: 'date', nullable: true })
   birthDate: Date | null;
 
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  address: string | null;
+
   @Column({
     name: 'ffessm_license_number',
     type: 'varchar',
-    length: 30,
+    length: 12,
     unique: true,
     nullable: true,
   })
-  ffessmLicenseNumber: string;
+  ffessmLicenseNumber: string | null;
 
   @Column({
-    name: 'technical_level',
-    type: 'varchar',
-    length: 50,
+    name: 'diving_level',
+    type: 'enum',
+    enum: DivingLevel,
     nullable: true,
   })
-  technicalLevel: string;
+  divingLevel: DivingLevel | null;
+
+  @Column({
+    name: 'instructor_level',
+    type: 'enum',
+    enum: InstructorLevel,
+    nullable: true,
+  })
+  instructorLevel: InstructorLevel | null;
 
   @Column({ type: 'varchar', length: 20, nullable: true })
-  phone: string;
+  phone: string | null;
 
   @Column({
     name: 'profile_picture_url',

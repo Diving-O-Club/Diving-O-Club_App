@@ -8,6 +8,7 @@ import { AppUser } from '../app-user/app-user.entity';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { LogService } from '../log/log.service';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class AuthService {
@@ -76,4 +77,19 @@ export class AuthService {
     await this.logService.logAuth({ action: 'logout' });
     return { message: 'Déconnexion réussie' };
   }
+
+  async updateMe(userId: number, dto: UpdateUserDto): Promise<AppUser> {
+  await this.userRepo.update(userId, {
+    firstName: dto.firstName,
+    lastName: dto.lastName,
+    email: dto.email,
+    phone: dto.phone,
+    birthDate: dto.birthDate ? new Date(dto.birthDate) : null,
+    address: dto.address,
+    ffessmLicenseNumber: dto.ffessmLicenseNumber,
+    divingLevel: dto.divingLevel,
+    instructorLevel: dto.instructorLevel,
+  });
+  return this.userRepo.findOneByOrFail({ idUser: userId });
+}
 }
