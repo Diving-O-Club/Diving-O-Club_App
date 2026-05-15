@@ -7,7 +7,9 @@ export type User = {
   email: string
   phone: string | null
   birthDate: string | null
-  address: string | null
+  street: string | null;
+  postalCode: string | null;
+  city: string | null;
   ffessmLicenseNumber: string | null
   divingLevel: DivingLevel | null
   instructorLevel: InstructorLevel | null
@@ -21,7 +23,9 @@ export type UpdateUserDto = {
   email: string
   phone: string | null
   birthDate: string | null
-  address: string | null
+  street: string | null;
+  postalCode: string | null;
+  city: string | null;
   ffessmLicenseNumber: string | null
   divingLevel: DivingLevel | null
   instructorLevel: InstructorLevel | null

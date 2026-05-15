@@ -25,7 +25,17 @@ export class UpdateUserDto {
   @IsOptional()
   @IsString()
   @Length(1, 255)
-  address: string | null;
+  street: string | null;
+
+  @IsOptional()
+  @IsString()
+  @Length(5, 10)
+  postalCode: string | null;
+
+  @IsOptional()
+  @IsString()
+  @Length(1, 100)
+  city: string | null;
 
   @IsOptional()
   @IsString()

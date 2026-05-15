@@ -19,7 +19,9 @@ function userToForm(user: User): UpdateUserDto {
     email: user.email,
     phone: user.phone,
     birthDate: user.birthDate,
-    address: user.address,
+    street: user.street,
+    postalCode: user.postalCode,
+    city: user.city,
     ffessmLicenseNumber: user.ffessmLicenseNumber,
     divingLevel: user.divingLevel,
     instructorLevel: user.instructorLevel,
@@ -40,14 +42,14 @@ export default function ProfilePage() {
   const [isSaving, setIsSaving] = useState(false)
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
 
-  // Redirection si non connecté
+  // Redirection when not authenticated
   useEffect(() => {
     if (!loading && !authUser) {
       router.push('/login')
     }
   }, [authUser, loading, router])
 
-  // Chargement du profil complet via GET /me
+  // Loading the complete profile via GET /me
   useEffect(() => {
     if (!authUser) return
     getMe().then((data) => {
@@ -137,10 +139,10 @@ export default function ProfilePage() {
   }
 
   function handleDeleteRequest() {
-    // TODO : ouvrir la modale de suppression (US RGPD)
+    // TODO : open the deletion modal
   }
 
-  // ─── États de chargement ───────────────────────────────────────────────────
+  // ─── Loading states ───────────────────────────────────────────────────
 
   if (loading || !profile || !form || !saved) {
     return (
@@ -150,7 +152,7 @@ export default function ProfilePage() {
     )
   }
 
-  // ─── Rendu ─────────────────────────────────────────────────────────────────
+  // ─── Rendering ─────────────────────────────────────────────────────────────────
 
   return (
     <div className="min-h-screen bg-linear-to-b from-[#e8f4ff] to-white">

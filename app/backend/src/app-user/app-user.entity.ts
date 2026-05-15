@@ -30,7 +30,13 @@ export class AppUser {
   birthDate: Date | null;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
-  address: string | null;
+  street: string | null;
+
+  @Column({ name: 'postal_code', type: 'varchar', length: 10, nullable: true })
+  postalCode: string | null;
+
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  city: string | null;
 
   @Column({
     name: 'ffessm_license_number',
