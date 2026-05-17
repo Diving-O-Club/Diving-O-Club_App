@@ -1,4 +1,11 @@
-import { IsEmail, IsEnum, IsOptional, IsString, Length, Matches } from 'class-validator';
+import {
+  IsEmail,
+  IsEnum,
+  IsOptional,
+  IsString,
+  Length,
+  Matches,
+} from 'class-validator';
 import { DivingLevel, InstructorLevel } from '../../app-user/app-user.enums';
 
 export class UpdateUserDto {
@@ -39,7 +46,9 @@ export class UpdateUserDto {
 
   @IsOptional()
   @IsString()
-  @Matches(/^[A-Z]-\d{2}-\d{6}$/i, { message: 'Format invalide (ex : A-01-000001)' })
+  @Matches(/^[A-Z]-\d{2}-\d{6}$/i, {
+    message: 'Format invalide (ex : A-01-000001)',
+  })
   ffessmLicenseNumber: string | null;
 
   @IsOptional()

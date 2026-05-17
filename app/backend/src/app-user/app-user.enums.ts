@@ -17,10 +17,10 @@ export enum DivingLevel {
 }
 
 export enum InstructorLevel {
-  N4 = 'N4',   // Dive Team Leader
-  E1 = 'E1',   // Initiator
-  E2 = 'E2',   // Initiator + Dive Team Leader
+  N4 = 'N4', // Dive Team Leader
+  E1 = 'E1', // Initiator
+  E2 = 'E2', // Initiator + Dive Team Leader
   MF1 = 'MF1', // Federal Instructor 1st Level
   MF2 = 'MF2', // Federal Instructor 2nd Level
-  N5 = 'N5',   // Dive Director (Exploration)
+  N5 = 'N5', // Dive Director (Exploration)
 }

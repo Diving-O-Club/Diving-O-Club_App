@@ -31,12 +31,17 @@ describe('Membership (e2e)', () => {
         SELECT id_user FROM app_user WHERE email LIKE '%@membership-test.com'
       )
     `);
-    await dataSource.query(`DELETE FROM app_user WHERE email LIKE '%@membership-test.com'`);
+    await dataSource.query(
+      `DELETE FROM app_user WHERE email LIKE '%@membership-test.com'`,
+    );
 
     // Create member user
-    await request(app.getHttpServer())
-      .post('/auth/register')
-      .send({ email: 'member@membership-test.com', password: 'Test1234!', firstName: 'Test', lastName: 'Member' });
+    await request(app.getHttpServer()).post('/auth/register').send({
+      email: 'member@membership-test.com',
+      password: 'Test1234!',
+      firstName: 'Test',
+      lastName: 'Member',
+    });
 
     const memberLogin = await request(app.getHttpServer())
       .post('/auth/login')
@@ -56,14 +61,15 @@ describe('Membership (e2e)', () => {
         SELECT id_user FROM app_user WHERE email LIKE '%@membership-test.com'
       )
     `);
-    await dataSource.query(`DELETE FROM app_user WHERE email LIKE '%@membership-test.com'`);
+    await dataSource.query(
+      `DELETE FROM app_user WHERE email LIKE '%@membership-test.com'`,
+    );
     await dataSource.destroy();
     await app.close();
   });
 
   // ── POST /membership/request/:clubId ─────────────────────────────────────
   describe('POST /membership/request/:clubId', () => {
-
     it('should create a pending membership successfully', async () => {
       const res = await request(app.getHttpServer())
         .post('/membership/request/1')
@@ -74,8 +80,9 @@ describe('Membership (e2e)', () => {
     });
 
     it('should return 401 when not authenticated', async () => {
-      const res = await request(app.getHttpServer())
-        .post('/membership/request/1');
+      const res = await request(app.getHttpServer()).post(
+        '/membership/request/1',
+      );
 
       expect(res.status).toBe(401);
     });
@@ -107,7 +114,6 @@ describe('Membership (e2e)', () => {
 
   // ── DELETE /membership/request/:clubId ───────────────────────────────────
   describe('DELETE /membership/request/:clubId', () => {
-
     it('should cancel a pending request successfully', async () => {
       await request(app.getHttpServer())
         .post('/membership/request/1')
@@ -132,7 +138,6 @@ describe('Membership (e2e)', () => {
 
   // ── GET /membership/status/:clubId ───────────────────────────────────────
   describe('GET /membership/status/:clubId', () => {
-
     it('should return null when no membership exists', async () => {
       const res = await request(app.getHttpServer())
         .get('/membership/status/1')
@@ -156,8 +161,9 @@ describe('Membership (e2e)', () => {
     });
 
     it('should return 401 when not authenticated', async () => {
-      const res = await request(app.getHttpServer())
-        .get('/membership/status/1');
+      const res = await request(app.getHttpServer()).get(
+        '/membership/status/1',
+      );
 
       expect(res.status).toBe(401);
     });
@@ -165,7 +171,6 @@ describe('Membership (e2e)', () => {
 
   // ── GET /membership/pending ──────────────────────────────────────────────
   describe('GET /membership/pending', () => {
-
     it('should return pending requests for admin', async () => {
       await request(app.getHttpServer())
         .post('/membership/request/1')
@@ -188,8 +193,7 @@ describe('Membership (e2e)', () => {
     });
 
     it('should return 401 when not authenticated', async () => {
-      const res = await request(app.getHttpServer())
-        .get('/membership/pending');
+      const res = await request(app.getHttpServer()).get('/membership/pending');
 
       expect(res.status).toBe(401);
     });
