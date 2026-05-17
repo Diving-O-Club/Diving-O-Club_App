@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Patch, Delete, Param, Req, UseGuards, ForbiddenException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Param,
+  Req,
+  UseGuards,
+  ForbiddenException,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { MembershipService } from './membership.service';
 
@@ -11,7 +21,9 @@ export class MembershipController {
   @Get('me')
   @UseGuards(AuthGuard('jwt'))
   async getMyMembership(@Req() req: any) {
-    const membership = await this.membershipService.findMyMembership(req.user.idUser);
+    const membership = await this.membershipService.findMyMembership(
+      req.user.idUser,
+    );
     if (!membership) return null;
     const { passwordHash: _, ...safeUser } = membership.user as any;
     return {
@@ -58,31 +70,60 @@ export class MembershipController {
   @Get('pending')
   @UseGuards(AuthGuard('jwt'))
   async getPendingRequests(@Req() req: any) {
-    const adminMembership = await this.membershipService.findMyMembership(req.user.idUser);
-    if (!adminMembership || !ADMIN_ROLES.includes(adminMembership.role.codeRole)) {
+    const adminMembership = await this.membershipService.findMyMembership(
+      req.user.idUser,
+    );
+    if (
+      !adminMembership ||
+      !ADMIN_ROLES.includes(adminMembership.role.codeRole)
+    ) {
       throw new ForbiddenException('Accès réservé aux administrateurs');
     }
-    return this.membershipService.getPendingRequests(adminMembership.club.idClub);
+    return this.membershipService.getPendingRequests(
+      adminMembership.club.idClub,
+    );
   }
 
   @Patch('request/:membershipId/accept')
   @UseGuards(AuthGuard('jwt'))
-  async acceptRequest(@Param('membershipId') membershipId: string, @Req() req: any) {
-    const adminMembership = await this.membershipService.findMyMembership(req.user.idUser);
-    if (!adminMembership || !ADMIN_ROLES.includes(adminMembership.role.codeRole)) {
+  async acceptRequest(
+    @Param('membershipId') membershipId: string,
+    @Req() req: any,
+  ) {
+    const adminMembership = await this.membershipService.findMyMembership(
+      req.user.idUser,
+    );
+    if (
+      !adminMembership ||
+      !ADMIN_ROLES.includes(adminMembership.role.codeRole)
+    ) {
       throw new ForbiddenException('Accès réservé aux administrateurs');
     }
-    return this.membershipService.acceptRequest(parseInt(membershipId), adminMembership.club.idClub);
+    return this.membershipService.acceptRequest(
+      parseInt(membershipId),
+      adminMembership.club.idClub,
+    );
   }
 
   @Delete('request/:membershipId/reject')
   @UseGuards(AuthGuard('jwt'))
-  async rejectRequest(@Param('membershipId') membershipId: string, @Req() req: any) {
-    const adminMembership = await this.membershipService.findMyMembership(req.user.idUser);
-    if (!adminMembership || !ADMIN_ROLES.includes(adminMembership.role.codeRole)) {
+  async rejectRequest(
+    @Param('membershipId') membershipId: string,
+    @Req() req: any,
+  ) {
+    const adminMembership = await this.membershipService.findMyMembership(
+      req.user.idUser,
+    );
+    if (
+      !adminMembership ||
+      !ADMIN_ROLES.includes(adminMembership.role.codeRole)
+    ) {
       throw new ForbiddenException('Accès réservé aux administrateurs');
     }
-    await this.membershipService.rejectRequest(parseInt(membershipId), adminMembership.club.idClub);
+    await this.membershipService.rejectRequest(
+      parseInt(membershipId),
+      adminMembership.club.idClub,
+    );
     return { success: true };
   }
 }

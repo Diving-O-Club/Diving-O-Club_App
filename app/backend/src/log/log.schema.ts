@@ -4,9 +4,7 @@ import { Log, LogSchema } from './schemas/log.schema';
 import { LogService } from './log.service';
 
 @Module({
-  imports: [
-    MongooseModule.forFeature([{ name: Log.name, schema: LogSchema }]),
-  ],
+  imports: [MongooseModule.forFeature([{ name: Log.name, schema: LogSchema }])],
   providers: [LogService],
   exports: [LogService],
 })

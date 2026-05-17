@@ -31,7 +31,11 @@ export class Membership {
   @Column({ type: 'varchar', length: 9 })
   season: string;
 
-  @Column({ name: 'membership_date', type: 'date', default: () => 'CURRENT_DATE' })
+  @Column({
+    name: 'membership_date',
+    type: 'date',
+    default: () => 'CURRENT_DATE',
+  })
   membershipDate: Date;
 
   @Column({ name: 'decision_date', type: 'date', nullable: true })
