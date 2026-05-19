@@ -88,9 +88,8 @@ L'infrastructure est conteneurisée avec Docker et déployée sur AWS EC2.
 
 Gestion des accès selon différents rôles :
 
-- Adhérent
-- Moniteur
-- Comité
+- Student / Member
+- Coach
 - Admin
 
 ---
