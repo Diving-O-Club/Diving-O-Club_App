@@ -1,4 +1,4 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ClubService } from './club.service';
 
 @Controller('clubs')
@@ -8,5 +8,10 @@ export class ClubController {
   @Get(':slug')
   findBySlug(@Param('slug') slug: string) {
     return this.clubService.findBySlug(slug);
+  }
+
+  @Get()
+  search(@Query('search') search: string) {
+    return this.clubService.search(search ?? '');
   }
 }

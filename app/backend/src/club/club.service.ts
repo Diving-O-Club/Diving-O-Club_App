@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, ILike } from 'typeorm';
 import { Club } from './club.entity';
 
 @Injectable()
@@ -10,10 +10,22 @@ export class ClubService {
     private readonly clubRepo: Repository<Club>,
   ) {}
 
+  async search(query: string) {
+    return this.clubRepo.find({
+      where: [{ name: ILike(`%${query}%`) }, { city: ILike(`%${query}%`) }],
+      select: ['name', 'city', 'slug'],
+    });
+  }
+
   async findBySlug(slug: string): Promise<Club> {
     const club = await this.clubRepo.findOne({
       where: { slug },
-      relations: ['memberships', 'memberships.user', 'memberships.role', 'events'],
+      relations: [
+        'memberships',
+        'memberships.user',
+        'memberships.role',
+        'events',
+      ],
     });
 
     if (!club) {

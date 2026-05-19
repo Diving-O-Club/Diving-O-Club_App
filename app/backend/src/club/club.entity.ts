@@ -31,10 +31,20 @@ export class Club {
   @Column({ type: 'varchar', length: 100 })
   city: string;
 
-  @Column({ name: 'club_status', type: 'varchar', length: 20, default: 'pending' })
+  @Column({
+    name: 'club_status',
+    type: 'varchar',
+    length: 20,
+    default: 'pending',
+  })
   clubStatus: string;
 
-  @Column({ name: 'structure_type', type: 'varchar', length: 20, default: 'club' })
+  @Column({
+    name: 'structure_type',
+    type: 'varchar',
+    length: 20,
+    default: 'club',
+  })
   structureType: string;
 
   @CreateDateColumn({ name: 'created_at', type: 'date' })

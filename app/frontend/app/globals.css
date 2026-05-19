@@ -1,26 +1,46 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@keyframes halo-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.08); }
+  50% { box-shadow: 0 0 40px 20px rgba(255, 255, 255, 0.12); }
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+.halo-pulse {
+  animation: halo-pulse 3s ease-in-out infinite;
 }
 
 body {
-  background: var(--background);
+  overflow-x: clip;
+  max-width: 100%;
+}
+
+:root {
+  --navy: #0d3b66;
+  --navy-light: #1b6ca8;
+  --cyan: #00b4d8;
+  --cyan-light: #48cae4;
+  --background: #ffffff;
+  --foreground: #0a1929;
+}
+
+@theme inline {
+  --color-navy: var(--navy);
+  --color-navy-light: var(--navy-light);
+  --color-cyan: var(--cyan);
+  --color-cyan-light: var(--cyan-light);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+}
+
+body {
+  background: linear-gradient(to bottom right, #ffffff, #f1f8fb, #caf0f8);
+  background-attachment: fixed;
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+input, textarea, select {
+  font-size: 16px !important;
 }

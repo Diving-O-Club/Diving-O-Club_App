@@ -40,7 +40,12 @@ export class ClubEvent {
   @Column({ type: 'varchar', length: 150, nullable: true })
   location: string;
 
-  @Column({ name: 'minimum_level', type: 'varchar', length: 50, nullable: true })
+  @Column({
+    name: 'minimum_level',
+    type: 'varchar',
+    length: 50,
+    nullable: true,
+  })
   minimumLevel: string;
 
   @Column({ name: 'max_capacity', type: 'int', nullable: true })
