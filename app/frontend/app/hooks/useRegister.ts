@@ -29,8 +29,8 @@ export function useRegister() {
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
       newErrors.email = "L'email n'est pas valide";
     if (!form.password) newErrors.password = 'Le mot de passe est requis';
-    else if (form.password.length < 8)
-      newErrors.password = 'Le mot de passe doit contenir au moins 8 caractères';
+    else if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/.test(form.password))
+      newErrors.password = 'Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
