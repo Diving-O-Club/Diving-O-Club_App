@@ -1,14 +1,12 @@
 name: Deploy to Production
 
 on:
-  pull_request:
-    types: [closed]
-    branches:
-      - main
+  push:
+    tags:
+      - 'v*'
 
 jobs:
   build-and-deploy-production:
-    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
 
     steps:
