@@ -84,7 +84,7 @@ export default function RegisterPage() {
               placeholder="••••••••"
               icon={Lock}
               error={errors.password}
-              hint="Minimum 8 caractères"
+              hint="8 caractères min, une majuscule, un chiffre et un caractère spécial"
             />
 
             <button
