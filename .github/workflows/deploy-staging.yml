@@ -12,13 +12,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Debug PR refs
-        run: |
-          echo "event_name=${{ github.event_name }}"
-          echo "base_ref=${{ github.base_ref }}"
-          echo "head_ref=${{ github.head_ref }}"
-          echo "merged=${{ github.event.pull_request.merged }}"
-
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -61,20 +54,12 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            cd ~/Diving-O-Club_App
-
-            echo "↪️ Pulling latest changes..."
-            git fetch origin develop
-            git reset --hard origin/develop
+            cd ~/Diving-O-Club_App/app
 
             echo "🔄 Stopping STAGING containers..."
-            cd app
             sudo docker compose -f docker-compose.staging.yml --env-file .env.staging down
 
-            echo "🗑️ Removing old frontend image to force re-pull..."
-            sudo docker image rm minifrizz/diving-o-club-frontend:staging || true
-
-            echo "🧹 Cleaning old Docker data..."
+            echo "🧹 Cleaning old Docker images..."
             sudo docker image prune -af
 
             echo "🎆 Pulling images from Docker Hub..."
