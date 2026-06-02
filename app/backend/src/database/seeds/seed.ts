@@ -404,6 +404,48 @@ async function seed() {
       );
     }
 
+    // Committees
+    const committeesData = [
+      {
+        email: 'comite@test.com',
+        firstName: 'Isabelle',
+        lastName: 'Fontaine',
+        birthDate: new Date('1978-04-20'),
+        ffessmLicenseNumber: '21-001-0030',
+        technicalLevel: 'N3',
+        phone: '06 00 00 04 01',
+        club: clubs[0],
+      },
+      {
+        email: 'bernard.leclerc@neptune.fr',
+        firstName: 'Bernard',
+        lastName: 'Leclerc',
+        birthDate: new Date('1965-09-12'),
+        ffessmLicenseNumber: '13-002-0030',
+        technicalLevel: 'N2',
+        phone: '06 00 00 04 02',
+        club: clubs[0],
+      },
+    ];
+
+    const committees: AppUser[] = [];
+    for (const { club, ...userData } of committeesData) {
+      const user = await userRepo.save({ ...userData, passwordHash: pw });
+      await membershipRepo.save({
+        user,
+        club,
+        role: r['committee'],
+        season: '2025-2026',
+        membershipDate: new Date(),
+        decisionDate: new Date(),
+        status: 'active',
+      });
+      committees.push(user);
+      console.log(
+        `  → [committee   ] ${user.firstName} ${user.lastName} — ${user.email} → ${club.name}`,
+      );
+    }
+
     // Admins
     const adminsData = [
       {
@@ -825,9 +867,7 @@ async function seed() {
     );
     console.log('  ✅  Seed completed successfully!');
     console.log('  🏊  Clubs    : 20');
-    console.log(
-      '  👤  Users    : 20 (1 super admin, 5 sans club, 5 membres, 5 moniteurs, 4 admins)',
-    );
+    console.log('  👤  Users    : 22 (1 super admin, 5 sans club, 5 membres, 5 moniteurs, 4 admins, 2 comités)');
     console.log('  📅  Events   : 20');
     console.log('');
     console.log('  🔑  Password for all accounts : 123');
@@ -835,6 +875,7 @@ async function seed() {
     console.log('  Accounts:');
     console.log('  super_admin → superadmin@test.com');
     console.log('  admin       → admin@test.com');
+    console.log('  committee   → comite@test.com');
     console.log('  instructor  → moniteur@test.com');
     console.log('  member      → adherent@test.com');
     console.log('  sans club   → sansclub@test.com');

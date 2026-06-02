@@ -9,7 +9,7 @@ import { ArrowLeft } from 'lucide-react';
 import EventForm from '../../../components/events/EventForm';
 import { useEffect } from 'react';
 
-const MANAGER_ROLES = ['admin', 'super_admin', 'moniteur', 'comite'];
+const MANAGER_ROLES = ['admin', 'super_admin', 'instructor', 'committee'];
 
 export default function CreateEventPage() {
   const { user, loading: authLoading } = useAuth();

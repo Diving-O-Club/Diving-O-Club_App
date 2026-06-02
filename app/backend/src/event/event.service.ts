@@ -11,7 +11,7 @@ import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { LogService } from '../log/log.service';
 
-const MANAGER_ROLES = ['admin', 'super_admin', 'moniteur', 'comite'];
+const MANAGER_ROLES = ['admin', 'super_admin', 'instructor', 'committee'];
 
 @Injectable()
 export class EventService {

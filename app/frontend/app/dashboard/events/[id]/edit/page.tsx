@@ -8,7 +8,7 @@ import { useEvents, CreateEventPayload } from '../../../../hooks/useEvents';
 import { ArrowLeft } from 'lucide-react';
 import EventForm from '../../../../components/events/EventForm';
 
-const MANAGER_ROLES = ['admin', 'super_admin', 'moniteur', 'comite'];
+const MANAGER_ROLES = ['admin', 'super_admin', 'instructor', 'committee'];
 
 function toDatetimeLocal(iso: string): string {
   return new Date(iso).toISOString().slice(0, 16);

@@ -11,7 +11,7 @@ import Link from 'next/link';
 import EventCard from '../../components/events/EventCard';
 import EventDeleteModal from '../../components/events/EventDeleteModal';
 
-const MANAGER_ROLES = ['admin', 'super_admin', 'moniteur', 'comite'];
+const MANAGER_ROLES = ['admin', 'super_admin', 'instructor', 'committee'];
 
 export default function EventsPage() {
   const { user, loading: authLoading } = useAuth();
