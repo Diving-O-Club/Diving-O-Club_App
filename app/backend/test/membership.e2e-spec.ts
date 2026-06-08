@@ -3,7 +3,7 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { DataSource } from 'typeorm';
-import cookieParser = require('cookie-parser');
+import cookieParser from 'cookie-parser';
 
 describe('Membership (e2e)', () => {
   let app: INestApplication;
@@ -76,6 +76,7 @@ describe('Membership (e2e)', () => {
         .set('Cookie', memberCookie);
 
       expect(res.status).toBe(201);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       expect(res.body.status).toBe('pending');
     });
 
@@ -124,6 +125,7 @@ describe('Membership (e2e)', () => {
         .set('Cookie', memberCookie);
 
       expect(res.status).toBe(200);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       expect(res.body.status).toBeNull();
     });
 
@@ -144,6 +146,7 @@ describe('Membership (e2e)', () => {
         .set('Cookie', memberCookie);
 
       expect(res.status).toBe(200);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       expect(res.body.status).toBeNull();
     });
 
@@ -157,6 +160,7 @@ describe('Membership (e2e)', () => {
         .set('Cookie', memberCookie);
 
       expect(res.status).toBe(200);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       expect(res.body.status).toBe('pending');
     });
 

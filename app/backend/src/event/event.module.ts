@@ -7,10 +7,7 @@ import { EventController } from './event.controller';
 import { LogModule } from '../log/log.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([ClubEvent, Membership]),
-    LogModule,
-  ],
+  imports: [TypeOrmModule.forFeature([ClubEvent, Membership]), LogModule],
   controllers: [EventController],
   providers: [EventService],
 })

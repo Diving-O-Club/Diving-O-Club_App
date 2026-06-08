@@ -3,7 +3,7 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { DataSource } from 'typeorm';
-import cookieParser = require('cookie-parser');
+import cookieParser from 'cookie-parser';
 
 describe('Auth (e2e)', () => {
   let app: INestApplication;
@@ -146,6 +146,7 @@ describe('Auth (e2e)', () => {
         .set('Cookie', cookie);
 
       expect(res.status).toBe(200);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       expect(res.body.email).toBe('me@e2e-test.com');
       expect(res.body).not.toHaveProperty('passwordHash');
     });
