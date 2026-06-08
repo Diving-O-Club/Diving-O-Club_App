@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CreateEventPayload } from '../../hooks/useEvents';
+import { type CreateEventPayload } from '@/app/lib/api/events';
 
 const EVENT_TYPES = [
   { value: 'dive_trip',    label: 'Sortie plongée' },

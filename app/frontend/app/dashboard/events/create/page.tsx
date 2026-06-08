@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '../../../context/AuthContext';
 import { useMembership } from '../../../hooks/useMembership';
 import { useEvents } from '../../../hooks/useEvents';
-import { CreateEventPayload } from '../../../hooks/useEvents';
+import { type CreateEventPayload } from '@/app/lib/api/events';
 import { ArrowLeft } from 'lucide-react';
 import EventForm from '../../../components/events/EventForm';
 import { useEffect } from 'react';

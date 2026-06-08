@@ -1,5 +1,5 @@
 import { Pencil, Trash2, MapPin, Users, Clock } from 'lucide-react';
-import { DashboardEvent } from '../../hooks/useMembership';
+import { type DashboardEvent } from '@/app/lib/api/events';
 import EventTypeBadge from './EventTypeBadge';
 
 function formatDate(iso: string) {

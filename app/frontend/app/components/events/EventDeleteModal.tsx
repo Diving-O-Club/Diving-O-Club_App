@@ -1,5 +1,5 @@
 import { Trash2, X } from 'lucide-react';
-import { DashboardEvent } from '../../hooks/useMembership';
+import { type DashboardEvent } from '@/app/lib/api/events';
 
 type Props = {
   event: DashboardEvent | null;

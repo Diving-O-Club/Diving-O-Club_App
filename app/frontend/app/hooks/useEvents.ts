@@ -1,110 +1,72 @@
 'use client';
 
 import { useState } from 'react';
-import { DashboardEvent } from './useMembership';
+import {
+  createEvent,
+  updateEvent,
+  deleteEvent,
+  type DashboardEvent,
+  type CreateEventPayload,
+  type UpdateEventPayload,
+} from '@/app/lib/api/events';
 
-export type CreateEventPayload = {
-  title: string;
-  description?: string;
-  eventType: string;
-  startDatetime: string;
-  endDatetime: string;
-  location?: string;
-  minimumLevel?: string;
-  maxCapacity?: number;
-  isPaid: boolean;
-  price?: number;
-};
-
-export type UpdateEventPayload = Partial<CreateEventPayload>;
+export type { DashboardEvent, CreateEventPayload, UpdateEventPayload };
 
 export function useEvents() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const createEvent = async (
+  const createEventAction = async (
     clubId: number,
     payload: CreateEventPayload,
   ): Promise<DashboardEvent | null> => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/clubs/${clubId}/events`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify(payload),
-        },
-      );
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.message || 'Erreur lors de la création');
-        return null;
-      }
-      return data;
-    } catch {
-      setError('Impossible de contacter le serveur');
+      return await createEvent(clubId, payload);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erreur lors de la création');
       return null;
     } finally {
       setLoading(false);
     }
   };
 
-  const updateEvent = async (
+  const updateEventAction = async (
     eventId: number,
     payload: UpdateEventPayload,
   ): Promise<DashboardEvent | null> => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/events/${eventId}`,
-        {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify(payload),
-        },
-      );
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.message || 'Erreur lors de la modification');
-        return null;
-      }
-      return data;
-    } catch {
-      setError('Impossible de contacter le serveur');
+      return await updateEvent(eventId, payload);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erreur lors de la modification');
       return null;
     } finally {
       setLoading(false);
     }
   };
 
-  const deleteEvent = async (eventId: number): Promise<boolean> => {
+  const deleteEventAction = async (eventId: number): Promise<boolean> => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/events/${eventId}`,
-        {
-          method: 'DELETE',
-          credentials: 'include',
-        },
-      );
-      if (!res.ok) {
-        setError('Erreur lors de la suppression');
-        return false;
-      }
+      await deleteEvent(eventId);
       return true;
     } catch {
-      setError('Impossible de contacter le serveur');
+      setError('Erreur lors de la suppression');
       return false;
     } finally {
       setLoading(false);
     }
   };
 
-  return { createEvent, updateEvent, deleteEvent, loading, error };
+  return {
+    createEvent: createEventAction,
+    updateEvent: updateEventAction,
+    deleteEvent: deleteEventAction,
+    loading,
+    error,
+  };
 }

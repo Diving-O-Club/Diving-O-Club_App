@@ -3,8 +3,9 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '../../../../context/AuthContext';
-import { useMembership, DashboardEvent } from '../../../../hooks/useMembership';
-import { useEvents, CreateEventPayload } from '../../../../hooks/useEvents';
+import { useMembership } from '../../../../hooks/useMembership';
+import { useEvents } from '../../../../hooks/useEvents';
+import { type DashboardEvent, type CreateEventPayload } from '@/app/lib/api/events';
 import { ArrowLeft } from 'lucide-react';
 import EventForm from '../../../../components/events/EventForm';
 
