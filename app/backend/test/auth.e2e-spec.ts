@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
+import type { Server } from 'http';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { DataSource } from 'typeorm';
@@ -7,6 +8,7 @@ import cookieParser from 'cookie-parser';
 
 describe('Auth (e2e)', () => {
   let app: INestApplication;
+  let httpServer: Server;
   let dataSource: DataSource;
 
   beforeAll(async () => {
@@ -18,6 +20,7 @@ describe('Auth (e2e)', () => {
     app.use(cookieParser());
     app.useGlobalPipes(new ValidationPipe());
     await app.init();
+    httpServer = app.getHttpServer() as Server;
 
     dataSource = moduleFixture.get(DataSource);
 
@@ -45,41 +48,37 @@ describe('Auth (e2e)', () => {
   // ── POST /auth/register ──────────────────────────────────────────────────
   describe('POST /auth/register', () => {
     it('should register a new user and return 201', async () => {
-      const res = await request(app.getHttpServer())
-        .post('/auth/register')
-        .send({
-          email: 'register@e2e-test.com',
-          password: 'Test1234!',
-          firstName: 'Test',
-          lastName: 'User',
-        });
+      const res = await request(httpServer).post('/auth/register').send({
+        email: 'register@e2e-test.com',
+        password: 'Test1234!',
+        firstName: 'Test',
+        lastName: 'User',
+      });
 
       expect(res.status).toBe(201);
       expect(res.body).toHaveProperty('message');
     });
 
     it('should return 409 when email already exists', async () => {
-      await request(app.getHttpServer()).post('/auth/register').send({
+      await request(httpServer).post('/auth/register').send({
         email: 'duplicate@e2e-test.com',
         password: 'Test1234!',
         firstName: 'Test',
         lastName: 'User',
       });
 
-      const res = await request(app.getHttpServer())
-        .post('/auth/register')
-        .send({
-          email: 'duplicate@e2e-test.com',
-          password: 'Test1234!',
-          firstName: 'Test',
-          lastName: 'User',
-        });
+      const res = await request(httpServer).post('/auth/register').send({
+        email: 'duplicate@e2e-test.com',
+        password: 'Test1234!',
+        firstName: 'Test',
+        lastName: 'User',
+      });
 
       expect(res.status).toBe(409);
     });
 
     it('should return 400 when required fields are missing', async () => {
-      const res = await request(app.getHttpServer())
+      const res = await request(httpServer)
         .post('/auth/register')
         .send({ email: 'incomplete@e2e-test.com' });
 
@@ -90,7 +89,7 @@ describe('Auth (e2e)', () => {
   // ── POST /auth/login ─────────────────────────────────────────────────────
   describe('POST /auth/login', () => {
     beforeEach(async () => {
-      await request(app.getHttpServer()).post('/auth/register').send({
+      await request(httpServer).post('/auth/register').send({
         email: 'login@e2e-test.com',
         password: 'Test1234!',
         firstName: 'Test',
@@ -99,7 +98,7 @@ describe('Auth (e2e)', () => {
     });
 
     it('should login successfully and set JWT cookie', async () => {
-      const res = await request(app.getHttpServer())
+      const res = await request(httpServer)
         .post('/auth/login')
         .send({ email: 'login@e2e-test.com', password: 'Test1234!' });
 
@@ -109,7 +108,7 @@ describe('Auth (e2e)', () => {
     });
 
     it('should return 401 with wrong password', async () => {
-      const res = await request(app.getHttpServer())
+      const res = await request(httpServer)
         .post('/auth/login')
         .send({ email: 'login@e2e-test.com', password: 'WrongPassword!' });
 
@@ -117,7 +116,7 @@ describe('Auth (e2e)', () => {
     });
 
     it('should return 401 with unknown email', async () => {
-      const res = await request(app.getHttpServer())
+      const res = await request(httpServer)
         .post('/auth/login')
         .send({ email: 'unknown@e2e-test.com', password: 'Test1234!' });
 
@@ -128,20 +127,20 @@ describe('Auth (e2e)', () => {
   // ── GET /auth/me ─────────────────────────────────────────────────────────
   describe('GET /auth/me', () => {
     it('should return user info with valid JWT cookie', async () => {
-      await request(app.getHttpServer()).post('/auth/register').send({
+      await request(httpServer).post('/auth/register').send({
         email: 'me@e2e-test.com',
         password: 'Test1234!',
         firstName: 'Test',
         lastName: 'User',
       });
 
-      const loginRes = await request(app.getHttpServer())
+      const loginRes = await request(httpServer)
         .post('/auth/login')
         .send({ email: 'me@e2e-test.com', password: 'Test1234!' });
 
       const cookie = loginRes.headers['set-cookie'] as unknown as string[];
 
-      const res = await request(app.getHttpServer())
+      const res = await request(httpServer)
         .get('/auth/me')
         .set('Cookie', cookie);
 
