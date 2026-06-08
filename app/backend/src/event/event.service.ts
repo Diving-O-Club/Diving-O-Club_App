@@ -45,7 +45,11 @@ export class EventService {
     });
   }
 
-  async create(userId: number, clubId: number, dto: CreateEventDto): Promise<ClubEvent> {
+  async create(
+    userId: number,
+    clubId: number,
+    dto: CreateEventDto,
+  ): Promise<ClubEvent> {
     const membership = await this.assertManager(userId);
 
     const event = this.eventRepo.create({
@@ -67,7 +71,11 @@ export class EventService {
     return saved;
   }
 
-  async update(userId: number, eventId: number, dto: UpdateEventDto): Promise<ClubEvent> {
+  async update(
+    userId: number,
+    eventId: number,
+    dto: UpdateEventDto,
+  ): Promise<ClubEvent> {
     await this.assertManager(userId);
 
     const event = await this.eventRepo.findOne({

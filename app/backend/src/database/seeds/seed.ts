@@ -867,7 +867,9 @@ async function seed() {
     );
     console.log('  ✅  Seed completed successfully!');
     console.log('  🏊  Clubs    : 20');
-    console.log('  👤  Users    : 22 (1 super admin, 5 sans club, 5 membres, 5 moniteurs, 4 admins, 2 comités)');
+    console.log(
+      '  👤  Users    : 22 (1 super admin, 5 sans club, 5 membres, 5 moniteurs, 4 admins, 2 comités)',
+    );
     console.log('  📅  Events   : 20');
     console.log('');
     console.log('  🔑  Password for all accounts : 123');

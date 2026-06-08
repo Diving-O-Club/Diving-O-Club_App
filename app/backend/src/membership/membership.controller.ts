@@ -10,7 +10,10 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { Request } from 'express';
 import { MembershipService } from './membership.service';
+
+type AuthReq = Request & { user: { idUser: number; email: string } };
 
 const ADMIN_ROLES = ['admin', 'super_admin'];
 
@@ -20,19 +23,19 @@ export class MembershipController {
 
   @Get('me')
   @UseGuards(AuthGuard('jwt'))
-  async getMyMembership(@Req() req: any) {
+  async getMyMembership(@Req() req: AuthReq) {
     const membership = await this.membershipService.findMyMembership(
       req.user.idUser,
     );
     if (!membership) return null;
-    const { passwordHash: _, ...safeUser } = membership.user as any;
+    const { passwordHash: _pw, ...safeUser } = membership.user;
     return {
       ...membership,
       user: safeUser,
       club: {
         ...membership.club,
         memberships: membership.club.memberships.map((m) => {
-          const { passwordHash: __, ...safeU } = m.user as any;
+          const { passwordHash: _pw2, ...safeU } = m.user;
           return { ...m, user: safeU };
         }),
       },
@@ -41,7 +44,7 @@ export class MembershipController {
 
   @Get('status/:clubId')
   @UseGuards(AuthGuard('jwt'))
-  async getStatus(@Param('clubId') clubId: string, @Req() req: any) {
+  async getStatus(@Param('clubId') clubId: string, @Req() req: AuthReq) {
     return this.membershipService.getStatusForClub(
       req.user.idUser,
       parseInt(clubId),
@@ -50,7 +53,10 @@ export class MembershipController {
 
   @Post('request/:clubId')
   @UseGuards(AuthGuard('jwt'))
-  async requestMembership(@Param('clubId') clubId: string, @Req() req: any) {
+  async requestMembership(
+    @Param('clubId') clubId: string,
+    @Req() req: AuthReq,
+  ) {
     return this.membershipService.requestMembership(
       req.user.idUser,
       parseInt(clubId),
@@ -59,7 +65,7 @@ export class MembershipController {
 
   @Delete('request/:clubId')
   @UseGuards(AuthGuard('jwt'))
-  async cancelRequest(@Param('clubId') clubId: string, @Req() req: any) {
+  async cancelRequest(@Param('clubId') clubId: string, @Req() req: AuthReq) {
     await this.membershipService.cancelRequest(
       req.user.idUser,
       parseInt(clubId),
@@ -69,7 +75,7 @@ export class MembershipController {
 
   @Get('pending')
   @UseGuards(AuthGuard('jwt'))
-  async getPendingRequests(@Req() req: any) {
+  async getPendingRequests(@Req() req: AuthReq) {
     const adminMembership = await this.membershipService.findMyMembership(
       req.user.idUser,
     );
@@ -88,7 +94,7 @@ export class MembershipController {
   @UseGuards(AuthGuard('jwt'))
   async acceptRequest(
     @Param('membershipId') membershipId: string,
-    @Req() req: any,
+    @Req() req: AuthReq,
   ) {
     const adminMembership = await this.membershipService.findMyMembership(
       req.user.idUser,
@@ -109,7 +115,7 @@ export class MembershipController {
   @UseGuards(AuthGuard('jwt'))
   async rejectRequest(
     @Param('membershipId') membershipId: string,
-    @Req() req: any,
+    @Req() req: AuthReq,
   ) {
     const adminMembership = await this.membershipService.findMyMembership(
       req.user.idUser,
