@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
+import type { Server } from 'http';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { DataSource } from 'typeorm';
@@ -7,6 +8,7 @@ import cookieParser from 'cookie-parser';
 
 describe('Membership (e2e)', () => {
   let app: INestApplication;
+  let httpServer: Server;
   let dataSource: DataSource;
   let memberCookie: string;
   let adminCookie: string;
@@ -20,6 +22,7 @@ describe('Membership (e2e)', () => {
     app.use(cookieParser());
     app.useGlobalPipes(new ValidationPipe());
     await app.init();
+    httpServer = app.getHttpServer() as Server;
 
     dataSource = moduleFixture.get(DataSource);
   });
@@ -36,20 +39,20 @@ describe('Membership (e2e)', () => {
     );
 
     // Create member user
-    await request(app.getHttpServer()).post('/auth/register').send({
+    await request(httpServer).post('/auth/register').send({
       email: 'member@membership-test.com',
       password: 'Test1234!',
       firstName: 'Test',
       lastName: 'Member',
     });
 
-    const memberLogin = await request(app.getHttpServer())
+    const memberLogin = await request(httpServer)
       .post('/auth/login')
       .send({ email: 'member@membership-test.com', password: 'Test1234!' });
     memberCookie = memberLogin.headers['set-cookie'];
 
     // Login as existing admin (admin@test.com from seed)
-    const adminLogin = await request(app.getHttpServer())
+    const adminLogin = await request(httpServer)
       .post('/auth/login')
       .send({ email: 'admin@test.com', password: '123' });
     adminCookie = adminLogin.headers['set-cookie'];
@@ -71,7 +74,7 @@ describe('Membership (e2e)', () => {
   // ── POST /membership/request/:clubId ─────────────────────────────────────
   describe('POST /membership/request/:clubId', () => {
     it('should create a pending membership successfully', async () => {
-      const res = await request(app.getHttpServer())
+      const res = await request(httpServer)
         .post('/membership/request/1')
         .set('Cookie', memberCookie);
 
@@ -81,19 +84,17 @@ describe('Membership (e2e)', () => {
     });
 
     it('should return 401 when not authenticated', async () => {
-      const res = await request(app.getHttpServer()).post(
-        '/membership/request/1',
-      );
+      const res = await request(httpServer).post('/membership/request/1');
 
       expect(res.status).toBe(401);
     });
 
     it('should return 409 when request already exists for this club', async () => {
-      await request(app.getHttpServer())
+      await request(httpServer)
         .post('/membership/request/1')
         .set('Cookie', memberCookie);
 
-      const res = await request(app.getHttpServer())
+      const res = await request(httpServer)
         .post('/membership/request/1')
         .set('Cookie', memberCookie);
 
@@ -101,11 +102,11 @@ describe('Membership (e2e)', () => {
     });
 
     it('should return 409 when user already has a membership elsewhere', async () => {
-      await request(app.getHttpServer())
+      await request(httpServer)
         .post('/membership/request/1')
         .set('Cookie', memberCookie);
 
-      const res = await request(app.getHttpServer())
+      const res = await request(httpServer)
         .post('/membership/request/2')
         .set('Cookie', memberCookie);
 
@@ -116,11 +117,11 @@ describe('Membership (e2e)', () => {
   // ── DELETE /membership/request/:clubId ───────────────────────────────────
   describe('DELETE /membership/request/:clubId', () => {
     it('should cancel a pending request successfully', async () => {
-      await request(app.getHttpServer())
+      await request(httpServer)
         .post('/membership/request/1')
         .set('Cookie', memberCookie);
 
-      const res = await request(app.getHttpServer())
+      const res = await request(httpServer)
         .delete('/membership/request/1')
         .set('Cookie', memberCookie);
 
@@ -130,7 +131,7 @@ describe('Membership (e2e)', () => {
     });
 
     it('should return 404 when no pending request exists', async () => {
-      const res = await request(app.getHttpServer())
+      const res = await request(httpServer)
         .delete('/membership/request/1')
         .set('Cookie', memberCookie);
 
@@ -141,7 +142,7 @@ describe('Membership (e2e)', () => {
   // ── GET /membership/status/:clubId ───────────────────────────────────────
   describe('GET /membership/status/:clubId', () => {
     it('should return null when no membership exists', async () => {
-      const res = await request(app.getHttpServer())
+      const res = await request(httpServer)
         .get('/membership/status/1')
         .set('Cookie', memberCookie);
 
@@ -151,11 +152,11 @@ describe('Membership (e2e)', () => {
     });
 
     it('should return pending after requesting to join', async () => {
-      await request(app.getHttpServer())
+      await request(httpServer)
         .post('/membership/request/1')
         .set('Cookie', memberCookie);
 
-      const res = await request(app.getHttpServer())
+      const res = await request(httpServer)
         .get('/membership/status/1')
         .set('Cookie', memberCookie);
 
@@ -165,9 +166,7 @@ describe('Membership (e2e)', () => {
     });
 
     it('should return 401 when not authenticated', async () => {
-      const res = await request(app.getHttpServer()).get(
-        '/membership/status/1',
-      );
+      const res = await request(httpServer).get('/membership/status/1');
 
       expect(res.status).toBe(401);
     });
@@ -176,11 +175,11 @@ describe('Membership (e2e)', () => {
   // ── GET /membership/pending ──────────────────────────────────────────────
   describe('GET /membership/pending', () => {
     it('should return pending requests for admin', async () => {
-      await request(app.getHttpServer())
+      await request(httpServer)
         .post('/membership/request/1')
         .set('Cookie', memberCookie);
 
-      const res = await request(app.getHttpServer())
+      const res = await request(httpServer)
         .get('/membership/pending')
         .set('Cookie', adminCookie);
 
@@ -189,7 +188,7 @@ describe('Membership (e2e)', () => {
     });
 
     it('should return 403 when user is not an admin', async () => {
-      const res = await request(app.getHttpServer())
+      const res = await request(httpServer)
         .get('/membership/pending')
         .set('Cookie', memberCookie);
 
@@ -197,7 +196,7 @@ describe('Membership (e2e)', () => {
     });
 
     it('should return 401 when not authenticated', async () => {
-      const res = await request(app.getHttpServer()).get('/membership/pending');
+      const res = await request(httpServer).get('/membership/pending');
 
       expect(res.status).toBe(401);
     });
