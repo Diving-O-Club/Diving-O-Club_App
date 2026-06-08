@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { registerUser } from '@/app/lib/api/auth';
 
 type RegisterForm = {
   firstName: string;
@@ -6,7 +7,6 @@ type RegisterForm = {
   email: string;
   password: string;
 };
-
 type FormErrors = Partial<Record<keyof RegisterForm, string>>;
 
 export function useRegister() {
@@ -30,7 +30,8 @@ export function useRegister() {
       newErrors.email = "L'email n'est pas valide";
     if (!form.password) newErrors.password = 'Le mot de passe est requis';
     else if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/.test(form.password))
-      newErrors.password = 'Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial';
+      newErrors.password =
+        'Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -46,14 +47,9 @@ export function useRegister() {
     if (!validate()) return;
     setLoading(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
-      });
-      const data = await res.json();
+      const res = await registerUser(form);
       if (!res.ok) {
-        setApiError(data.message || 'Une erreur est survenue');
+        setApiError(res.message || 'Une erreur est survenue');
         return;
       }
       setSuccess(true);

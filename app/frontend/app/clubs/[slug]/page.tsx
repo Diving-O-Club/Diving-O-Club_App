@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { MapPin, Users, Calendar, ArrowLeft, ArrowRight, Mail, Shield } from 'lucide-react';
-import { getClub } from '../../lib/api';
+import { getClub } from '@/app/lib/api/clubs';
 import JoinClubButton from './_components/JoinClubButton';
 
 export default async function ClubPage({ params }: { params: Promise<{ slug: string }> }) {

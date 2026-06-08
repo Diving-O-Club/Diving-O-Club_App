@@ -1,4 +1,5 @@
 // backend/src/membership/membership.service.spec.ts
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';

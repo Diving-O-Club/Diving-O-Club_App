@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../context/AuthContext'
-import { getMe, updateMe, exportMyData } from '@/app/lib/user'
+import { getMe, updateMe, exportMyData } from '@/app/lib/api/user'
 import { User } from '@/app/types/user'
 import { UpdateUserDto } from '@/app/types/user'
 import { PersonalInfoSection } from '@/app/components/profile/PersonalInfoSection'

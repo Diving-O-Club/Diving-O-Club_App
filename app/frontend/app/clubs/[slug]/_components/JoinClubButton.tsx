@@ -3,20 +3,21 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../../context/AuthContext';
+import {
+  getMembershipStatus,
+  requestMembership,
+  cancelMembership,
+  type MembershipStatus,
+} from '@/app/lib/api/membership';
 import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
 type Props = { clubId: number };
-type StatusData = {
-  status: 'active' | 'pending' | 'pending_other' | 'active_other' | null;
-  clubName?: string;
-  clubSlug?: string;
-};
 
 export default function JoinClubButton({ clubId }: Props) {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
-  const [statusData, setStatusData] = useState<StatusData>({ status: null });
+  const [statusData, setStatusData] = useState<MembershipStatus>({ status: null });
   const [loadingStatus, setLoadingStatus] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
@@ -24,11 +25,8 @@ export default function JoinClubButton({ clubId }: Props) {
     if (authLoading) return;
     if (!user) { setLoadingStatus(false); return; }
 
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/membership/status/${clubId}`, {
-      credentials: 'include',
-    })
-      .then(res => res.json())
-      .then(data => setStatusData(data))
+    getMembershipStatus(clubId)
+      .then(data => setStatusData(data ?? { status: null }))
       .catch(() => setStatusData({ status: null }))
       .finally(() => setLoadingStatus(false));
   }, [user, authLoading, clubId]);
@@ -37,11 +35,8 @@ export default function JoinClubButton({ clubId }: Props) {
     if (!user) { router.push('/login'); return; }
     setSubmitting(true);
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/membership/request/${clubId}`,
-        { method: 'POST', credentials: 'include' },
-      );
-      if (res.ok) setStatusData({ status: 'pending' });
+      const ok = await requestMembership(clubId);
+      if (ok) setStatusData({ status: 'pending' });
     } finally {
       setSubmitting(false);
     }
@@ -50,11 +45,8 @@ export default function JoinClubButton({ clubId }: Props) {
   const handleCancel = async () => {
     setSubmitting(true);
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/membership/request/${clubId}`,
-        { method: 'DELETE', credentials: 'include' },
-      );
-      if (res.ok) setStatusData({ status: null });
+      const ok = await cancelMembership(clubId);
+      if (ok) setStatusData({ status: null });
     } finally {
       setSubmitting(false);
     }
@@ -72,19 +64,16 @@ export default function JoinClubButton({ clubId }: Props) {
     );
   }
 
-    if (statusData.status === 'active_other') {
+  if (statusData.status === 'active_other') {
     return (
-        <div className="flex flex-col items-center gap-2 py-4 px-8 bg-gray-50 text-gray-500 rounded-xl border border-gray-200">
+      <div className="flex flex-col items-center gap-2 py-4 px-8 bg-gray-50 text-gray-500 rounded-xl border border-gray-200">
         <p className="font-semibold text-sm">Vous êtes déjà membre de</p>
-        <Link
-            href={`/clubs/${statusData.clubSlug}`}
-            className="font-bold text-[#0d3b66] hover:underline"
-        >
-            {statusData.clubName}
+        <Link href={`/clubs/${statusData.clubSlug}`} className="font-bold text-[#0d3b66] hover:underline">
+          {statusData.clubName}
         </Link>
-        </div>
+      </div>
     );
-    }
+  }
 
   if (statusData.status === 'pending') {
     return (
@@ -107,11 +96,8 @@ export default function JoinClubButton({ clubId }: Props) {
     return (
       <div className="flex flex-col items-center gap-2 py-4 px-8 bg-gray-50 text-gray-500 rounded-xl border border-gray-200">
         <p className="font-semibold text-sm">Demande en cours pour rejoindre</p>
-        <Link
-            href={`/clubs/${statusData.clubSlug}`}
-            className="font-bold text-[#0d3b66] hover:underline"
-        >
-            {statusData.clubName}
+        <Link href={`/clubs/${statusData.clubSlug}`} className="font-bold text-[#0d3b66] hover:underline">
+          {statusData.clubName}
         </Link>
         <p className="text-xs text-gray-400">En attente de validation par le responsable du club.</p>
       </div>

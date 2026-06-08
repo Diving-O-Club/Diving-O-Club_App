@@ -1,92 +1,29 @@
 'use client';
 
+import { useState } from 'react';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
-import { useMembership, type DashboardEvent } from '../../hooks/useMembership';
-import { Calendar } from 'lucide-react';
+import { useMembership } from '../../hooks/useMembership';
+import { type DashboardEvent } from '@/app/lib/api/events';
+import { useEvents } from '../../hooks/useEvents';
+import { Calendar, Plus } from 'lucide-react';
 import Link from 'next/link';
+import EventCard from '../../components/events/EventCard';
+import EventDeleteModal from '../../components/events/EventDeleteModal';
 
-const EVENT_TYPE_LABELS: Record<string, string> = {
-  dive_trip:    '🤿 Sortie plongée',
-  training:     '📚 Formation',
-  initiation:   '🎓 Baptême',
-  pool_session: '🏊 Séance piscine',
-  social:       '🎉 Événement social',
-};
-
-const EVENT_TYPE_COLORS: Record<string, string> = {
-  dive_trip:    'bg-blue-100 text-blue-700',
-  training:     'bg-purple-100 text-purple-700',
-  initiation:   'bg-green-100 text-green-700',
-  pool_session: 'bg-cyan-100 text-cyan-700',
-  social:       'bg-orange-100 text-orange-700',
-};
-
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString('fr-FR', {
-    weekday: 'short', day: 'numeric', month: 'long',
-  });
-}
-
-function formatTime(iso: string) {
-  return new Date(iso).toLocaleTimeString('fr-FR', {
-    hour: '2-digit', minute: '2-digit',
-  });
-}
-
-function EventCard({ event }: { event: DashboardEvent }) {
-  const isPast = new Date(event.startDatetime) < new Date();
-
-  return (
-    <div className={`bg-white rounded-2xl shadow-sm p-5 flex items-center justify-between gap-4 ${isPast ? 'opacity-60' : ''}`}>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-1.5">
-          <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${EVENT_TYPE_COLORS[event.eventType] ?? 'bg-gray-100 text-gray-500'}`}>
-            {EVENT_TYPE_LABELS[event.eventType] ?? event.eventType}
-          </span>
-          {isPast && (
-            <span className="text-xs text-gray-400 bg-gray-100 px-2.5 py-0.5 rounded-full">
-              Passé
-            </span>
-          )}
-        </div>
-        <p className="font-semibold text-[#0d3b66] truncate">{event.title}</p>
-        <p className="text-sm text-gray-400 mt-0.5">
-          {formatDate(event.startDatetime)} · {formatTime(event.startDatetime)} — {formatTime(event.endDatetime)}
-        </p>
-        <p className="text-sm text-gray-400 truncate">📍 {event.location}</p>
-      </div>
-      <div className="text-right shrink-0">
-        <p className="font-semibold text-[#0d3b66]">
-          {event.isPaid && event.price
-            ? `${parseFloat(event.price).toFixed(0)} €`
-            : 'Gratuit'}
-        </p>
-        <button
-          disabled={isPast}
-          className={`mt-2 text-sm px-4 py-2 rounded-xl font-medium transition-colors ${
-            isPast
-              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-              : 'bg-[#0d3b66] text-white hover:bg-[#1b6ca8]'
-          }`}
-        >
-          Voir détails
-        </button>
-      </div>
-    </div>
-  );
-}
+const MANAGER_ROLES = ['admin', 'super_admin', 'instructor', 'committee'];
 
 export default function EventsPage() {
   const { user, loading: authLoading } = useAuth();
-  const { membership, loading: membershipLoading } = useMembership();
+  const { membership, loading: membershipLoading, refetch } = useMembership();
+  const { deleteEvent, loading: deleteLoading } = useEvents();
   const router = useRouter();
 
+  const [eventToDelete, setEventToDelete] = useState<DashboardEvent | null>(null);
+
   useEffect(() => {
-    if (!authLoading && !user) {
-      router.push('/login');
-    }
+    if (!authLoading && !user) router.push('/login');
   }, [user, authLoading, router]);
 
   if (authLoading || membershipLoading) {
@@ -99,7 +36,6 @@ export default function EventsPage() {
 
   if (!user) return null;
 
-  // Empty state — no club
   if (!membership) {
     return (
       <div className="max-w-7xl mx-auto px-6 py-12">
@@ -126,20 +62,47 @@ export default function EventsPage() {
     );
   }
 
+  const isManager = MANAGER_ROLES.includes(membership.role.codeRole);
   const now = new Date();
+
   const upcoming = membership.club.events
     .filter(e => new Date(e.startDatetime) >= now)
     .sort((a, b) => +new Date(a.startDatetime) - +new Date(b.startDatetime));
+
   const past = membership.club.events
     .filter(e => new Date(e.startDatetime) < now)
     .sort((a, b) => +new Date(b.startDatetime) - +new Date(a.startDatetime));
 
+  const handleEdit = (event: DashboardEvent) => {
+    router.push(`/dashboard/events/${event.idEvent}/edit`);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!eventToDelete) return;
+    const success = await deleteEvent(eventToDelete.idEvent);
+    if (success) {
+      setEventToDelete(null);
+      refetch();
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-6 py-12">
 
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-[#0d3b66]">Événements</h1>
-        <p className="text-gray-400 text-sm mt-1">{membership.club.name}</p>
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-2xl font-bold text-[#0d3b66]">Événements</h1>
+          <p className="text-gray-400 text-sm mt-1">{membership.club.name}</p>
+        </div>
+        {isManager && (
+          <Link
+            href="/dashboard/events/create"
+            className="inline-flex items-center gap-2 bg-[#0d3b66] text-white text-sm font-medium px-4 py-2.5 rounded-xl hover:bg-[#1b6ca8] transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Créer un événement
+          </Link>
+        )}
       </div>
 
       {/* Upcoming events */}
@@ -153,7 +116,15 @@ export default function EventsPage() {
           </div>
         ) : (
           <div className="space-y-3">
-            {upcoming.map(e => <EventCard key={e.idEvent} event={e} />)}
+            {upcoming.map(e => (
+              <EventCard
+                key={e.idEvent}
+                event={e}
+                isManager={isManager}
+                onEdit={handleEdit}
+                onDelete={setEventToDelete}
+              />
+            ))}
           </div>
         )}
       </section>
@@ -165,10 +136,25 @@ export default function EventsPage() {
             Passés <span className="font-normal">({past.length})</span>
           </h2>
           <div className="space-y-3">
-            {past.map(e => <EventCard key={e.idEvent} event={e} />)}
+            {past.map(e => (
+              <EventCard
+                key={e.idEvent}
+                event={e}
+                isManager={isManager}
+                onEdit={handleEdit}
+                onDelete={setEventToDelete}
+              />
+            ))}
           </div>
         </section>
       )}
+
+      <EventDeleteModal
+        event={eventToDelete}
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setEventToDelete(null)}
+        loading={deleteLoading}
+      />
 
     </div>
   );
