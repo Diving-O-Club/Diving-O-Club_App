@@ -1,5 +1,8 @@
+'use client'
+
 import { useState } from 'react';
 import { type CreateEventPayload } from '@/app/lib/api/events';
+import { CustomSelect } from '@/app/components/ui/form-fields';
 
 const EVENT_TYPES = [
   { value: 'dive_trip',    label: 'Sortie plongée' },
@@ -114,21 +117,13 @@ export default function EventForm({
       </div>
 
       {/* Type */}
-      <div>
-        <label className="block text-sm font-medium text-[#0d3b66] mb-1">
-          Type d'événement *
-        </label>
-        <select
-          name="eventType"
-          value={form.eventType}
-          onChange={handleChange}
-          className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0d3b66]"
-        >
-          {EVENT_TYPES.map(t => (
-            <option key={t.value} value={t.value}>{t.label}</option>
-          ))}
-        </select>
-      </div>
+      <CustomSelect
+        label="Type d'événement *"
+        value={form.eventType}
+        onValueChange={(v) => setForm(prev => ({ ...prev, eventType: v }))}
+        options={EVENT_TYPES}
+        placeholder="— Choisir un type —"
+      />
 
       {/* Description */}
       <div>

@@ -28,6 +28,13 @@ function userToForm(user: User): UpdateUserDto {
   }
 }
 
+function parseBirthDate(dateStr: string | null): { day: string; month: string; year: string } {
+  if (!dateStr) return { day: '', month: '', year: '' }
+  const match = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/)
+  if (!match) return { day: '', month: '', year: '' }
+  return { year: match[1], month: match[2], day: match[3] }
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ProfilePage() {
@@ -37,6 +44,7 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<User | null>(null)
   const [form, setForm] = useState<UpdateUserDto | null>(null)
   const [saved, setSaved] = useState<UpdateUserDto | null>(null)
+  const [birthParts, setBirthParts] = useState<{ day: string; month: string; year: string }>({ day: '', month: '', year: '' })
   const [errors, setErrors] = useState<Partial<Record<keyof UpdateUserDto, string>>>({})
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
@@ -58,12 +66,31 @@ export default function ProfilePage() {
       const formData = userToForm(data)
       setForm(formData)
       setSaved(formData)
+      setBirthParts(parseBirthDate(data.birthDate))
     })
   }, [authUser])
 
   function showToast(type: 'success' | 'error', message: string) {
     setToast({ type, message })
     setTimeout(() => setToast(null), 4000)
+  }
+
+  function handleFieldChange(name: string, value: string) {
+    setForm((prev) => prev ? { ...prev, [name]: value || null } : prev)
+    setErrors((prev) => ({ ...prev, [name]: undefined }))
+  }
+
+  function handleBirthPartChange(part: 'day' | 'month' | 'year', value: string) {
+    const newParts = { ...birthParts, [part]: value }
+    setBirthParts(newParts)
+    // Ne pas mettre à jour le form tant que l'année est incomplète
+    if (newParts.year.length > 0 && newParts.year.length < 4) return
+    if (newParts.day && newParts.month && newParts.year.length === 4) {
+      setForm((prev) => prev ? { ...prev, birthDate: `${newParts.year}-${newParts.month}-${newParts.day}` } : prev)
+    } else {
+      setForm((prev) => prev ? { ...prev, birthDate: null } : prev)
+    }
+    setErrors((prev) => ({ ...prev, birthDate: undefined }))
   }
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
@@ -76,17 +103,46 @@ export default function ProfilePage() {
     if (!form) return false
     const newErrors: Partial<Record<keyof UpdateUserDto, string>> = {}
 
-    if (!form.firstName?.trim()) newErrors.firstName = 'Le prénom est requis'
-    if (!form.lastName?.trim()) newErrors.lastName = 'Le nom est requis'
+    const nameRegex = /^[\p{L}\s'\-]+$/u
+
+    if (!form.firstName?.trim()) {
+      newErrors.firstName = 'Le prénom est requis'
+    } else if (!nameRegex.test(form.firstName)) {
+      newErrors.firstName = 'Le prénom ne doit contenir que des lettres, espaces, tirets ou apostrophes'
+    } else if (form.firstName.length > 100) {
+      newErrors.firstName = 'Le prénom ne peut pas dépasser 100 caractères'
+    }
+
+    if (!form.lastName?.trim()) {
+      newErrors.lastName = 'Le nom est requis'
+    } else if (!nameRegex.test(form.lastName)) {
+      newErrors.lastName = 'Le nom ne doit contenir que des lettres, espaces, tirets ou apostrophes'
+    } else if (form.lastName.length > 100) {
+      newErrors.lastName = 'Le nom ne peut pas dépasser 100 caractères'
+    }
 
     if (!form.email?.trim()) {
       newErrors.email = "L'email est requis"
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-      newErrors.email = "Format d'email invalide"
+    } else if (!/^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/.test(form.email)) {
+      newErrors.email = "Format invalide (ex : exemple@email.com)"
+    } else if (form.email.length > 255) {
+      newErrors.email = "L'email ne peut pas dépasser 255 caractères"
     }
 
     if (form.phone && !/^(\+33|0)[1-9](\d{2}){4}$/.test(form.phone.replace(/\s/g, ''))) {
-      newErrors.phone = 'Format de téléphone invalide'
+      newErrors.phone = 'Format invalide (ex : 06 12 34 56 78 ou +33612345678)'
+    }
+
+    if (form.street && form.street.length > 255) {
+      newErrors.street = 'L\'adresse ne peut pas dépasser 255 caractères'
+    }
+
+    if (form.postalCode && !/^\d{5}$/.test(form.postalCode)) {
+      newErrors.postalCode = 'Format invalide (ex : 13008)'
+    }
+
+    if (form.city && form.city.length > 100) {
+      newErrors.city = 'La ville ne peut pas dépasser 100 caractères'
     }
 
     if (form.ffessmLicenseNumber && !/^[A-Z]-\d{2}-\d{6}$/i.test(form.ffessmLicenseNumber)) {
@@ -98,7 +154,11 @@ export default function ProfilePage() {
   }
 
   async function handleSave() {
-    if (!form || !validate()) return
+    if (!form) return
+    if (!validate()) {
+      showToast('error', 'Veuillez corriger les erreurs indiquées en rouge avant d\'enregistrer.')
+      return
+    }
     setIsSaving(true)
     try {
       const updated = await updateMe(form)
@@ -107,6 +167,7 @@ export default function ProfilePage() {
       setProfile(updated)
       setSaved(newForm)
       setForm(newForm)
+      setBirthParts(parseBirthDate(updated.birthDate))
       setIsEditing(false)
       showToast('success', 'Profil mis à jour avec succès')
     } catch {
@@ -117,7 +178,10 @@ export default function ProfilePage() {
   }
 
   function handleCancel() {
-    if (saved) setForm(saved)
+    if (saved) {
+      setForm(saved)
+      setBirthParts(parseBirthDate(saved.birthDate))
+    }
     setErrors({})
     setIsEditing(false)
   }
@@ -220,14 +284,17 @@ export default function ProfilePage() {
           form={form}
           saved={saved}
           errors={errors}
+          birthParts={birthParts}
           onChange={handleChange}
+          onBirthPartChange={handleBirthPartChange}
         />
 
         <SportsInfoSection
           isEditing={isEditing}
           form={form}
           saved={saved}
-          onChange={handleChange}
+          errors={errors}
+          onFieldChange={handleFieldChange}
         />
 
         <RgpdSection

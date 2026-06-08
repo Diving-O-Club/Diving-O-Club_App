@@ -35,8 +35,7 @@ export class UpdateUserDto {
   street: string | null;
 
   @IsOptional()
-  @IsString()
-  @Length(5, 10)
+  @Matches(/^\d{5}$/, { message: 'Format invalide (ex : 13008)' })
   postalCode: string | null;
 
   @IsOptional()
