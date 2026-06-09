@@ -49,6 +49,17 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
+  const [navHeight, setNavHeight] = useState(68)
+
+  useEffect(() => {
+    const nav = document.querySelector('nav')
+    if (!nav) return
+    const update = () => setNavHeight(nav.getBoundingClientRect().height)
+    update()
+    const observer = new ResizeObserver(update)
+    observer.observe(nav)
+    return () => observer.disconnect()
+  }, [])
 
   // Redirection when not authenticated
   useEffect(() => {
@@ -223,7 +234,7 @@ export default function ProfilePage() {
 
       {/* Toast */}
       {toast && (
-        <div className={`fixed top-6 right-6 z-50 flex items-center gap-3 rounded-xl px-5 py-3.5 shadow-lg text-sm font-medium
+        <div className={`fixed top-6 left-4 right-4 sm:left-auto sm:right-6 sm:max-w-sm z-50 flex items-center gap-3 rounded-xl px-5 py-3.5 shadow-lg text-sm font-medium
           ${toast.type === 'success' ? 'bg-[#2EC4B6] text-white' : 'bg-[#B71C1C] text-white'}`}
         >
           <span>{toast.type === 'success' ? '✓' : '✕'}</span>
@@ -234,7 +245,14 @@ export default function ProfilePage() {
       <div className="max-w-2xl mx-auto px-4 py-10">
 
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div
+          className={`flex items-center justify-between mb-8 transition-all ${
+            isEditing
+              ? 'sticky z-40 -mx-4 px-4 py-3 bg-white/95 backdrop-blur-sm shadow-sm border-b border-gray-100 rounded-b-xl'
+              : ''
+          }`}
+          style={isEditing ? { top: navHeight } : undefined}
+        >
           <h1 className="text-2xl font-semibold text-[#0D3B66]">Mon Profil</h1>
 
           {!isEditing ? (
