@@ -56,7 +56,7 @@ export default function EditEventPage() {
 
   const handleSubmit = async (payload: CreateEventPayload) => {
     const updated = await updateEvent(eventId, payload);
-    if (updated) router.push('/dashboard/events');
+    if (updated) router.push(`/dashboard/events/${eventId}?updated=1`);
   };
 
   const initialValues: Partial<CreateEventPayload> = {
