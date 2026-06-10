@@ -1,4 +1,5 @@
 import { Pencil, Trash2, MapPin, Users, Clock } from 'lucide-react';
+import Link from 'next/link';
 import { type DashboardEvent } from '@/app/lib/api/events';
 import EventTypeBadge from './EventTypeBadge';
 
@@ -26,7 +27,7 @@ export default function EventCard({ event, isManager, onEdit, onDelete }: Props)
 
   return (
     <div className={`bg-white rounded-2xl shadow-sm p-5 flex items-center justify-between gap-4 ${isPast ? 'opacity-60' : ''}`}>
-      <div className="flex-1 min-w-0">
+      <Link href={`/dashboard/events/${event.idEvent}`} className="flex-1 min-w-0 hover:opacity-80 transition-opacity">
         <div className="flex items-center gap-2 mb-1.5">
           <EventTypeBadge eventType={event.eventType} />
           {isPast && (
@@ -56,7 +57,7 @@ export default function EventCard({ event, isManager, onEdit, onDelete }: Props)
             </span>
           )}
         </div>
-      </div>
+      </Link>
 
       <div className="flex items-center gap-3 shrink-0">
         <div className="text-right">

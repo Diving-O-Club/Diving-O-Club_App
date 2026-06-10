@@ -3,15 +3,17 @@ import { clientFetch } from '../clientFetch';
 export type DashboardEvent = {
   idEvent: number;
   title: string;
+  description?: string;
   eventType: string;
   startDatetime: string;
   endDatetime: string;
-  location: string;
-  minimumLevel: string;
-  maxCapacity: number;
+  location: string | null;
+  minimumLevel: string | null;
+  maxCapacity: number | null;
   isPaid: boolean;
   price: string | null;
   status: string;
+  creator: { firstName: string; lastName: string } | null;
 };
 
 export type CreateEventPayload = {
@@ -28,6 +30,18 @@ export type CreateEventPayload = {
 };
 
 export type UpdateEventPayload = Partial<CreateEventPayload>;
+
+export async function getEvent(eventId: number): Promise<DashboardEvent | null> {
+  try {
+    const res = await clientFetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/events/${eventId}`,
+      { cache: 'no-store', credentials: 'include' },
+    );
+    return res.ok ? res.json() : null;
+  } catch {
+    return null;
+  }
+}
 
 export async function createEvent(
   clubId: number,

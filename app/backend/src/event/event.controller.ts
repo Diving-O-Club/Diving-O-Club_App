@@ -27,6 +27,11 @@ export class EventController {
     return this.eventService.findAllByClub(parseInt(clubId));
   }
 
+  @Get('events/:id')
+  async findOne(@Param('id') id: string) {
+    return this.eventService.findById(parseInt(id));
+  }
+
   @Post('clubs/:clubId/events')
   async create(
     @Param('clubId') clubId: string,

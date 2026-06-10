@@ -16,7 +16,7 @@ export default function EventTypeBadge({ eventType }: Props) {
   const config = EVENT_TYPE_CONFIG[eventType];
 
   return (
-    <span className={`inline-flex items-center gap-1 text-xs font-medium px-2.5 py-0.5 rounded-full ${config?.color ?? 'bg-gray-100 text-gray-500'}`}>
+    <span className={`inline-flex self-start items-center gap-1 text-xs font-medium px-2.5 py-0.5 rounded-full ${config?.color ?? 'bg-gray-100 text-gray-500'}`}>
       {config?.icon}
       {config?.label ?? eventType}
     </span>

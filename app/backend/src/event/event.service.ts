@@ -38,11 +38,32 @@ export class EventService {
     return membership;
   }
 
-  async findAllByClub(clubId: number): Promise<ClubEvent[]> {
-    return this.eventRepo.find({
+  async findAllByClub(clubId: number): Promise<object[]> {
+    const events = await this.eventRepo.find({
       where: { club: { idClub: clubId } },
+      relations: ['creator'],
       order: { startDatetime: 'ASC' },
     });
+    return events.map((e) => ({
+      ...e,
+      creator: e.creator
+        ? { firstName: e.creator.firstName, lastName: e.creator.lastName }
+        : null,
+    }));
+  }
+
+  async findById(eventId: number): Promise<object> {
+    const event = await this.eventRepo.findOne({
+      where: { idEvent: eventId },
+      relations: ['creator', 'club'],
+    });
+    if (!event) throw new NotFoundException('Événement introuvable');
+    return {
+      ...event,
+      creator: event.creator
+        ? { firstName: event.creator.firstName, lastName: event.creator.lastName }
+        : null,
+    };
   }
 
   async create(
