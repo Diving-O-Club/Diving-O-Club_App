@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../context/AuthContext'
 import { getMe, updateMe, exportMyData } from '@/app/lib/api/user'
+import { ChangePasswordModal } from '@/app/components/profile/ChangePasswordModal'
 import { User } from '@/app/types/user'
 import { UpdateUserDto } from '@/app/types/user'
 import { PersonalInfoSection } from '@/app/components/profile/PersonalInfoSection'
@@ -49,6 +50,7 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
+  const [showPasswordModal, setShowPasswordModal] = useState(false)
   const [navHeight, setNavHeight] = useState(68)
 
   useEffect(() => {
@@ -315,12 +317,41 @@ export default function ProfilePage() {
           onFieldChange={handleFieldChange}
         />
 
+        {/* Sécurité */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-4">
+          <h2 className="text-sm font-semibold text-[#0D3B66] uppercase tracking-wider mb-4 pb-2 border-b border-gray-100">
+            Sécurité
+          </h2>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-800 font-medium">Mot de passe</p>
+              <p className="text-xs text-gray-400">Modifiez votre mot de passe de connexion</p>
+            </div>
+            <button
+              onClick={() => setShowPasswordModal(true)}
+              className="rounded-lg border border-[#3DA9FC] bg-white px-4 py-2 text-sm font-medium text-[#0D3B66] hover:bg-[#e8f4ff] transition"
+            >
+              Changer
+            </button>
+          </div>
+        </div>
+
         <RgpdSection
           onDownload={handleDownload}
           onDeleteRequest={handleDeleteRequest}
         />
 
       </div>
+
+      {showPasswordModal && (
+        <ChangePasswordModal
+          onClose={() => setShowPasswordModal(false)}
+          onSuccess={() => {
+            setShowPasswordModal(false)
+            showToast('success', 'Profil mis à jour avec succès')
+          }}
+        />
+      )}
     </div>
   )
 }
