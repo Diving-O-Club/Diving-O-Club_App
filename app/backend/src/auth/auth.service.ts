@@ -91,9 +91,11 @@ export class AuthService {
     return { message: 'Connexion réussie' };
   }
 
-  async me(userId: number): Promise<AppUser> {
+  async me(userId: number): Promise<Omit<AppUser, 'passwordHash'>> {
     const user = await this.userRepo.findOneBy({ idUser: userId });
-    return user!;
+    // Never expose the password hash to the client.
+    const { passwordHash: _passwordHash, ...safeUser } = user!;
+    return safeUser;
   }
 
   async logout(res: Response): Promise<{ message: string }> {

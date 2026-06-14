@@ -8,7 +8,9 @@ import { AppUser } from '../app-user/app-user.entity';
 import { Membership } from '../membership/membership.entity';
 import { ClubEvent } from '../event/event.entity';
 
-dotenv.config();
+// Allow CLI commands (migrations, seed) to target a specific env file,
+// e.g. DOTENV_CONFIG_PATH=.env.test for the test database.
+dotenv.config({ path: process.env.DOTENV_CONFIG_PATH || '.env' });
 
 export const AppDataSource = new DataSource({
   type: 'postgres',

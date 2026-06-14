@@ -10,6 +10,16 @@ import { Membership } from '../../membership/membership.entity';
 import { ClubEvent } from '../../event/event.entity';
 
 async function seed() {
+  // No password is hardcoded: the seed refuses to run unless SEED_PASSWORD is
+  // explicitly provided. This prevents accidentally creating weak, well-known
+  // accounts (e.g. on the deployed demo).
+  const seedPassword = process.env.SEED_PASSWORD;
+  if (!seedPassword) {
+    throw new Error(
+      'SEED_PASSWORD is not set. Define a strong value in your .env before seeding.',
+    );
+  }
+
   await AppDataSource.initialize();
   console.log('✅ Database connection established');
 
@@ -218,7 +228,7 @@ async function seed() {
 
     // ── 3. USERS ──────────────────────────────────────────────────────────────
     console.log('\n👤 Creating users...');
-    const pw = await argon2.hash('123');
+    const pw = await argon2.hash(seedPassword);
 
     // Users no club
     await userRepo.save([
@@ -872,7 +882,7 @@ async function seed() {
     );
     console.log('  📅  Events   : 20');
     console.log('');
-    console.log('  🔑  Password for all accounts : 123');
+    console.log('  🔑  Password for all accounts : value of SEED_PASSWORD');
     console.log('');
     console.log('  Accounts:');
     console.log('  super_admin → superadmin@test.com');

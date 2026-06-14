@@ -17,12 +17,15 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json --runInBand --forceExit",
+    "test:e2e": "DOTENV_CONFIG_PATH=.env.test jest --config ./test/jest-e2e.json --runInBand --forceExit",
     "migration:run": "typeorm-ts-node-commonjs migration:run -d src/database/data-source.ts",
     "migration:revert": "typeorm-ts-node-commonjs migration:revert -d src/database/data-source.ts",
     "migration:generate": "typeorm-ts-node-commonjs migration:generate -d src/database/data-source.ts",
     "seed": "npx ts-node -r tsconfig-paths/register src/database/seeds/seed.ts",
-    "db:reset": "PGPASSWORD='0xWVHJlb7o+vd3i1skfsQzd9yoVA3oJjrHZ/0XG/PbE=' psql -h localhost -p 15433 -U diving_admin -d diving_o_club_staging -c 'TRUNCATE role, club, app_user, membership, event RESTART IDENTITY CASCADE;' && npm run seed"
+    "migration:run:test": "DOTENV_CONFIG_PATH=.env.test npm run migration:run",
+    "seed:test": "DOTENV_CONFIG_PATH=.env.test npm run seed",
+    "db:test:setup": "npm run migration:run:test && npm run seed:test",
+    "db:reset": "set -a && . ./.env && set +a && PGPASSWORD=\"$STAGING_DB_PASSWORD\" psql -h localhost -p 15433 -U diving_admin -d diving_o_club_staging -c 'TRUNCATE role, club, app_user, membership, event RESTART IDENTITY CASCADE;' && npm run seed"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
