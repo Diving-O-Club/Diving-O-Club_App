@@ -10,6 +10,16 @@ import { Membership } from '../../membership/membership.entity';
 import { ClubEvent } from '../../event/event.entity';
 
 async function seed() {
+  // No password is hardcoded: the seed refuses to run unless SEED_PASSWORD is
+  // explicitly provided. This prevents accidentally creating weak, well-known
+  // accounts (e.g. on the deployed demo).
+  const seedPassword = process.env.SEED_PASSWORD;
+  if (!seedPassword) {
+    throw new Error(
+      'SEED_PASSWORD is not set. Define a strong value in your .env before seeding.',
+    );
+  }
+
   await AppDataSource.initialize();
   console.log('✅ Database connection established');
 
@@ -218,7 +228,7 @@ async function seed() {
 
     // ── 3. USERS ──────────────────────────────────────────────────────────────
     console.log('\n👤 Creating users...');
-    const pw = await argon2.hash('123');
+    const pw = await argon2.hash(seedPassword);
 
     // Users no club
     await userRepo.save([
@@ -267,7 +277,7 @@ async function seed() {
         firstName: 'Marc',
         lastName: 'Dupont',
         birthDate: new Date('1972-11-08'),
-        ffessmLicenseNumber: '21-001-0001',
+        ffessmLicenseNumber: 'A-21-000001',
         technicalLevel: 'N2',
         phone: '06 00 00 01 01',
         club: clubs[0],
@@ -277,7 +287,7 @@ async function seed() {
         firstName: 'Julie',
         lastName: 'Martin',
         birthDate: new Date('1990-04-12'),
-        ffessmLicenseNumber: '13-002-0001',
+        ffessmLicenseNumber: 'A-13-000001',
         technicalLevel: 'N1',
         phone: '06 00 00 01 02',
         club: clubs[1],
@@ -287,7 +297,7 @@ async function seed() {
         firstName: 'Antoine',
         lastName: 'Garcia',
         birthDate: new Date('1985-08-25'),
-        ffessmLicenseNumber: '69-003-0001',
+        ffessmLicenseNumber: 'A-69-000001',
         technicalLevel: 'N3',
         phone: '06 00 00 01 03',
         club: clubs[2],
@@ -297,7 +307,7 @@ async function seed() {
         firstName: 'Sarah',
         lastName: 'Roux',
         birthDate: new Date('1993-02-14'),
-        ffessmLicenseNumber: '75-004-0001',
+        ffessmLicenseNumber: 'A-75-000001',
         technicalLevel: 'N1',
         phone: '06 00 00 01 04',
         club: clubs[3],
@@ -307,7 +317,7 @@ async function seed() {
         firstName: 'Nicolas',
         lastName: 'Fournier',
         birthDate: new Date('1980-06-03'),
-        ffessmLicenseNumber: '33-005-0001',
+        ffessmLicenseNumber: 'A-33-000001',
         technicalLevel: 'N2',
         phone: '06 00 00 01 05',
         club: clubs[4],
@@ -339,7 +349,7 @@ async function seed() {
         firstName: 'Thomas',
         lastName: 'Dubois',
         birthDate: new Date('1987-07-22'),
-        ffessmLicenseNumber: '21-001-0010',
+        ffessmLicenseNumber: 'A-21-000010',
         technicalLevel: 'MF1',
         phone: '06 00 00 02 01',
         club: clubs[0],
@@ -349,7 +359,7 @@ async function seed() {
         firstName: 'Claire',
         lastName: 'Bonnet',
         birthDate: new Date('1983-09-10'),
-        ffessmLicenseNumber: '13-002-0010',
+        ffessmLicenseNumber: 'B-13-000010',
         technicalLevel: 'MF2',
         phone: '06 00 00 02 02',
         club: clubs[1],
@@ -359,7 +369,7 @@ async function seed() {
         firstName: 'Lucas',
         lastName: 'Mercier',
         birthDate: new Date('1991-01-28'),
-        ffessmLicenseNumber: '69-003-0010',
+        ffessmLicenseNumber: 'C-69-000010',
         technicalLevel: 'MF1',
         phone: '06 00 00 02 03',
         club: clubs[2],
@@ -369,7 +379,7 @@ async function seed() {
         firstName: 'Emma',
         lastName: 'Lambert',
         birthDate: new Date('1986-05-17'),
-        ffessmLicenseNumber: '75-004-0010',
+        ffessmLicenseNumber: 'D-75-000010',
         technicalLevel: 'MF1',
         phone: '06 00 00 02 04',
         club: clubs[3],
@@ -379,7 +389,7 @@ async function seed() {
         firstName: 'Paul',
         lastName: 'Girard',
         birthDate: new Date('1979-12-04'),
-        ffessmLicenseNumber: '33-005-0010',
+        ffessmLicenseNumber: 'E-33-000010',
         technicalLevel: 'MF2',
         phone: '06 00 00 02 05',
         club: clubs[4],
@@ -404,6 +414,48 @@ async function seed() {
       );
     }
 
+    // Committees
+    const committeesData = [
+      {
+        email: 'comite@test.com',
+        firstName: 'Isabelle',
+        lastName: 'Fontaine',
+        birthDate: new Date('1978-04-20'),
+        ffessmLicenseNumber: 'A-21-000030',
+        technicalLevel: 'N3',
+        phone: '06 00 00 04 01',
+        club: clubs[0],
+      },
+      {
+        email: 'bernard.leclerc@neptune.fr',
+        firstName: 'Bernard',
+        lastName: 'Leclerc',
+        birthDate: new Date('1965-09-12'),
+        ffessmLicenseNumber: 'B-13-000030',
+        technicalLevel: 'N2',
+        phone: '06 00 00 04 02',
+        club: clubs[0],
+      },
+    ];
+
+    const committees: AppUser[] = [];
+    for (const { club, ...userData } of committeesData) {
+      const user = await userRepo.save({ ...userData, passwordHash: pw });
+      await membershipRepo.save({
+        user,
+        club,
+        role: r['committee'],
+        season: '2025-2026',
+        membershipDate: new Date(),
+        decisionDate: new Date(),
+        status: 'active',
+      });
+      committees.push(user);
+      console.log(
+        `  → [committee   ] ${user.firstName} ${user.lastName} — ${user.email} → ${club.name}`,
+      );
+    }
+
     // Admins
     const adminsData = [
       {
@@ -411,7 +463,7 @@ async function seed() {
         firstName: 'Sophie',
         lastName: 'Martin',
         birthDate: new Date('1982-03-15'),
-        ffessmLicenseNumber: '21-001-0020',
+        ffessmLicenseNumber: 'A-21-000020',
         technicalLevel: 'N4',
         phone: '06 00 00 03 01',
         club: clubs[0],
@@ -421,7 +473,7 @@ async function seed() {
         firstName: 'Julien',
         lastName: 'Robert',
         birthDate: new Date('1979-06-10'),
-        ffessmLicenseNumber: '13-002-0020',
+        ffessmLicenseNumber: 'B-13-000020',
         technicalLevel: 'N3',
         phone: '06 00 00 03 02',
         club: clubs[1],
@@ -431,7 +483,7 @@ async function seed() {
         firstName: 'Alice',
         lastName: 'Durand',
         birthDate: new Date('1984-11-22'),
-        ffessmLicenseNumber: '69-003-0020',
+        ffessmLicenseNumber: 'C-69-000020',
         technicalLevel: 'N4',
         phone: '06 00 00 03 03',
         club: clubs[2],
@@ -441,7 +493,7 @@ async function seed() {
         firstName: 'Rémi',
         lastName: 'Chevalier',
         birthDate: new Date('1976-08-09'),
-        ffessmLicenseNumber: '75-004-0020',
+        ffessmLicenseNumber: 'D-75-000020',
         technicalLevel: 'N3',
         phone: '06 00 00 03 04',
         club: clubs[3],
@@ -826,15 +878,16 @@ async function seed() {
     console.log('  ✅  Seed completed successfully!');
     console.log('  🏊  Clubs    : 20');
     console.log(
-      '  👤  Users    : 20 (1 super admin, 5 sans club, 5 membres, 5 moniteurs, 4 admins)',
+      '  👤  Users    : 22 (1 super admin, 5 sans club, 5 membres, 5 moniteurs, 4 admins, 2 comités)',
     );
     console.log('  📅  Events   : 20');
     console.log('');
-    console.log('  🔑  Password for all accounts : 123');
+    console.log('  🔑  Password for all accounts : value of SEED_PASSWORD');
     console.log('');
     console.log('  Accounts:');
     console.log('  super_admin → superadmin@test.com');
     console.log('  admin       → admin@test.com');
+    console.log('  committee   → comite@test.com');
     console.log('  instructor  → moniteur@test.com');
     console.log('  member      → adherent@test.com');
     console.log('  sans club   → sansclub@test.com');

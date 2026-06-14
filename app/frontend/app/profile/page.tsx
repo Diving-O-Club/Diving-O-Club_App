@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../context/AuthContext'
-import { getMe, updateMe, exportMyData } from '@/app/lib/user'
+import { getMe, updateMe, exportMyData } from '@/app/lib/api/user'
+import { ChangePasswordModal } from '@/app/components/profile/ChangePasswordModal'
 import { User } from '@/app/types/user'
 import { UpdateUserDto } from '@/app/types/user'
 import { PersonalInfoSection } from '@/app/components/profile/PersonalInfoSection'
@@ -28,6 +29,13 @@ function userToForm(user: User): UpdateUserDto {
   }
 }
 
+function parseBirthDate(dateStr: string | null): { day: string; month: string; year: string } {
+  if (!dateStr) return { day: '', month: '', year: '' }
+  const match = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/)
+  if (!match) return { day: '', month: '', year: '' }
+  return { year: match[1], month: match[2], day: match[3] }
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ProfilePage() {
@@ -37,10 +45,23 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<User | null>(null)
   const [form, setForm] = useState<UpdateUserDto | null>(null)
   const [saved, setSaved] = useState<UpdateUserDto | null>(null)
+  const [birthParts, setBirthParts] = useState<{ day: string; month: string; year: string }>({ day: '', month: '', year: '' })
   const [errors, setErrors] = useState<Partial<Record<keyof UpdateUserDto, string>>>({})
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
+  const [showPasswordModal, setShowPasswordModal] = useState(false)
+  const [navHeight, setNavHeight] = useState(68)
+
+  useEffect(() => {
+    const nav = document.querySelector('nav')
+    if (!nav) return
+    const update = () => setNavHeight(nav.getBoundingClientRect().height)
+    update()
+    const observer = new ResizeObserver(update)
+    observer.observe(nav)
+    return () => observer.disconnect()
+  }, [])
 
   // Redirection when not authenticated
   useEffect(() => {
@@ -58,12 +79,31 @@ export default function ProfilePage() {
       const formData = userToForm(data)
       setForm(formData)
       setSaved(formData)
+      setBirthParts(parseBirthDate(data.birthDate))
     })
   }, [authUser])
 
   function showToast(type: 'success' | 'error', message: string) {
     setToast({ type, message })
     setTimeout(() => setToast(null), 4000)
+  }
+
+  function handleFieldChange(name: string, value: string) {
+    setForm((prev) => prev ? { ...prev, [name]: value || null } : prev)
+    setErrors((prev) => ({ ...prev, [name]: undefined }))
+  }
+
+  function handleBirthPartChange(part: 'day' | 'month' | 'year', value: string) {
+    const newParts = { ...birthParts, [part]: value }
+    setBirthParts(newParts)
+    // Ne pas mettre à jour le form tant que l'année est incomplète
+    if (newParts.year.length > 0 && newParts.year.length < 4) return
+    if (newParts.day && newParts.month && newParts.year.length === 4) {
+      setForm((prev) => prev ? { ...prev, birthDate: `${newParts.year}-${newParts.month}-${newParts.day}` } : prev)
+    } else {
+      setForm((prev) => prev ? { ...prev, birthDate: null } : prev)
+    }
+    setErrors((prev) => ({ ...prev, birthDate: undefined }))
   }
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
@@ -76,17 +116,46 @@ export default function ProfilePage() {
     if (!form) return false
     const newErrors: Partial<Record<keyof UpdateUserDto, string>> = {}
 
-    if (!form.firstName?.trim()) newErrors.firstName = 'Le prénom est requis'
-    if (!form.lastName?.trim()) newErrors.lastName = 'Le nom est requis'
+    const nameRegex = /^[\p{L}\s'\-]+$/u
+
+    if (!form.firstName?.trim()) {
+      newErrors.firstName = 'Le prénom est requis'
+    } else if (!nameRegex.test(form.firstName)) {
+      newErrors.firstName = 'Le prénom ne doit contenir que des lettres, espaces, tirets ou apostrophes'
+    } else if (form.firstName.length > 100) {
+      newErrors.firstName = 'Le prénom ne peut pas dépasser 100 caractères'
+    }
+
+    if (!form.lastName?.trim()) {
+      newErrors.lastName = 'Le nom est requis'
+    } else if (!nameRegex.test(form.lastName)) {
+      newErrors.lastName = 'Le nom ne doit contenir que des lettres, espaces, tirets ou apostrophes'
+    } else if (form.lastName.length > 100) {
+      newErrors.lastName = 'Le nom ne peut pas dépasser 100 caractères'
+    }
 
     if (!form.email?.trim()) {
       newErrors.email = "L'email est requis"
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-      newErrors.email = "Format d'email invalide"
+    } else if (!/^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/.test(form.email)) {
+      newErrors.email = "Format invalide (ex : exemple@email.com)"
+    } else if (form.email.length > 255) {
+      newErrors.email = "L'email ne peut pas dépasser 255 caractères"
     }
 
     if (form.phone && !/^(\+33|0)[1-9](\d{2}){4}$/.test(form.phone.replace(/\s/g, ''))) {
-      newErrors.phone = 'Format de téléphone invalide'
+      newErrors.phone = 'Format invalide (ex : 06 12 34 56 78 ou +33612345678)'
+    }
+
+    if (form.street && form.street.length > 255) {
+      newErrors.street = 'L\'adresse ne peut pas dépasser 255 caractères'
+    }
+
+    if (form.postalCode && !/^\d{5}$/.test(form.postalCode)) {
+      newErrors.postalCode = 'Format invalide (ex : 13008)'
+    }
+
+    if (form.city && form.city.length > 100) {
+      newErrors.city = 'La ville ne peut pas dépasser 100 caractères'
     }
 
     if (form.ffessmLicenseNumber && !/^[A-Z]-\d{2}-\d{6}$/i.test(form.ffessmLicenseNumber)) {
@@ -98,7 +167,11 @@ export default function ProfilePage() {
   }
 
   async function handleSave() {
-    if (!form || !validate()) return
+    if (!form) return
+    if (!validate()) {
+      showToast('error', 'Veuillez corriger les erreurs indiquées en rouge avant d\'enregistrer.')
+      return
+    }
     setIsSaving(true)
     try {
       const updated = await updateMe(form)
@@ -107,6 +180,7 @@ export default function ProfilePage() {
       setProfile(updated)
       setSaved(newForm)
       setForm(newForm)
+      setBirthParts(parseBirthDate(updated.birthDate))
       setIsEditing(false)
       showToast('success', 'Profil mis à jour avec succès')
     } catch {
@@ -117,7 +191,10 @@ export default function ProfilePage() {
   }
 
   function handleCancel() {
-    if (saved) setForm(saved)
+    if (saved) {
+      setForm(saved)
+      setBirthParts(parseBirthDate(saved.birthDate))
+    }
     setErrors({})
     setIsEditing(false)
   }
@@ -159,7 +236,7 @@ export default function ProfilePage() {
 
       {/* Toast */}
       {toast && (
-        <div className={`fixed top-6 right-6 z-50 flex items-center gap-3 rounded-xl px-5 py-3.5 shadow-lg text-sm font-medium
+        <div className={`fixed top-6 left-4 right-4 sm:left-auto sm:right-6 sm:max-w-sm z-50 flex items-center gap-3 rounded-xl px-5 py-3.5 shadow-lg text-sm font-medium
           ${toast.type === 'success' ? 'bg-[#2EC4B6] text-white' : 'bg-[#B71C1C] text-white'}`}
         >
           <span>{toast.type === 'success' ? '✓' : '✕'}</span>
@@ -170,7 +247,14 @@ export default function ProfilePage() {
       <div className="max-w-2xl mx-auto px-4 py-10">
 
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div
+          className={`flex items-center justify-between mb-8 transition-all ${
+            isEditing
+              ? 'sticky z-40 -mx-4 px-4 py-3 bg-white/95 backdrop-blur-sm shadow-sm border-b border-gray-100 rounded-b-xl'
+              : ''
+          }`}
+          style={isEditing ? { top: navHeight } : undefined}
+        >
           <h1 className="text-2xl font-semibold text-[#0D3B66]">Mon Profil</h1>
 
           {!isEditing ? (
@@ -220,15 +304,37 @@ export default function ProfilePage() {
           form={form}
           saved={saved}
           errors={errors}
+          birthParts={birthParts}
           onChange={handleChange}
+          onBirthPartChange={handleBirthPartChange}
         />
 
         <SportsInfoSection
           isEditing={isEditing}
           form={form}
           saved={saved}
-          onChange={handleChange}
+          errors={errors}
+          onFieldChange={handleFieldChange}
         />
+
+        {/* Sécurité */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-4">
+          <h2 className="text-sm font-semibold text-[#0D3B66] uppercase tracking-wider mb-4 pb-2 border-b border-gray-100">
+            Sécurité
+          </h2>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-800 font-medium">Mot de passe</p>
+              <p className="text-xs text-gray-400">Modifiez votre mot de passe de connexion</p>
+            </div>
+            <button
+              onClick={() => setShowPasswordModal(true)}
+              className="rounded-lg border border-[#3DA9FC] bg-white px-4 py-2 text-sm font-medium text-[#0D3B66] hover:bg-[#e8f4ff] transition"
+            >
+              Changer
+            </button>
+          </div>
+        </div>
 
         <RgpdSection
           onDownload={handleDownload}
@@ -236,6 +342,16 @@ export default function ProfilePage() {
         />
 
       </div>
+
+      {showPasswordModal && (
+        <ChangePasswordModal
+          onClose={() => setShowPasswordModal(false)}
+          onSuccess={() => {
+            setShowPasswordModal(false)
+            showToast('success', 'Profil mis à jour avec succès')
+          }}
+        />
+      )}
     </div>
   )
 }

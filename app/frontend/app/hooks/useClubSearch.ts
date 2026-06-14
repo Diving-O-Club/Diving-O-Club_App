@@ -1,24 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
-
-type Club = {
-  name: string;
-  city: string;
-  slug: string;
-};
+import { searchClubs, type ClubSearchResult } from '@/app/lib/api/clubs';
 
 export function useClubSearch() {
   const [query, setQuery] = useState('');
-  const [clubs, setClubs] = useState<Club[]>([]);
+  const [clubs, setClubs] = useState<ClubSearchResult[]>([]);
   const [loading, setLoading] = useState(false);
 
   const fetchClubs = useCallback(async (search: string) => {
     setLoading(true);
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/clubs?search=${encodeURIComponent(search)}`
-      );
-      const data = await res.json();
-      setClubs(Array.isArray(data) ? data : []);
+      setClubs(await searchClubs(search));
     } catch {
       setClubs([]);
     } finally {

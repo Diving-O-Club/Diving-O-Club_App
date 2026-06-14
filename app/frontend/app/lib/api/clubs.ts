@@ -24,15 +24,32 @@ export type Club = {
   events: ClubEvent[];
 };
 
+export type ClubSearchResult = {
+  name: string;
+  city: string;
+  slug: string;
+};
+
 export async function getClub(slug: string): Promise<Club | null> {
   try {
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/clubs/${slug}`,
-      { cache: 'no-store' }
+      { cache: 'no-store' },
     );
-    if (!res.ok) return null;
-    return res.json();
+    return res.ok ? res.json() : null;
   } catch {
     return null;
+  }
+}
+
+export async function searchClubs(query: string): Promise<ClubSearchResult[]> {
+  try {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/clubs?search=${encodeURIComponent(query)}`,
+    );
+    const data = await res.json();
+    return Array.isArray(data) ? data : [];
+  } catch {
+    return [];
   }
 }

@@ -5,15 +5,23 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { Waves, User, Mail, Lock } from 'lucide-react';
 import { useRegister } from '../hooks/useRegister';
+import { useAuth } from '../context/AuthContext';
 import Input from '../components/ui/Input';
 
 export default function RegisterPage() {
   const { form, errors, loading, success, apiError, handleChange, handleSubmit } = useRegister();
+  const { user, loading: authLoading } = useAuth();
   const router = useRouter();
+
+  useEffect(() => {
+    if (!authLoading && user) router.replace('/dashboard');
+  }, [user, authLoading, router]);
 
   useEffect(() => {
     if (success) setTimeout(() => router.push('/login'), 1500);
   }, [success, router]);
+
+  if (authLoading || user) return null;
 
   return (
     <div className="min-h-[calc(100vh-200px)] flex flex-col items-center justify-center px-4 py-12">

@@ -1,37 +1,29 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-
-type User = {
-  idUser: number;
-  email: string;
-  firstName: string | null;
-};
+import { checkAuth, type AuthUser } from '@/app/lib/api/auth';
 
 type AuthContextType = {
-  user: User | null;
+  user: AuthUser | null;
   loading: boolean;
-  login: (user: User) => void;
+  login: (user: AuthUser) => void;
   logout: () => void;
 };
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
-      credentials: 'include',
-    })
-      .then((res) => res.ok ? res.json() : null)
-      .then((data) => setUser(data))
+    checkAuth()
+      .then(setUser)
       .catch(() => setUser(null))
       .finally(() => setLoading(false));
   }, []);
 
-  const login = (user: User) => setUser(user);
+  const login = (user: AuthUser) => setUser(user);
   const logout = () => setUser(null);
 
   return (

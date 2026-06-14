@@ -1,5 +1,6 @@
 import {
   Injectable,
+  BadRequestException,
   ConflictException,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -13,6 +14,7 @@ import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { LogService } from '../log/log.service';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -89,15 +91,28 @@ export class AuthService {
     return { message: 'Connexion réussie' };
   }
 
-  async me(userId: number): Promise<AppUser> {
+  async me(userId: number): Promise<Omit<AppUser, 'passwordHash'>> {
     const user = await this.userRepo.findOneBy({ idUser: userId });
-    return user!;
+    // Never expose the password hash to the client.
+    const { passwordHash: _passwordHash, ...safeUser } = user!;
+    return safeUser;
   }
 
   async logout(res: Response): Promise<{ message: string }> {
     res.clearCookie('access_token');
     await this.logService.logAuth({ action: 'logout' });
     return { message: 'Déconnexion réussie' };
+  }
+
+  async changePassword(userId: number, dto: ChangePasswordDto): Promise<{ message: string }> {
+    const user = await this.userRepo.findOneByOrFail({ idUser: userId });
+    const valid = await argon2.verify(user.passwordHash, dto.currentPassword);
+    if (!valid) {
+      throw new BadRequestException('Mot de passe actuel incorrect');
+    }
+    const passwordHash = await argon2.hash(dto.newPassword);
+    await this.userRepo.update(userId, { passwordHash });
+    return { message: 'Mot de passe modifié avec succès' };
   }
 
   async updateMe(userId: number, dto: UpdateUserDto): Promise<AppUser> {

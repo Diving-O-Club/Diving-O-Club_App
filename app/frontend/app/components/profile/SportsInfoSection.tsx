@@ -1,6 +1,6 @@
 'use client'
 
-import { SectionTitle, ReadonlyField, InputField, SelectField } from '@/app/components/ui/form-fields'
+import { SectionTitle, ReadonlyField, CustomSelect } from '@/app/components/ui/form-fields'
 import {
   DivingLevel,
   InstructorLevel,
@@ -48,10 +48,11 @@ type Props = {
   isEditing: boolean
   form: UpdateUserDto
   saved: UpdateUserDto
-  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void
+  errors: Partial<Record<keyof UpdateUserDto, string>>
+  onFieldChange: (name: string, value: string) => void
 }
 
-export function SportsInfoSection({ isEditing, form, saved, onChange }: Props) {
+export function SportsInfoSection({ isEditing, form, saved, errors, onFieldChange }: Props) {
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-4">
       <SectionTitle>Informations sportives</SectionTitle>
@@ -60,26 +61,30 @@ export function SportsInfoSection({ isEditing, form, saved, onChange }: Props) {
         {isEditing ? (
           <>
             <div className="sm:col-span-2">
-              <InputField
-                label="Numéro de licence FFESSM"
+              <label className="text-xs text-gray-500 block mb-1">Numéro de licence FFESSM</label>
+              <input
                 name="ffessmLicenseNumber"
                 value={form.ffessmLicenseNumber ?? ''}
-                onChange={onChange}
-                placeholder="A-123456"
+                onChange={(e) => onFieldChange('ffessmLicenseNumber', e.target.value)}
+                placeholder="A-01-000001"
+                className={`w-full rounded-lg border px-4 py-3 text-sm text-gray-800 outline-none transition min-h-11
+                  focus:border-[#3DA9FC] focus:ring-2 focus:ring-[#3DA9FC]/20
+                  ${errors.ffessmLicenseNumber ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-white hover:border-gray-300'}`}
               />
+              {errors.ffessmLicenseNumber && (
+                <p className="text-xs text-red-500 mt-0.5">{errors.ffessmLicenseNumber}</p>
+              )}
             </div>
-            <SelectField
+            <CustomSelect
               label="Niveau plongeur"
-              name="divingLevel"
               value={form.divingLevel ?? ''}
-              onChange={onChange}
+              onValueChange={(v) => onFieldChange('divingLevel', v)}
               groups={DIVING_LEVEL_GROUPS}
             />
-            <SelectField
+            <CustomSelect
               label="Qualification d'encadrement"
-              name="instructorLevel"
               value={form.instructorLevel ?? ''}
-              onChange={onChange}
+              onValueChange={(v) => onFieldChange('instructorLevel', v)}
               options={INSTRUCTOR_LEVEL_OPTIONS}
               placeholder="— Aucune —"
               hint="Optionnel — indépendant du niveau plongeur (ex : N2 + E1)"

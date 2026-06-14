@@ -4,6 +4,12 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
 import { useMembership } from '../../hooks/useMembership';
+import {
+  getPendingRequests,
+  acceptRequest,
+  rejectRequest,
+  type PendingRequest,
+} from '@/app/lib/api/membership';
 import { Users, Check, X } from 'lucide-react';
 import Link from 'next/link';
 
@@ -26,17 +32,6 @@ const ROLE_LABELS: Record<string, string> = {
 
 const ADMIN_ROLES = ['admin', 'super_admin'];
 
-type PendingRequest = {
-  idMembership: number;
-  status: string;
-  user: {
-    idUser: number;
-    firstName: string;
-    lastName: string;
-    email: string;
-  };
-};
-
 export default function MembersPage() {
   const { user, loading: authLoading } = useAuth();
   const { membership, loading: membershipLoading, refetch } = useMembership();
@@ -45,49 +40,36 @@ export default function MembersPage() {
   const [loadingPending, setLoadingPending] = useState(false);
 
   useEffect(() => {
-    if (!authLoading && !user) {
-      router.push('/login');
-    }
+    if (!authLoading && !user) router.push('/login');
   }, [user, authLoading, router]);
 
-  // Fetch pending requests if admin
   useEffect(() => {
     if (!membership) return;
     if (!ADMIN_ROLES.includes(membership.role.codeRole)) return;
 
-    const fetchPending = () => {
-      fetch(`${process.env.NEXT_PUBLIC_API_URL}/membership/pending`, {
-        credentials: 'include',
-      })
-        .then(res => res.json())
-        .then(data => setPendingRequests(data))
-        .catch(() => setPendingRequests([]))
+    const load = () => {
+      setLoadingPending(true);
+      getPendingRequests()
+        .then(setPendingRequests)
         .finally(() => setLoadingPending(false));
     };
 
-    fetchPending();
-    const interval = setInterval(fetchPending, 10000);
-
+    load();
+    const interval = setInterval(load, 10000);
     return () => clearInterval(interval);
   }, [membership]);
 
   const handleAccept = async (membershipId: number) => {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/membership/request/${membershipId}/accept`,
-      { method: 'PATCH', credentials: 'include' },
-    );
-    if (res.ok) {
+    const ok = await acceptRequest(membershipId);
+    if (ok) {
       setPendingRequests(prev => prev.filter(r => r.idMembership !== membershipId));
       refetch();
     }
   };
 
   const handleReject = async (membershipId: number) => {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/membership/request/${membershipId}/reject`,
-      { method: 'DELETE', credentials: 'include' },
-    );
-    if (res.ok) {
+    const ok = await rejectRequest(membershipId);
+    if (ok) {
       setPendingRequests(prev => prev.filter(r => r.idMembership !== membershipId));
     }
   };
@@ -102,7 +84,6 @@ export default function MembersPage() {
 
   if (!user) return null;
 
-  // Empty state — no club
   if (!membership) {
     return (
       <div className="max-w-7xl mx-auto px-6 py-12">
@@ -142,7 +123,6 @@ export default function MembersPage() {
         </p>
       </div>
 
-      {/* Pending requests — admin only */}
       {isAdmin && !loadingPending && pendingRequests.length > 0 && (
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden mb-6">
           <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
@@ -187,7 +167,6 @@ export default function MembersPage() {
         </div>
       )}
 
-      {/* Active members table */}
       <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 border-b border-gray-100">

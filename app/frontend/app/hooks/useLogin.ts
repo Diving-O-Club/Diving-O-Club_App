@@ -1,11 +1,8 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { loginUser, checkAuth } from '@/app/lib/api/auth';
 
-type LoginForm = {
-  email: string;
-  password: string;
-};
-
+type LoginForm = { email: string; password: string };
 type FormErrors = Partial<Record<keyof LoginForm, string>>;
 
 export function useLogin() {
@@ -36,22 +33,13 @@ export function useLogin() {
     if (!validate()) return;
     setLoading(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(form),
-      });
-      const data = await res.json();
+      const res = await loginUser(form);
       if (!res.ok) {
-        setApiError(data.message || 'Identifiants incorrects');
+        setApiError(res.message || 'Identifiants incorrects');
         return;
       }
-      const me = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
-        credentials: 'include',
-      });
-      const user = await me.json();
-      login(user);
+      const user = await checkAuth();
+      if (user) login(user);
       onSuccess();
     } catch {
       setApiError('Impossible de contacter le serveur');

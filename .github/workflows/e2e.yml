@@ -1,0 +1,104 @@
+name: E2E Tests
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+
+jobs:
+  e2e-tests:
+    name: Playwright E2E Tests
+    runs-on: ubuntu-latest
+
+    # Ephemeral databases for the test run.
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: diving_o_club_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      mongodb:
+        image: mongo:7
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.adminCommand({ ping: 1 })'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      # Backend → databases
+      DB_ENABLED: "true"
+      DB_HOST: localhost
+      DB_PORT: "5432"
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: diving_o_club_test
+      MONGO_URL: mongodb://localhost:27017/diving_o_club_test
+      JWT_SECRET: e2e_test_secret
+      # The Playwright tests log in with seeded accounts using this password.
+      SEED_PASSWORD: "123"
+      # Frontend → backend. Note: PORT is intentionally NOT set globally, otherwise
+      # `next dev` would inherit it and collide with the backend on 3001.
+      NEXT_PUBLIC_API_URL: http://localhost:3001
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # ---- Backend ----
+      - name: Install backend dependencies
+        working-directory: app/backend
+        run: npm ci
+
+      - name: Run migrations
+        working-directory: app/backend
+        run: npm run migration:run
+
+      - name: Seed database
+        working-directory: app/backend
+        run: npm run seed
+
+      - name: Build backend
+        working-directory: app/backend
+        run: npm run build
+
+      - name: Start backend
+        working-directory: app/backend
+        run: |
+          nohup node dist/main > backend.log 2>&1 &
+          echo "Waiting for backend on http://localhost:3001/health ..."
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:3001/health >/dev/null 2>&1; then
+              echo "Backend is up"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Backend failed to start:"
+          cat backend.log
+          exit 1
+
+      # ---- Frontend / Playwright ----
+      - name: Install frontend dependencies
+        working-directory: app/frontend
+        run: npm ci
+
+      - name: Install Playwright browser
+        working-directory: app/frontend
+        run: npx playwright install --with-deps chromium
+
+      - name: Run E2E tests
+        working-directory: app/frontend
+        run: npx playwright test

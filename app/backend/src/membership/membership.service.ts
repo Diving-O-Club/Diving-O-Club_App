@@ -180,7 +180,7 @@ export class MembershipService {
     });
 
     return memberships.map((m) => {
-      const { passwordHash: _, ...safeUser } = m.user as any;
+      const { passwordHash: _pw, ...safeUser } = m.user;
       return { ...m, user: safeUser };
     }) as Membership[];
   }

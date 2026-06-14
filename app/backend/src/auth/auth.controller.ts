@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Put,
+  Patch,
   Body,
   Req,
   Res,
@@ -14,6 +15,7 @@ import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 interface AuthenticatedRequest extends Request {
   user: { idUser: number; email: string };
@@ -48,5 +50,11 @@ export class AuthController {
   @UseGuards(AuthGuard('jwt'))
   updateMe(@Req() req: AuthenticatedRequest, @Body() dto: UpdateUserDto) {
     return this.authService.updateMe(req.user.idUser, dto);
+  }
+
+  @Patch('me/password')
+  @UseGuards(AuthGuard('jwt'))
+  changePassword(@Req() req: AuthenticatedRequest, @Body() dto: ChangePasswordDto) {
+    return this.authService.changePassword(req.user.idUser, dto);
   }
 }

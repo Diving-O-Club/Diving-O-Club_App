@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Waves, LogOut, User } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '../../context/AuthContext';
+import { logoutUser } from '@/app/lib/api/auth';
 import DashboardNav from '../ui/DashboardNav';
 
 export default function Navbar() {
@@ -11,10 +12,7 @@ export default function Navbar() {
   const { user, logout } = useAuth();
 
   const handleLogout = async () => {
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/logout`, {
-      method: 'POST',
-      credentials: 'include',
-    });
+    await logoutUser();
     logout();
     setMenuOpen(false);
   };
