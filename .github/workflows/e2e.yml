@@ -47,8 +47,8 @@ jobs:
       JWT_SECRET: e2e_test_secret
       # The Playwright tests log in with seeded accounts using this password.
       SEED_PASSWORD: "123"
-      PORT: "3001"
-      # Frontend → backend
+      # Frontend → backend. Note: PORT is intentionally NOT set globally, otherwise
+      # `next dev` would inherit it and collide with the backend on 3001.
       NEXT_PUBLIC_API_URL: http://localhost:3001
 
     steps:
