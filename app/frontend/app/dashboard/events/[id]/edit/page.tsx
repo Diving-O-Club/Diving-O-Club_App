@@ -64,8 +64,8 @@ export default function EditEventPage() {
     eventType: event.eventType,
     startDatetime: toDatetimeLocal(event.startDatetime),
     endDatetime: toDatetimeLocal(event.endDatetime),
-    location: event.location,
-    maxCapacity: event.maxCapacity,
+    location: event.location ?? undefined,
+    maxCapacity: event.maxCapacity ?? undefined,
     isPaid: event.isPaid,
     price: event.price ? parseFloat(event.price) : undefined,
   };
