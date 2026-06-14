@@ -45,6 +45,16 @@ jobs:
           source: ".env.production"
           target: "/home/ubuntu/Diving-O-Club_App/app/"
 
+      - name: Copy docker-compose.production.yml to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "app/docker-compose.production.yml"
+          target: "/home/ubuntu/Diving-O-Club_App/app/"
+          strip_components: 1
+
       - name: Deploy to EC2 PRODUCTION via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
