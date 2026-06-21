@@ -8,9 +8,13 @@ import {
   getPendingRequests,
   acceptRequest,
   rejectRequest,
+  changeMemberRole,
+  expelMember,
   type PendingRequest,
+  type ClubMember,
 } from '@/app/lib/api/membership';
-import { Users, Check, X } from 'lucide-react';
+import { Users, Check, X, UserMinus, AlertTriangle } from 'lucide-react';
+import { CustomSelect } from '@/app/components/ui/form-fields';
 import Link from 'next/link';
 
 const LEVEL_COLORS: Record<string, string> = {
@@ -32,12 +36,21 @@ const ROLE_LABELS: Record<string, string> = {
 
 const ADMIN_ROLES = ['admin', 'super_admin'];
 
+// Roles an admin can assign through the dropdown (super_admin excluded).
+const ASSIGNABLE_ROLES = ['admin', 'committee', 'instructor', 'member'];
+
 export default function MembersPage() {
   const { user, loading: authLoading } = useAuth();
   const { membership, loading: membershipLoading, refetch } = useMembership();
   const router = useRouter();
   const [pendingRequests, setPendingRequests] = useState<PendingRequest[]>([]);
   const [loadingPending, setLoadingPending] = useState(false);
+  // Pending dropdown selection per membership (only set when changed).
+  const [selectedRoles, setSelectedRoles] = useState<Record<number, string>>({});
+  const [savingId, setSavingId] = useState<number | null>(null);
+  const [feedback, setFeedback] = useState<string | null>(null);
+  // Member awaiting expulsion confirmation in the modal.
+  const [confirmExpel, setConfirmExpel] = useState<ClubMember | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) router.push('/login');
@@ -71,6 +84,44 @@ export default function MembersPage() {
     const ok = await rejectRequest(membershipId);
     if (ok) {
       setPendingRequests(prev => prev.filter(r => r.idMembership !== membershipId));
+    }
+  };
+
+  // Auto-hide the feedback banner after a few seconds.
+  useEffect(() => {
+    if (!feedback) return;
+    const timeout = setTimeout(() => setFeedback(null), 3000);
+    return () => clearTimeout(timeout);
+  }, [feedback]);
+
+  const handleRoleChange = async (membershipId: number) => {
+    const codeRole = selectedRoles[membershipId];
+    if (!codeRole) return;
+    setSavingId(membershipId);
+    const ok = await changeMemberRole(membershipId, codeRole);
+    setSavingId(null);
+    if (ok) {
+      setFeedback('Rôle mis à jour');
+      setSelectedRoles(prev => {
+        const next = { ...prev };
+        delete next[membershipId];
+        return next;
+      });
+      refetch();
+    } else {
+      setFeedback('Échec de la mise à jour du rôle');
+    }
+  };
+
+  const handleExpel = async () => {
+    if (!confirmExpel) return;
+    const ok = await expelMember(confirmExpel.idMembership);
+    setConfirmExpel(null);
+    if (ok) {
+      setFeedback('Membre expulsé');
+      refetch();
+    } else {
+      setFeedback("Échec de l'expulsion");
     }
   };
 
@@ -123,6 +174,12 @@ export default function MembersPage() {
         </p>
       </div>
 
+      {feedback && (
+        <div className="mb-6 bg-[#0d3b66] text-white text-sm font-medium px-4 py-3 rounded-xl shadow">
+          {feedback}
+        </div>
+      )}
+
       {isAdmin && !loadingPending && pendingRequests.length > 0 && (
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden mb-6">
           <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
@@ -174,10 +231,20 @@ export default function MembersPage() {
               <th className="text-left px-6 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Membre</th>
               <th className="text-left px-6 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wide hidden md:table-cell">Niveau</th>
               <th className="text-left px-6 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wide hidden md:table-cell">Rôle</th>
+              {isAdmin && (
+                <th className="text-right px-6 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Actions</th>
+              )}
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
-            {activeMembers.map(member => (
+            {activeMembers.map(member => {
+              // Admins manage other members, but not their own row nor a super_admin.
+              const isOwnRow = member.idMembership === membership.idMembership;
+              const canManage =
+                isAdmin && !isOwnRow && member.role.codeRole !== 'super_admin';
+              const selectedRole = selectedRoles[member.idMembership] ?? member.role.codeRole;
+
+              return (
               <tr key={member.idMembership} className="hover:bg-gray-50 transition-colors">
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
@@ -198,15 +265,93 @@ export default function MembersPage() {
                   </span>
                 </td>
                 <td className="px-6 py-4 hidden md:table-cell">
-                  <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2.5 py-1 rounded-full whitespace-nowrap">
-                    {ROLE_LABELS[member.role.codeRole] ?? member.role.labelRole}
-                  </span>
+                  {canManage ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-48">
+                        <CustomSelect
+                          value={selectedRole}
+                          onValueChange={v =>
+                            setSelectedRoles(prev => ({
+                              ...prev,
+                              [member.idMembership]: v,
+                            }))
+                          }
+                          options={ASSIGNABLE_ROLES.map(code => ({
+                            value: code,
+                            label: ROLE_LABELS[code],
+                          }))}
+                          clearable={false}
+                        />
+                      </div>
+                      <button
+                        onClick={() => handleRoleChange(member.idMembership)}
+                        disabled={
+                          selectedRole === member.role.codeRole ||
+                          savingId === member.idMembership
+                        }
+                        className="text-sm font-medium px-4 min-h-11 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed bg-[#0d3b66] text-white hover:bg-[#1b6ca8]"
+                      >
+                        Valider
+                      </button>
+                    </div>
+                  ) : (
+                    <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2.5 py-1 rounded-full whitespace-nowrap">
+                      {ROLE_LABELS[member.role.codeRole] ?? member.role.labelRole}
+                    </span>
+                  )}
                 </td>
+                {isAdmin && (
+                  <td className="px-6 py-4 text-right">
+                    {canManage && (
+                      <button
+                        onClick={() => setConfirmExpel(member)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-50 text-red-600 text-sm font-medium rounded-lg hover:bg-red-100 transition-colors"
+                      >
+                        <UserMinus className="w-4 h-4" />
+                        Expulser
+                      </button>
+                    )}
+                  </td>
+                )}
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
       </div>
+
+      {confirmExpel && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center shrink-0">
+                <AlertTriangle className="w-5 h-5 text-red-600" />
+              </div>
+              <h2 className="text-lg font-bold text-[#0d3b66]">Expulser ce membre ?</h2>
+            </div>
+            <p className="text-sm text-gray-500 mb-6">
+              {confirmExpel.user.firstName} {confirmExpel.user.lastName} sera retiré
+              du club. Son compte utilisateur est conservé, mais il devra refaire une
+              demande pour rejoindre le club.
+            </p>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setConfirmExpel(null)}
+                className="px-4 py-2 text-sm font-medium text-gray-500 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleExpel}
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
+              >
+                <UserMinus className="w-4 h-4" />
+                Expulser
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

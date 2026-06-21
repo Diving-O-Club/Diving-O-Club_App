@@ -23,15 +23,22 @@ export class EventService {
     private readonly logService: LogService,
   ) {}
 
-  private async assertManager(userId: number): Promise<Membership> {
+  private async assertManager(
+    userId: number,
+    clubId: number,
+  ): Promise<Membership> {
     const membership = await this.membershipRepo.findOne({
-      where: { user: { idUser: userId }, status: 'active' },
+      where: {
+        user: { idUser: userId },
+        club: { idClub: clubId },
+        status: 'active',
+      },
       relations: ['role', 'club'],
     });
 
     if (!membership || !MANAGER_ROLES.includes(membership.role.codeRole)) {
       throw new ForbiddenException(
-        'Accès réservé aux moniteurs et administrateurs',
+        'Accès réservé aux moniteurs et administrateurs de ce club',
       );
     }
 
@@ -71,7 +78,7 @@ export class EventService {
     clubId: number,
     dto: CreateEventDto,
   ): Promise<ClubEvent> {
-    const membership = await this.assertManager(userId);
+    await this.assertManager(userId, clubId);
 
     const event = this.eventRepo.create({
       ...dto,
@@ -86,7 +93,7 @@ export class EventService {
     await this.logService.logMembership({
       action: 'event_created',
       actorId: userId,
-      clubId: membership.club.idClub,
+      clubId,
     });
 
     return saved;
@@ -97,14 +104,14 @@ export class EventService {
     eventId: number,
     dto: UpdateEventDto,
   ): Promise<ClubEvent> {
-    await this.assertManager(userId);
-
     const event = await this.eventRepo.findOne({
       where: { idEvent: eventId },
       relations: ['club'],
     });
 
     if (!event) throw new NotFoundException('Événement introuvable');
+
+    await this.assertManager(userId, event.club.idClub);
 
     Object.assign(event, {
       ...dto,
@@ -124,14 +131,14 @@ export class EventService {
   }
 
   async delete(userId: number, eventId: number): Promise<void> {
-    await this.assertManager(userId);
-
     const event = await this.eventRepo.findOne({
       where: { idEvent: eventId },
       relations: ['club'],
     });
 
     if (!event) throw new NotFoundException('Événement introuvable');
+
+    await this.assertManager(userId, event.club.idClub);
 
     await this.eventRepo.remove(event);
 
