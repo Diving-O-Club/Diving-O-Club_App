@@ -6,11 +6,14 @@ import { test, expect, type Page, type BrowserContext } from '@playwright/test';
 //
 // Prerequisites: the dev server running and the seeded test database
 // (admin@test.com must be admin of Aquaclub21). The admin password matches the
-// SEED_PASSWORD used to seed the test DB (123 in the existing auth e2e).
+// SEED_PASSWORD used to seed the database (LocalDev_2026! by default).
 
 const SUFFIX = Date.now();
 const MEMBER_EMAIL = `members-e2e-${SUFFIX}@e2e-test.com`;
 const MEMBER_PASSWORD = 'Test1234!';
+// The members list shows the name only, so it must be unique to target the row.
+const MEMBER_LASTNAME = `E2E${SUFFIX}`;
+const MEMBER_NAME = `Playwright ${MEMBER_LASTNAME}`;
 
 const ADMIN_EMAIL = 'admin@test.com';
 const ADMIN_PASSWORD = process.env.SEED_PASSWORD || 'LocalDev_2026!';
@@ -47,7 +50,7 @@ test.describe.serial('Gestion des membres (e2e)', () => {
     // Register the throwaway member.
     await memberPage.goto('/register');
     await memberPage.getByPlaceholder('Kevin').fill('Playwright');
-    await memberPage.getByPlaceholder('Dupont').fill('Member');
+    await memberPage.getByPlaceholder('Dupont').fill(MEMBER_LASTNAME);
     await memberPage.getByPlaceholder('vous@exemple.fr').fill(MEMBER_EMAIL);
     await memberPage.getByPlaceholder('••••••••').fill(MEMBER_PASSWORD);
     await memberPage.getByRole('button', { name: /créer mon compte/i }).click();
@@ -70,31 +73,33 @@ test.describe.serial('Gestion des membres (e2e)', () => {
     await login(adminPage, ADMIN_EMAIL, ADMIN_PASSWORD);
     await adminPage.goto('/dashboard/members');
 
-    // Accept the pending request for the throwaway member.
+    // Accept the pending request (the pending block still shows the email).
     const requestRow = adminPage
-      .locator('div.justify-between')
+      .getByTestId('pending-request')
       .filter({ hasText: MEMBER_EMAIL });
     await requestRow.getByRole('button', { name: /accepter/i }).click();
 
     // The member now appears in the active members table.
     await expect(
-      adminPage.getByRole('row', { name: MEMBER_EMAIL }),
+      adminPage.getByRole('row', { name: MEMBER_NAME }),
     ).toBeVisible({ timeout: 5000 });
   });
 
-  test('l’admin change le rôle du membre via le menu + bouton Valider', async () => {
-    const row = adminPage.getByRole('row', { name: MEMBER_EMAIL });
+  test('l’admin change le rôle via le menu Actions puis la modale', async () => {
+    const row = adminPage.getByRole('row', { name: MEMBER_NAME });
 
-    // The dropdown shows the current role; Valider is disabled until it changes.
-    await row.getByRole('button', { name: 'Adhérent' }).click();
-    await row.getByRole('button', { name: 'Moniteur', exact: true }).click();
+    // Open the row actions menu and pick "Changer le rôle".
+    await row.getByRole('button', { name: 'Actions' }).click();
+    await adminPage.getByRole('button', { name: 'Changer le rôle' }).click();
 
-    await row.getByRole('button', { name: 'Valider' }).click();
+    // In the modal, select a new role; Valider is disabled until it changes.
+    await adminPage.getByRole('button', { name: 'Adhérent' }).click();
+    await adminPage.getByRole('button', { name: 'Moniteur', exact: true }).click();
+    await adminPage.getByRole('button', { name: 'Valider' }).click();
+
     await expect(adminPage.getByText('Rôle mis à jour')).toBeVisible({
       timeout: 5000,
     });
-    // The dropdown now reflects the new role.
-    await expect(row.getByRole('button', { name: 'Moniteur' })).toBeVisible();
   });
 
   test('un non-admin voit la liste en lecture seule', async () => {
@@ -102,22 +107,21 @@ test.describe.serial('Gestion des membres (e2e)', () => {
 
     // The members list is visible...
     await expect(
-      memberPage.getByRole('row', { name: MEMBER_EMAIL }),
+      memberPage.getByRole('row', { name: MEMBER_NAME }),
     ).toBeVisible({ timeout: 5000 });
-    // ...but no management controls are rendered.
-    await expect(memberPage.getByRole('button', { name: 'Valider' })).toHaveCount(
-      0,
-    );
+    // ...but no actions menu is rendered.
     await expect(
-      memberPage.getByRole('button', { name: 'Expulser' }),
+      memberPage.getByRole('button', { name: 'Actions' }),
     ).toHaveCount(0);
   });
 
   test('l’admin expulse le membre après confirmation', async () => {
     await adminPage.goto('/dashboard/members');
-    const row = adminPage.getByRole('row', { name: MEMBER_EMAIL });
+    const row = adminPage.getByRole('row', { name: MEMBER_NAME });
 
-    await row.getByRole('button', { name: 'Expulser' }).click();
+    // Open the row actions menu and pick "Expulser".
+    await row.getByRole('button', { name: 'Actions' }).click();
+    await adminPage.getByRole('button', { name: 'Expulser' }).click();
 
     // Confirm in the modal.
     await expect(adminPage.getByText('Expulser ce membre ?')).toBeVisible();
@@ -131,7 +135,7 @@ test.describe.serial('Gestion des membres (e2e)', () => {
     });
     // The member is gone from the list.
     await expect(
-      adminPage.getByRole('row', { name: MEMBER_EMAIL }),
+      adminPage.getByRole('row', { name: MEMBER_NAME }),
     ).toHaveCount(0);
   });
 });
