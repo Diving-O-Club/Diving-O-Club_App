@@ -1,11 +1,10 @@
 'use client';
 
-import { useState } from 'react';
-import { useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
 import { useMembership } from '../../hooks/useMembership';
-import { type DashboardEvent } from '@/app/lib/api/events';
+import { getClubEvents, type DashboardEvent } from '@/app/lib/api/events';
 import { useEvents } from '../../hooks/useEvents';
 import { Calendar, Plus } from 'lucide-react';
 import Link from 'next/link';
@@ -21,10 +20,23 @@ export default function EventsPage() {
   const router = useRouter();
 
   const [eventToDelete, setEventToDelete] = useState<DashboardEvent | null>(null);
+  // Enriched events (with remainingSpots) fetched from the club events endpoint.
+  const [events, setEvents] = useState<DashboardEvent[]>([]);
+
+  const clubId = membership?.club.idClub;
+
+  const loadEvents = useCallback(() => {
+    if (!clubId) return;
+    getClubEvents(clubId).then(setEvents);
+  }, [clubId]);
 
   useEffect(() => {
     if (!authLoading && !user) router.push('/login');
   }, [user, authLoading, router]);
+
+  useEffect(() => {
+    loadEvents();
+  }, [loadEvents]);
 
   if (authLoading || membershipLoading) {
     return (
@@ -65,11 +77,11 @@ export default function EventsPage() {
   const isManager = MANAGER_ROLES.includes(membership.role.codeRole);
   const now = new Date();
 
-  const upcoming = membership.club.events
+  const upcoming = events
     .filter(e => new Date(e.startDatetime) >= now)
     .sort((a, b) => +new Date(a.startDatetime) - +new Date(b.startDatetime));
 
-  const past = membership.club.events
+  const past = events
     .filter(e => new Date(e.startDatetime) < now)
     .sort((a, b) => +new Date(b.startDatetime) - +new Date(a.startDatetime));
 
@@ -82,6 +94,7 @@ export default function EventsPage() {
     const success = await deleteEvent(eventToDelete.idEvent);
     if (success) {
       setEventToDelete(null);
+      loadEvents();
       refetch();
     }
   };

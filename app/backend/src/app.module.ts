@@ -8,6 +8,7 @@ import { Club } from './club/club.entity';
 import { AppUser } from './app-user/app-user.entity';
 import { Membership } from './membership/membership.entity';
 import { ClubEvent } from './event/event.entity';
+import { EventRegistration } from './event/event-registration.entity';
 import { ClubModule } from './club/club.module';
 import { AuthModule } from './auth/auth.module';
 import { MembershipModule } from './membership/membership.module';
@@ -28,7 +29,7 @@ const dbEnabled = process.env.DB_ENABLED === 'true';
             username: process.env.DB_USER,
             password: process.env.DB_PASSWORD,
             database: process.env.DB_NAME,
-            entities: [Role, Club, AppUser, Membership, ClubEvent],
+            entities: [Role, Club, AppUser, Membership, ClubEvent, EventRegistration],
             synchronize: false,
             migrationsRun: true,
             migrations: [__dirname + '/database/migrations/*{.ts,.js}'],

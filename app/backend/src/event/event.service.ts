@@ -2,22 +2,28 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
+  ConflictException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ClubEvent } from './event.entity';
+import { EventRegistration } from './event-registration.entity';
 import { Membership } from '../membership/membership.entity';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { LogService } from '../log/log.service';
 
 const MANAGER_ROLES = ['admin', 'super_admin', 'instructor', 'committee'];
+const REGISTERED = 'registered';
+const WAITLIST = 'waitlist';
 
 @Injectable()
 export class EventService {
   constructor(
     @InjectRepository(ClubEvent)
     private readonly eventRepo: Repository<ClubEvent>,
+    @InjectRepository(EventRegistration)
+    private readonly registrationRepo: Repository<EventRegistration>,
     @InjectRepository(Membership)
     private readonly membershipRepo: Repository<Membership>,
     private readonly logService: LogService,
@@ -45,21 +51,56 @@ export class EventService {
     return membership;
   }
 
-  async findAllByClub(clubId: number): Promise<object[]> {
+  // remainingSpots is null for unlimited capacity (maxCapacity null).
+  private remainingSpots(
+    maxCapacity: number | null,
+    registeredCount: number,
+  ): number | null {
+    if (maxCapacity == null) return null;
+    return Math.max(0, maxCapacity - registeredCount);
+  }
+
+  // Registration figures for one event, from the current user's point of view.
+  private async registrationInfo(
+    eventId: number,
+    maxCapacity: number | null,
+    userId: number,
+  ): Promise<{
+    registeredCount: number;
+    remainingSpots: number | null;
+    userStatus: string | null;
+  }> {
+    const registeredCount = await this.registrationRepo.count({
+      where: { event: { idEvent: eventId }, status: REGISTERED },
+    });
+    const myRegistration = await this.registrationRepo.findOne({
+      where: { event: { idEvent: eventId }, user: { idUser: userId } },
+    });
+    return {
+      registeredCount,
+      remainingSpots: this.remainingSpots(maxCapacity, registeredCount),
+      userStatus: myRegistration ? myRegistration.status : null,
+    };
+  }
+
+  async findAllByClub(clubId: number, userId: number): Promise<object[]> {
     const events = await this.eventRepo.find({
       where: { club: { idClub: clubId } },
       relations: ['creator'],
       order: { startDatetime: 'ASC' },
     });
-    return events.map((e) => ({
-      ...e,
-      creator: e.creator
-        ? { firstName: e.creator.firstName, lastName: e.creator.lastName }
-        : null,
-    }));
+    return Promise.all(
+      events.map(async (e) => ({
+        ...e,
+        creator: e.creator
+          ? { firstName: e.creator.firstName, lastName: e.creator.lastName }
+          : null,
+        ...(await this.registrationInfo(e.idEvent, e.maxCapacity, userId)),
+      })),
+    );
   }
 
-  async findById(eventId: number): Promise<object> {
+  async findById(eventId: number, userId: number): Promise<object> {
     const event = await this.eventRepo.findOne({
       where: { idEvent: eventId },
       relations: ['creator', 'club'],
@@ -68,8 +109,12 @@ export class EventService {
     return {
       ...event,
       creator: event.creator
-        ? { firstName: event.creator.firstName, lastName: event.creator.lastName }
+        ? {
+            firstName: event.creator.firstName,
+            lastName: event.creator.lastName,
+          }
         : null,
+      ...(await this.registrationInfo(eventId, event.maxCapacity, userId)),
     };
   }
 
@@ -147,5 +192,136 @@ export class EventService {
       actorId: userId,
       clubId: event.club.idClub,
     });
+  }
+
+  // Only an active member of the event's club may register.
+  private async assertActiveMember(
+    userId: number,
+    clubId: number,
+  ): Promise<void> {
+    const membership = await this.membershipRepo.findOne({
+      where: {
+        user: { idUser: userId },
+        club: { idClub: clubId },
+        status: 'active',
+      },
+    });
+    if (!membership) {
+      throw new ForbiddenException('Réservé aux membres de ce club');
+    }
+  }
+
+  async register(
+    userId: number,
+    eventId: number,
+  ): Promise<{ status: string; message: string }> {
+    const event = await this.eventRepo.findOne({
+      where: { idEvent: eventId },
+      relations: ['club'],
+    });
+    if (!event) throw new NotFoundException('Événement introuvable');
+
+    await this.assertActiveMember(userId, event.club.idClub);
+
+    const existing = await this.registrationRepo.findOne({
+      where: { event: { idEvent: eventId }, user: { idUser: userId } },
+    });
+    if (existing) {
+      throw new ConflictException('Vous êtes déjà inscrit à cet événement');
+    }
+
+    // Unlimited capacity (maxCapacity null) never goes to the waitlist.
+    let status = REGISTERED;
+    if (event.maxCapacity != null) {
+      const registeredCount = await this.registrationRepo.count({
+        where: { event: { idEvent: eventId }, status: REGISTERED },
+      });
+      if (registeredCount >= event.maxCapacity) status = WAITLIST;
+    }
+
+    await this.registrationRepo.save({
+      event: { idEvent: eventId },
+      user: { idUser: userId },
+      status,
+    });
+
+    await this.logService.logMembership({
+      action: status === REGISTERED ? 'event_registered' : 'event_waitlisted',
+      actorId: userId,
+      clubId: event.club.idClub,
+    });
+
+    return {
+      status,
+      message:
+        status === REGISTERED
+          ? 'Inscription réussie'
+          : 'Événement complet : vous êtes en liste d’attente',
+    };
+  }
+
+  async unregister(
+    userId: number,
+    eventId: number,
+  ): Promise<{ success: boolean; message: string }> {
+    const registration = await this.registrationRepo.findOne({
+      where: { event: { idEvent: eventId }, user: { idUser: userId } },
+      relations: ['event', 'event.club'],
+    });
+    if (!registration) {
+      throw new NotFoundException("Vous n'êtes pas inscrit à cet événement");
+    }
+
+    const freedSpot = registration.status === REGISTERED;
+    const clubId = registration.event.club.idClub;
+    await this.registrationRepo.remove(registration);
+
+    // Promote the first waitlisted member when a registered spot frees up.
+    if (freedSpot) {
+      const nextInLine = await this.registrationRepo.findOne({
+        where: { event: { idEvent: eventId }, status: WAITLIST },
+        order: { createdAt: 'ASC' },
+      });
+      if (nextInLine) {
+        nextInLine.status = REGISTERED;
+        await this.registrationRepo.save(nextInLine);
+      }
+    }
+
+    await this.logService.logMembership({
+      action: 'event_unregistered',
+      actorId: userId,
+      clubId,
+    });
+
+    return { success: true, message: 'Désinscription réussie' };
+  }
+
+  async getParticipants(eventId: number): Promise<{
+    registered: { firstName: string; lastName: string }[];
+    waitlist: { firstName: string; lastName: string }[];
+  }> {
+    const event = await this.eventRepo.findOne({
+      where: { idEvent: eventId },
+    });
+    if (!event) throw new NotFoundException('Événement introuvable');
+
+    const registrations = await this.registrationRepo.find({
+      where: { event: { idEvent: eventId } },
+      relations: ['user'],
+      order: { createdAt: 'ASC' },
+    });
+
+    const toName = (r: EventRegistration) => ({
+      firstName: r.user.firstName,
+      lastName: r.user.lastName,
+    });
+
+    return {
+      registered: registrations
+        .filter((r) => r.status === REGISTERED)
+        .map(toName),
+      waitlist: registrations.filter((r) => r.status === WAITLIST).map(toName),
+    };
   }
 }

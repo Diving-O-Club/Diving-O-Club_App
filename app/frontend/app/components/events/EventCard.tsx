@@ -50,11 +50,18 @@ export default function EventCard({ event, isManager, onEdit, onDelete }: Props)
               {event.location}
             </span>
           )}
-          {event.maxCapacity && (
+          {event.remainingSpots != null ? (
             <span className="flex items-center gap-1 text-sm text-gray-400">
               <Users className="w-3.5 h-3.5" />
-              {event.maxCapacity} places
+              {event.remainingSpots} place{event.remainingSpots > 1 ? 's' : ''} restante{event.remainingSpots > 1 ? 's' : ''}
             </span>
+          ) : (
+            event.maxCapacity && (
+              <span className="flex items-center gap-1 text-sm text-gray-400">
+                <Users className="w-3.5 h-3.5" />
+                {event.maxCapacity} places
+              </span>
+            )
           )}
         </div>
       </Link>
