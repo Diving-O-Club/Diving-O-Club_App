@@ -281,9 +281,14 @@ export default function MembersPage() {
       {actionMenuMember && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
           <div className="bg-white rounded-2xl shadow-xl max-w-xs w-full p-4">
-            <p className="text-sm font-semibold text-[#0d3b66] px-2 pt-1 pb-3">
-              {actionMenuMember.user.firstName} {actionMenuMember.user.lastName}
-            </p>
+            <div className="flex items-center gap-2 flex-wrap px-2 pt-1 pb-3">
+              <p className="text-sm font-semibold text-[#0d3b66]">
+                {actionMenuMember.user.firstName} {actionMenuMember.user.lastName}
+              </p>
+              <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2.5 py-0.5 rounded-full whitespace-nowrap">
+                {ROLE_LABELS[actionMenuMember.role.codeRole] ?? actionMenuMember.role.labelRole}
+              </span>
+            </div>
             <div className="flex flex-col">
               <button
                 onClick={() => openRoleModal(actionMenuMember)}
@@ -324,6 +329,12 @@ export default function MembersPage() {
                 Changer le rôle de {roleModalMember.user.firstName} {roleModalMember.user.lastName}
               </h2>
             </div>
+            <p className="text-sm text-gray-500 mb-4">
+              Rôle actuel :{' '}
+              <span className="font-medium text-[#0d3b66]">
+                {ROLE_LABELS[roleModalMember.role.codeRole] ?? roleModalMember.role.labelRole}
+              </span>
+            </p>
             <CustomSelect
               value={modalRole}
               onValueChange={setModalRole}
