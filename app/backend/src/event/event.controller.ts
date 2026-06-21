@@ -23,13 +23,28 @@ export class EventController {
   constructor(private readonly eventService: EventService) {}
 
   @Get('clubs/:clubId/events')
-  async findAll(@Param('clubId') clubId: string) {
-    return this.eventService.findAllByClub(parseInt(clubId));
+  async findAll(@Param('clubId') clubId: string, @Req() req: AuthReq) {
+    return this.eventService.findAllByClub(parseInt(clubId), req.user.idUser);
   }
 
   @Get('events/:id')
-  async findOne(@Param('id') id: string) {
-    return this.eventService.findById(parseInt(id));
+  async findOne(@Param('id') id: string, @Req() req: AuthReq) {
+    return this.eventService.findById(parseInt(id), req.user.idUser);
+  }
+
+  @Get('events/:eventId/participants')
+  async participants(@Param('eventId') eventId: string) {
+    return this.eventService.getParticipants(parseInt(eventId));
+  }
+
+  @Post('events/:eventId/register')
+  async register(@Param('eventId') eventId: string, @Req() req: AuthReq) {
+    return this.eventService.register(req.user.idUser, parseInt(eventId));
+  }
+
+  @Delete('events/:eventId/register')
+  async unregister(@Param('eventId') eventId: string, @Req() req: AuthReq) {
+    return this.eventService.unregister(req.user.idUser, parseInt(eventId));
   }
 
   @Post('clubs/:clubId/events')
