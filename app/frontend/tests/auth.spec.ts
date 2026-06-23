@@ -3,6 +3,8 @@ import { test, expect } from '@playwright/test';
 const TIMESTAMP = Date.now();
 const TEST_EMAIL = `playwright-${TIMESTAMP}@e2e-test.com`;
 const TEST_PASSWORD = 'Test1234!';
+// Seeded accounts share the SEED_PASSWORD used to seed the DB (123 in CI).
+const SEED_PASSWORD = process.env.SEED_PASSWORD || 'LocalDev_2026!';
 
 test.describe('Authentication', () => {
 
@@ -28,7 +30,7 @@ test.describe('Authentication', () => {
     await page.goto('/login');
 
     await page.getByPlaceholder('vous@exemple.fr').fill('adherent@test.com');
-    await page.getByPlaceholder('••••••••').fill('123');
+    await page.getByPlaceholder('••••••••').fill(SEED_PASSWORD);
 
     await page.getByRole('button', { name: /se connecter/i }).click();
 

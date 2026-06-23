@@ -170,6 +170,8 @@ type CustomSelectProps = {
   placeholder?: string
   hint?: string
   panelClassName?: string
+  // When false, the empty placeholder option is hidden (value is required).
+  clearable?: boolean
 }
 
 export function CustomSelect({
@@ -181,6 +183,7 @@ export function CustomSelect({
   placeholder = '— Non renseigné —',
   hint,
   panelClassName = 'min-w-[200px]',
+  clearable = true,
 }: CustomSelectProps) {
   const [isOpen, setIsOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
@@ -237,12 +240,14 @@ export function CustomSelect({
         {isOpen && (
           <div className={`absolute z-50 mt-1 w-full rounded-xl border border-gray-100 bg-white shadow-xl overflow-hidden ${panelClassName}`}>
             <ul className="max-h-64 overflow-y-auto py-1">
-              <li>
-                <button type="button" onClick={() => select('')} className={itemClass('')}>
-                  <span className="w-4 shrink-0" />
-                  <span className="text-gray-400">{placeholder}</span>
-                </button>
-              </li>
+              {clearable && (
+                <li>
+                  <button type="button" onClick={() => select('')} className={itemClass('')}>
+                    <span className="w-4 shrink-0" />
+                    <span className="text-gray-400">{placeholder}</span>
+                  </button>
+                </li>
+              )}
               {options.map((opt) => (
                 <li key={opt.value}>
                   <button type="button" onClick={() => select(opt.value)} className={itemClass(opt.value)}>

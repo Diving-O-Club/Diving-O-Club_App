@@ -6,7 +6,11 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { MembershipService } from './membership.service';
 import { Membership } from './membership.entity';
 import { Role } from '../role/role.entity';
-import { ConflictException, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { LogService } from '../log/log.service';
 
 // ── Mocks ──────────────────────────────────────────────────────────────────
@@ -226,6 +230,141 @@ describe('MembershipService', () => {
       mockMembershipRepo.findOne.mockResolvedValue(null);
 
       await expect(service.rejectRequest(99, 1)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+  });
+
+  // ── changeMemberRole ───────────────────────────────────────────────────
+  describe('changeMemberRole', () => {
+    // admin (idUser 1) of club 1, target member (idMembership 2, idUser 5)
+    const adminMembership = makeMembership({
+      role: { codeRole: 'admin', labelRole: 'Administrateur' } as any,
+    });
+    const targetMembership = makeMembership({
+      idMembership: 2,
+      user: { idUser: 5, email: 'target@test.com' } as any,
+      role: { codeRole: 'member', labelRole: 'Adhérent' } as any,
+    });
+
+    it('should update the role when actor is admin of the club', async () => {
+      mockMembershipRepo.findOne
+        .mockResolvedValueOnce(targetMembership) // load target
+        .mockResolvedValueOnce(adminMembership); // assertClubAdmin
+      mockRoleRepo.findOneBy.mockResolvedValue({ codeRole: 'instructor' });
+      mockMembershipRepo.save.mockResolvedValue(targetMembership);
+
+      const result = await service.changeMemberRole(1, 2, 'instructor');
+      expect(result).toEqual({ success: true });
+      expect(mockMembershipRepo.save).toHaveBeenCalledTimes(1);
+    });
+
+    it('should throw ForbiddenException for a non-assignable role (e.g. super_admin)', async () => {
+      await expect(
+        service.changeMemberRole(1, 2, 'super_admin'),
+      ).rejects.toThrow(ForbiddenException);
+      // rejected before any query
+      expect(mockMembershipRepo.findOne).not.toHaveBeenCalled();
+    });
+
+    it('should throw ForbiddenException when actor is not admin of the club', async () => {
+      mockMembershipRepo.findOne
+        .mockResolvedValueOnce(targetMembership)
+        .mockResolvedValueOnce(null); // no admin membership for this club
+      await expect(
+        service.changeMemberRole(1, 2, 'instructor'),
+      ).rejects.toThrow(ForbiddenException);
+      expect(mockMembershipRepo.save).not.toHaveBeenCalled();
+    });
+
+    it('should forbid changing your own role', async () => {
+      const ownMembership = makeMembership({
+        idMembership: 2,
+        user: { idUser: 1, email: 'me@test.com' } as any,
+        role: { codeRole: 'admin', labelRole: 'Administrateur' } as any,
+      });
+      mockMembershipRepo.findOne
+        .mockResolvedValueOnce(ownMembership)
+        .mockResolvedValueOnce(adminMembership);
+      await expect(service.changeMemberRole(1, 2, 'member')).rejects.toThrow(
+        ForbiddenException,
+      );
+      expect(mockMembershipRepo.save).not.toHaveBeenCalled();
+    });
+
+    it('should forbid changing a super_admin member', async () => {
+      const superAdminTarget = makeMembership({
+        idMembership: 2,
+        user: { idUser: 5, email: 'sa@test.com' } as any,
+        role: { codeRole: 'super_admin', labelRole: 'Super Admin' } as any,
+      });
+      mockMembershipRepo.findOne
+        .mockResolvedValueOnce(superAdminTarget)
+        .mockResolvedValueOnce(adminMembership);
+      await expect(service.changeMemberRole(1, 2, 'member')).rejects.toThrow(
+        ForbiddenException,
+      );
+      expect(mockMembershipRepo.save).not.toHaveBeenCalled();
+    });
+
+    it('should throw NotFoundException when the target member does not exist', async () => {
+      mockMembershipRepo.findOne.mockResolvedValueOnce(null);
+      await expect(
+        service.changeMemberRole(1, 999, 'instructor'),
+      ).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  // ── expelMember ────────────────────────────────────────────────────────
+  describe('expelMember', () => {
+    const adminMembership = makeMembership({
+      role: { codeRole: 'admin', labelRole: 'Administrateur' } as any,
+    });
+    const targetMembership = makeMembership({
+      idMembership: 2,
+      user: { idUser: 5, email: 'target@test.com' } as any,
+      role: { codeRole: 'member', labelRole: 'Adhérent' } as any,
+    });
+
+    it('should remove the membership when actor is admin of the club', async () => {
+      mockMembershipRepo.findOne
+        .mockResolvedValueOnce(targetMembership)
+        .mockResolvedValueOnce(adminMembership);
+      mockMembershipRepo.remove.mockResolvedValue(undefined);
+
+      const result = await service.expelMember(1, 2);
+      expect(result).toEqual({ success: true });
+      expect(mockMembershipRepo.remove).toHaveBeenCalledWith(targetMembership);
+    });
+
+    it('should throw ForbiddenException when actor is not admin of the club', async () => {
+      mockMembershipRepo.findOne
+        .mockResolvedValueOnce(targetMembership)
+        .mockResolvedValueOnce(null);
+      await expect(service.expelMember(1, 2)).rejects.toThrow(
+        ForbiddenException,
+      );
+      expect(mockMembershipRepo.remove).not.toHaveBeenCalled();
+    });
+
+    it('should forbid expelling yourself', async () => {
+      const ownMembership = makeMembership({
+        idMembership: 2,
+        user: { idUser: 1, email: 'me@test.com' } as any,
+        role: { codeRole: 'admin', labelRole: 'Administrateur' } as any,
+      });
+      mockMembershipRepo.findOne
+        .mockResolvedValueOnce(ownMembership)
+        .mockResolvedValueOnce(adminMembership);
+      await expect(service.expelMember(1, 2)).rejects.toThrow(
+        ForbiddenException,
+      );
+      expect(mockMembershipRepo.remove).not.toHaveBeenCalled();
+    });
+
+    it('should throw NotFoundException when the target member does not exist', async () => {
+      mockMembershipRepo.findOne.mockResolvedValueOnce(null);
+      await expect(service.expelMember(1, 999)).rejects.toThrow(
         NotFoundException,
       );
     });

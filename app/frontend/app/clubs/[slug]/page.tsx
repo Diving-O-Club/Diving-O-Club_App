@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { MapPin, Users, Calendar, ArrowLeft, ArrowRight, Mail, Shield } from 'lucide-react';
+import { MapPin, Users, Calendar, ArrowLeft, Mail, Shield } from 'lucide-react';
 import { getClub } from '@/app/lib/api/clubs';
 import JoinClubButton from './_components/JoinClubButton';
 
@@ -11,7 +11,7 @@ export default async function ClubPage({ params }: { params: Promise<{ slug: str
     return (
         <div className="min-h-[calc(100vh-350px)] flex flex-col items-center justify-center gap-6 px-6">
         <h1 className="text-2xl font-bold text-[#0d3b66]">Club non trouvé</h1>
-        <p className="text-gray-500">Le club que vous recherchez n'existe pas.</p>
+        <p className="text-gray-500">Le club que vous recherchez n&apos;existe pas.</p>
         <Link href="/clubs" className="flex items-center gap-2 text-[#006994] hover:underline font-medium">
             <ArrowLeft className="w-4 h-4" />
             Retour à la recherche
@@ -103,7 +103,7 @@ export default async function ClubPage({ params }: { params: Promise<{ slug: str
         <div className="bg-white rounded-2xl p-6 md:p-8 shadow-xl text-center">
           <h2 className="text-xl font-bold text-[#0d3b66] mb-4">Rejoindre ce club</h2>
           <p className="text-gray-500 mb-6 max-w-2xl mx-auto">
-            Envoyez une demande d'adhésion au club. Le président examinera votre demande et vous contactera.
+            Envoyez une demande d&apos;adhésion au club. Le président examinera votre demande et vous contactera.
           </p>
           <JoinClubButton clubId={club.idClub} />
         </div>

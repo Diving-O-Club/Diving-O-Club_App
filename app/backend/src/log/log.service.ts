@@ -3,6 +3,11 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Log, LogDocument } from './schemas/log.schema';
 
+/**
+ * Audit logging to MongoDB. Each helper writes a typed entry (auth, membership
+ * or error). Writes are best-effort: failures are caught and logged locally,
+ * never propagated — logging can never break a request.
+ */
 @Injectable()
 export class LogService {
   private readonly logger = new Logger(LogService.name);
@@ -11,6 +16,7 @@ export class LogService {
     @InjectModel(Log.name) private readonly logModel: Model<LogDocument>,
   ) {}
 
+  /** Record an authentication event (register, login success/failure, logout). */
   async logAuth(data: {
     action: string;
     userId?: number;
@@ -24,6 +30,7 @@ export class LogService {
     }
   }
 
+  /** Record a membership or event action (request, role change, registration…). */
   async logMembership(data: {
     action: string;
     actorId?: number;
@@ -42,6 +49,7 @@ export class LogService {
     }
   }
 
+  /** Record a handled error (status code, endpoint, message). */
   async logError(data: {
     statusCode: number;
     endpoint: string;

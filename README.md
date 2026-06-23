@@ -1,201 +1,192 @@
 # 🌊 Diving O Club
 
-Diving O Club est une application web conçue pour moderniser et simplifier la gestion des clubs de plongée sous-marine.
+> Application web **multi-tenant** de gestion pour les clubs de plongée affiliés
+> **FFESSM** : adhésions, événements, inscriptions, certificats médicaux et
+> paiements, dans un outil unique.
 
-La plateforme centralise les opérations du club telles que la gestion des membres, les certifications, les événements et certaines tâches administratives dans un outil numérique unique. Elle est pensée pour les clubs affiliés à la FFESSM et vise à faciliter les workflows administratifs tout en améliorant l'expérience des responsables de club et des plongeurs.
+Pensée pour les responsables de club comme pour les plongeurs, la plateforme
+centralise et simplifie les workflows administratifs d'un club, tout en
+permettant à plusieurs clubs de cohabiter sur la même instance.
 
 ---
 
-## 🎯 Objectifs du projet
+## 📸 Aperçu
 
-Les principaux objectifs de Diving O Club sont :
+<!-- Ajoute 2 à 3 captures de l'application (ex. tableau de bord, liste des
+événements, gestion des membres) dans un dossier /docs/screenshots puis
+référence-les ici : ![Dashboard](docs/screenshots/dashboard.png) -->
 
-- Simplifier la gestion administrative des clubs
-- Centraliser les informations des plongeurs et leurs certifications
-- Organiser les événements et les séances d'entraînement
-- Suivre le matériel du club
-- Offrir une interface moderne et accessible
-- Permettre un déploiement scalable pour plusieurs clubs
+> _Captures d'écran à venir._
 
-À terme, le projet vise à devenir une plateforme complète de gestion pour les clubs de plongée.
+---
+
+## ✨ Fonctionnalités
+
+### Implémentées
+- 🔐 **Authentification & rôles** — JWT dans un cookie HttpOnly ; rôles
+  *Adhérent, Moniteur, Comité, Admin, Super Admin*
+- 🏊 **Multi-tenant** — chaque club a son espace, accessible par une URL `slug`
+- 👥 **Adhésions** — demande d'adhésion, validation/refus par un admin,
+  changement de rôle, expulsion (autorisation *cantonnée au club*)
+- 📅 **Événements & inscriptions** — création par les encadrants, inscription
+  des membres avec **liste d'attente** (FIFO)
+- 🩺 **Certificats médicaux** — aptitude, date d'obtention et d'expiration
+  (calculée automatiquement)
+- 💳 **Paiements** — liés aux événements payants
+- 📝 **Journalisation d'audit** — MongoDB, expiration automatique après 30 jours
+
+### Perspectives
+- Gestion du matériel du club
+- Haute disponibilité, auto-scaling, bases de données managées
+- Durcissement sécurité et conformité (voir [Limites & perspectives](#️-limites--perspectives))
 
 ---
 
 ## 🧱 Architecture
 
-L'application repose sur une architecture web moderne avec séparation frontend / backend.
+Architecture web moderne avec séparation **frontend / backend** :
+
 ```
 Frontend (Next.js)
         │
-        │ REST API
+        │ REST API (cookie JWT HttpOnly)
         ▼
 Backend (NestJS / Node.js)
         │
-        ├── PostgreSQL (données relationnelles)
-        └── MongoDB (stockage documentaire)
+        ├── PostgreSQL  (données métier relationnelles, via TypeORM + migrations)
+        └── MongoDB     (logs d'audit)
 ```
 
-L'infrastructure est conteneurisée avec Docker et déployée sur AWS EC2.
+Le tout est conteneurisé avec **Docker** et déployé sur **AWS EC2** derrière un
+reverse proxy **Nginx** (HTTPS via Let's Encrypt).
 
 ---
 
 ## ⚙️ Stack technique
 
-### Frontend
-- Next.js
-- React
-- TypeScript
-- Tailwind CSS
-
-### Backend
-- Node.js
-- NestJS
-- TypeORM / Prisma
-
-### Bases de données
-- PostgreSQL
-- MongoDB
-
-### DevOps
-- Docker
-- Docker Compose
-- GitHub Actions (CI/CD)
-- Déploiement AWS EC2
-- Nginx (reverse proxy)
-- HTTPS avec Let's Encrypt
+| Couche | Technologies |
+|---|---|
+| **Frontend** | Next.js 16, React 19, TypeScript, Tailwind CSS 4 |
+| **Backend** | NestJS, TypeORM, Passport (JWT), argon2 |
+| **Bases de données** | PostgreSQL (métier), MongoDB / Mongoose (audit) |
+| **DevOps** | Docker, Docker Compose, GitHub Actions (CI/CD), AWS EC2, Nginx, Let's Encrypt |
 
 ---
 
-## 📦 Fonctionnalités
+## 🗂 Conception
 
-### Gestion des membres
-- Enregistrement et gestion des membres du club
-- Suivi des niveaux et certifications
+Les schémas de conception (MCD, MLD, MPD, cas d'usage, diagrammes de séquence,
+wireframes, zoning) sont regroupés dans
+[`docs/diagrammes/`](docs/diagrammes). Le dossier technique est dans
+[`docs/dossier-technique/`](docs/dossier-technique).
 
-### Événements et entraînements
-- Création et gestion des séances de plongée
-- Suivi de la participation
-
-### Certifications
-- Stockage des certifications des plongeurs
-- Suivi de la progression
-
-### Gestion du matériel
-- Gestion du matériel du club
-- Suivi de la disponibilité et de l'utilisation
-
-### Authentification et rôles
-
-Gestion des accès selon différents rôles :
-
-- Adhérent
-- CoMoniteurach
-- Comité
-- Admin
+> ⚠️ Schémas en cours de régénération suite à la refonte du schéma de base de
+> données (méthode Merise).
 
 ---
 
-## 🖥️ Installation (développement local)
+## 🚀 Installation (développement local)
 
-Cloner le dépôt :
+### Prérequis
+- Node.js 20+
+- PostgreSQL et MongoDB (en local, ou via Docker)
+
+### 1. Cloner
 ```bash
-git clone https://github.com/your-repository/diving-o-club.git
-cd diving-o-club
+git clone <url-du-depot>
+cd Diving-O-Club_App
 ```
 
-Installer les dépendances :
+### 2. Backend
 ```bash
+cd app/backend
 npm install
+cp .env.example .env            # puis renseigne les variables (DB, JWT, SEED_PASSWORD…)
+npm run migration:run           # crée le schéma
+SEED_PASSWORD='<motdepasse>' npm run seed   # données de démo (optionnel)
+npm run start:dev               # API sur http://localhost:3001
 ```
 
-Lancer le projet avec Docker :
+### 3. Frontend
 ```bash
-docker compose up --build
-```
-
-L'application sera accessible sur :
-```
-http://localhost:3000
+cd app/frontend
+npm install
+cp .env.example .env.local      # renseigne NEXT_PUBLIC_API_URL
+npm run dev                     # app sur http://localhost:3000
 ```
 
 ---
 
-## 🔁 Pipeline CI/CD
+## 📚 Documentation
 
-Le projet utilise GitHub Actions pour automatiser :
+| Doc | Où |
+|---|---|
+| **Backend** (stack, scripts, DB) | [`app/backend/README.md`](app/backend/README.md) |
+| **API REST** (Swagger) | `http://localhost:3001/docs` — *local uniquement* |
+| **Architecture du code** (Compodoc) | `cd app/backend && npm run doc:serve` → `http://localhost:8080` |
 
-- les tests du code
-- la construction des images Docker
-- le push des images Docker
-- le déploiement sur AWS EC2
+---
 
-Workflow de déploiement :
+## 🧪 Tests
+
+```bash
+cd app/backend
+npm run test        # tests unitaires (Jest)
+npm run test:e2e    # tests end-to-end (Supertest, base de test)
 ```
-Feature branch
-      ↓
-Pull Request
-      ↓
-Develop (staging)
-      ↓
-Pull Request
-      ↓
-Main (production)
+La CI exécute également des tests E2E (Playwright) à chaque Pull Request.
+
+---
+
+## 🔁 Pipeline CI/CD (GitHub Actions)
+
+Tests automatisés, build et push des images Docker, puis déploiement sur AWS.
+
+```
+Feature branch → PR → Develop (déploie le staging)
+                            ↓
+                   Tag vX.Y.Z (déploie la production)
 ```
 
 ---
 
 ## ☁️ Infrastructure
 
-L'application est déployée sur AWS.
-
-Principaux composants de l'infrastructure :
-
-- Instance EC2
-- Conteneurs Docker
-- Base PostgreSQL
-- Base MongoDB
-- Reverse proxy Nginx
-- Certificats HTTPS via Let's Encrypt
-
-Évolutions possibles :
-
-- Haute disponibilité
-- Auto-scaling
-- Externalisation des bases de données
+Déploiement sur **AWS EC2** : conteneurs Docker (frontend, backend, PostgreSQL,
+MongoDB), reverse proxy **Nginx**, certificats HTTPS **Let's Encrypt**.
+Staging et production cohabitent sur la même instance (stacks Docker séparées).
 
 ---
 
-## 🎓 Contexte du projet
+## ⚠️ Limites & perspectives
 
-Ce projet est développé dans le cadre de la formation :
+Points identifiés pour une mise en production grand public (au-delà du cadre
+pédagogique actuel) :
 
-> **RNCP Concepteur Développeur d'Applications**
-
-L'objectif est de concevoir une application complète couvrant :
-
-- architecture logicielle
-- modélisation des données
-- développement frontend et backend
-- CI/CD et DevOps
-- déploiement cloud
+- **Certificats médicaux** : il s'agit d'attestations d'aptitude (apte/inapte,
+  sans pathologie), donc des données peu sensibles — mais « relatives à la
+  santé ». À protéger proportionnellement : accès restreint, chiffrement au
+  repos, durée de conservation définie.
+- **Durcissement sécurité** : rate limiting sur l'authentification, en-têtes de
+  sécurité (Helmet), réinitialisation de mot de passe, monitoring et sauvegardes.
+- **Fonctionnel** : gestion du matériel non encore implémentée.
 
 ---
 
-## 👨‍💻 Auteur
+## 🎓 Contexte
 
-**Kevin Lavier**
+Projet développé dans le cadre de la formation **RNCP Concepteur Développeur
+d'Applications**, couvrant l'architecture logicielle, la modélisation des
+données, le développement frontend et backend, la CI/CD et le déploiement cloud.
 
-Développeur web avec une expérience en design et conception d'interfaces.
+---
 
-Centres d'intérêt :
+## 👤 Auteur
 
-- développement web
-- DevOps
-- plongée sous-marine
-- création d'outils numériques pour les communautés
+**Kevin Lavier** — développeur web (design & conception d'interfaces).
 
 ---
 
 ## 📜 Licence
 
-Projet développé actuellement dans un cadre pédagogique et expérimental.
+Projet développé dans un cadre pédagogique et expérimental.

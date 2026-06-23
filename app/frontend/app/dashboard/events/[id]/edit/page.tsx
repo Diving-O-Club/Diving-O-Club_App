@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '../../../../context/AuthContext';
 import { useMembership } from '../../../../hooks/useMembership';
@@ -23,26 +23,22 @@ export default function EditEventPage() {
   const params = useParams();
   const eventId = parseInt(params.id as string);
 
-  const [event, setEvent] = useState<DashboardEvent | null>(null);
+  // Derive the event from the membership data instead of storing it in state
+  // (avoids calling setState synchronously inside an effect).
+  const event = useMemo<DashboardEvent | null>(
+    () => membership?.club.events.find((e) => e.idEvent === eventId) ?? null,
+    [membership, eventId],
+  );
 
   useEffect(() => {
     if (!authLoading && !user) router.push('/login');
   }, [user, authLoading, router]);
 
   useEffect(() => {
-    if (!membershipLoading && membership) {
-      if (!MANAGER_ROLES.includes(membership.role.codeRole)) {
-        router.push('/dashboard/events');
-        return;
-      }
-      const found = membership.club.events.find(e => e.idEvent === eventId);
-      if (!found) {
-        router.push('/dashboard/events');
-        return;
-      }
-      setEvent(found);
-    }
-  }, [membership, membershipLoading, router, eventId]);
+    if (membershipLoading || !membership) return;
+    const isManager = MANAGER_ROLES.includes(membership.role.codeRole);
+    if (!isManager || !event) router.push('/dashboard/events');
+  }, [membership, membershipLoading, event, router]);
 
   if (authLoading || membershipLoading) {
     return (
@@ -82,7 +78,7 @@ export default function EditEventPage() {
       </button>
 
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-[#0d3b66]">Modifier l'événement</h1>
+        <h1 className="text-2xl font-bold text-[#0d3b66]">Modifier l&apos;événement</h1>
         <p className="text-gray-400 text-sm mt-1">{membership.club.name}</p>
       </div>
 

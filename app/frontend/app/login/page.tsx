@@ -36,7 +36,7 @@ export default function LoginPage() {
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
               e.preventDefault();
-              handleSubmit(e as any, () => router.push('/dashboard'));
+              handleSubmit(e, () => router.push('/dashboard'));
             }
           }}
           className="space-y-4"

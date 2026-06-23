@@ -4,7 +4,6 @@ import { DashboardEvent } from './events';
 export type MembershipRole = {
   idRole: number;
   codeRole: string;
-  labelRole: string;
 };
 
 export type MemberUser = {
@@ -12,7 +11,8 @@ export type MemberUser = {
   firstName: string;
   lastName: string;
   email: string;
-  technicalLevel: string;
+  divingLevel: string | null;
+  instructorLevel: string | null;
   phone: string;
   ffessmLicenseNumber: string;
 };
@@ -139,6 +139,40 @@ export async function rejectRequest(membershipId: number): Promise<boolean> {
   try {
     const res = await clientFetch(
       `${process.env.NEXT_PUBLIC_API_URL}/membership/request/${membershipId}/reject`,
+      { method: 'DELETE', credentials: 'include' },
+    );
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+// Changes a member's role (admin only, scoped to the club).
+export async function changeMemberRole(
+  membershipId: number,
+  codeRole: string,
+): Promise<boolean> {
+  try {
+    const res = await clientFetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/members/${membershipId}/role`,
+      {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ codeRole }),
+      },
+    );
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+// Expels a member from the club: removes the membership, keeps the account.
+export async function expelMember(membershipId: number): Promise<boolean> {
+  try {
+    const res = await clientFetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/members/${membershipId}`,
       { method: 'DELETE', credentials: 'include' },
     );
     return res.ok;

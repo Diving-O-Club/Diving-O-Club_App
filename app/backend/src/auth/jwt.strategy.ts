@@ -3,6 +3,10 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { Request } from 'express';
 
+/**
+ * Passport JWT strategy. Extracts the token from the "access_token" HttpOnly
+ * cookie and, once verified, exposes `{ idUser, email }` on the request.
+ */
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor() {
@@ -18,6 +22,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
+  /** Map the verified JWT payload to the request user object. */
   validate(payload: { sub: number; email: string }) {
     return { idUser: payload.sub, email: payload.email };
   }

@@ -1,7 +1,12 @@
 export type Member = {
   idMembership: number;
-  user: { firstName: string; lastName: string; technicalLevel: string };
-  role: { labelRole: string };
+  user: {
+    firstName: string;
+    lastName: string;
+    divingLevel: string | null;
+    instructorLevel: string | null;
+  };
+  role: { codeRole: string };
 };
 
 export type ClubEvent = {

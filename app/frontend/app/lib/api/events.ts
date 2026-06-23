@@ -14,6 +14,17 @@ export type DashboardEvent = {
   price: string | null;
   status: string;
   creator: { firstName: string; lastName: string } | null;
+  // Registration info (null remainingSpots = unlimited capacity).
+  remainingSpots?: number | null;
+  registeredCount?: number;
+  userStatus?: 'registered' | 'waitlist' | null;
+};
+
+export type EventParticipant = { firstName: string; lastName: string };
+
+export type EventParticipants = {
+  registered: EventParticipant[];
+  waitlist: EventParticipant[];
 };
 
 export type CreateEventPayload = {
@@ -88,4 +99,67 @@ export async function deleteEvent(eventId: number): Promise<void> {
     },
   );
   if (!res.ok) throw new Error('Erreur lors de la suppression');
+}
+
+// Enriched event list for a club (includes remainingSpots and userStatus).
+export async function getClubEvents(clubId: number): Promise<DashboardEvent[]> {
+  try {
+    const res = await clientFetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/clubs/${clubId}/events`,
+      { cache: 'no-store', credentials: 'include' },
+    );
+    if (!res.ok) return [];
+    const data = await res.json();
+    return Array.isArray(data) ? data : [];
+  } catch {
+    return [];
+  }
+}
+
+export async function getEventParticipants(
+  eventId: number,
+): Promise<EventParticipants> {
+  try {
+    const res = await clientFetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/events/${eventId}/participants`,
+      { cache: 'no-store', credentials: 'include' },
+    );
+    if (!res.ok) return { registered: [], waitlist: [] };
+    return res.json();
+  } catch {
+    return { registered: [], waitlist: [] };
+  }
+}
+
+// Returns the message to show as feedback, or null on failure.
+export async function registerToEvent(eventId: number): Promise<string | null> {
+  try {
+    const res = await clientFetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/events/${eventId}/register`,
+      { method: 'POST', credentials: 'include' },
+    );
+    if (!res.ok) return null;
+    const data = await res.json();
+    return typeof data.message === 'string' ? data.message : 'Inscription réussie';
+  } catch {
+    return null;
+  }
+}
+
+export async function unregisterFromEvent(
+  eventId: number,
+): Promise<string | null> {
+  try {
+    const res = await clientFetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/events/${eventId}/register`,
+      { method: 'DELETE', credentials: 'include' },
+    );
+    if (!res.ok) return null;
+    const data = await res.json();
+    return typeof data.message === 'string'
+      ? data.message
+      : 'Désinscription réussie';
+  } catch {
+    return null;
+  }
 }

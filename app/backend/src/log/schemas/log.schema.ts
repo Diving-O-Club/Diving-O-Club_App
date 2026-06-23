@@ -3,6 +3,10 @@ import { Document } from 'mongoose';
 
 export type LogDocument = Log & Document;
 
+/**
+ * Mongo document for an audit log entry. Fields are sparse depending on `type`
+ * (auth / membership / error). A TTL index removes entries after 30 days.
+ */
 @Schema({ timestamps: true, collection: 'logs' })
 export class Log {
   @Prop({ required: true, enum: ['auth', 'membership', 'error'] })

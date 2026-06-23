@@ -13,8 +13,9 @@ export function RgpdSection({ onDownload, onDeleteRequest }: Props) {
       <SectionTitle>Confidentialité &amp; données personnelles</SectionTitle>
 
       <p className="text-sm text-gray-500 mb-5 leading-relaxed">
-        Conformément au RGPD, vous disposez d'un droit d'accès, de rectification
-        et d'effacement de vos données personnelles. Consultez notre{' '}
+        Conformément au RGPD, vous disposez d&apos;un droit d&apos;accès, de
+        rectification et d&apos;effacement de vos données personnelles. Consultez
+        notre{' '}
         <a
           href="/confidentialite"
           className="text-[#3DA9FC] underline underline-offset-2 hover:text-[#0D3B66] transition"

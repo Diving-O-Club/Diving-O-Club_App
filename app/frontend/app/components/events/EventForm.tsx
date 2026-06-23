@@ -34,7 +34,7 @@ export default function EventForm({
     startDatetime: initialValues?.startDatetime ?? '',
     endDatetime: initialValues?.endDatetime ?? '',
     location: initialValues?.location ?? '',
-    minimumLevel: initialValues?.minimumLevel ?? '',
+    minimumLevel: initialValues?.minimumLevel ?? 'all',
     maxCapacity: initialValues?.maxCapacity ?? undefined,
     isPaid: initialValues?.isPaid ?? false,
     price: initialValues?.price ?? undefined,

@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { useMembership } from '../hooks/useMembership';
 import { Search, Calendar, Users, FileText } from 'lucide-react';
 import Link from 'next/link';
+import { ROLE_LABELS } from '@/app/lib/roles';
 
 export default function DashboardPage() {
   const { user, loading: authLoading } = useAuth();
@@ -52,7 +53,7 @@ function DashboardNoClub() {
             </h2>
             <p className="text-gray-400 text-sm mb-4">
               Pour accéder à toutes les fonctionnalités (événements, membres, paiements),
-              vous devez d'abord rejoindre un club de plongée associatif.
+              vous devez d&apos;abord rejoindre un club de plongée associatif.
             </p>
             <Link
               href="/clubs"
@@ -125,7 +126,7 @@ function DashboardWithClub({ membership }: { membership: NonNullable<ReturnType<
       <h1 className="text-2xl font-bold text-[#0d3b66] mb-1">
         Bienvenue, {user.firstName} {user.lastName} 👋
       </h1>
-      <p className="text-gray-400 text-sm mb-8">Rôle : {role.labelRole}</p>
+      <p className="text-gray-400 text-sm mb-8">Rôle : {ROLE_LABELS[role.codeRole] ?? role.codeRole}</p>
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">

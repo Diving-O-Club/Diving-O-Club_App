@@ -1,3 +1,6 @@
 .DS_Store
 .vscode/
 tunnel.sh
+
+# Playwright test output (regenerated on each run)
+test-results/
