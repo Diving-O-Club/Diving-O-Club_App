@@ -5,9 +5,51 @@ import { AppDataSource } from '../data-source';
 import * as argon2 from 'argon2';
 import { Role } from '../../role/role.entity';
 import { Club } from '../../club/club.entity';
-import { AppUser } from '../../app-user/app-user.entity';
+import { User } from '../../user/user.entity';
+import { DivingLevel, InstructorLevel } from '../../user/user.enums';
 import { Membership } from '../../membership/membership.entity';
 import { ClubEvent } from '../../event/event.entity';
+import { EventRegistration } from '../../event/event-registration.entity';
+import { Certificate } from '../../certificate/certificate.entity';
+import { CertificateStatus } from '../../certificate/certificate.enums';
+import { Payment } from '../../payment/payment.entity';
+import { PaymentStatus } from '../../payment/payment.enums';
+
+// FFESSM diver levels; anything else in the level enums is an instructor level.
+const DIVING_LEVELS = new Set<string>([
+  'BRONZE',
+  'ARGENT',
+  'OR_12',
+  'OR_20',
+  'PE_12',
+  'N1',
+  'PA_12',
+  'PA_20',
+  'PE_40',
+  'N2',
+  'PE_60',
+  'PA_40',
+  'N3',
+]);
+
+// Routes a single "technicalLevel" string to the right split column.
+function levelFields(level?: string): {
+  divingLevel?: DivingLevel;
+  instructorLevel?: InstructorLevel;
+} {
+  if (!level) return {};
+  return DIVING_LEVELS.has(level)
+    ? { divingLevel: level as DivingLevel }
+    : { instructorLevel: level as InstructorLevel };
+}
+
+// Medical certificate expiration: issue_date + 1 year - 1 day.
+function certificateExpiration(issue: Date): Date {
+  const d = new Date(issue);
+  d.setFullYear(d.getFullYear() + 1);
+  d.setDate(d.getDate() - 1);
+  return d;
+}
 
 async function seed() {
   // No password is hardcoded: the seed refuses to run unless SEED_PASSWORD is
@@ -25,28 +67,30 @@ async function seed() {
 
   const roleRepo = AppDataSource.getRepository(Role);
   const clubRepo = AppDataSource.getRepository(Club);
-  const userRepo = AppDataSource.getRepository(AppUser);
+  const userRepo = AppDataSource.getRepository(User);
   const membershipRepo = AppDataSource.getRepository(Membership);
   const eventRepo = AppDataSource.getRepository(ClubEvent);
+  const registrationRepo = AppDataSource.getRepository(EventRegistration);
+  const certificateRepo = AppDataSource.getRepository(Certificate);
+  const paymentRepo = AppDataSource.getRepository(Payment);
 
   try {
     // ── 0. CLEAN ──────────────────────────────────────────────────────────────
     console.log('\n🧹 Cleaning existing data...');
-    await membershipRepo.query('TRUNCATE TABLE membership CASCADE');
-    await eventRepo.query('TRUNCATE TABLE event CASCADE');
-    await userRepo.query('TRUNCATE TABLE app_user CASCADE');
-    await clubRepo.query('TRUNCATE TABLE club CASCADE');
-    await roleRepo.query('TRUNCATE TABLE role CASCADE');
+    await roleRepo.query(
+      `TRUNCATE TABLE roles, users, clubs, memberships, events,
+       registrations, certificates, payments RESTART IDENTITY CASCADE`,
+    );
     console.log('  → Tables cleared');
 
     // ── 1. ROLES ──────────────────────────────────────────────────────────────
     console.log('\n📋 Inserting roles...');
     const roles = await roleRepo.save([
-      { codeRole: 'member', labelRole: 'Adhérent' },
-      { codeRole: 'instructor', labelRole: 'Moniteur' },
-      { codeRole: 'committee', labelRole: 'Membre du comité' },
-      { codeRole: 'admin', labelRole: 'Administrateur' },
-      { codeRole: 'super_admin', labelRole: 'Super Administrateur' },
+      { codeRole: 'member' },
+      { codeRole: 'instructor' },
+      { codeRole: 'committee' },
+      { codeRole: 'admin' },
+      { codeRole: 'super_admin' },
     ]);
     const r = Object.fromEntries(roles.map((role) => [role.codeRole, role]));
     console.log(`  → ${roles.length} roles inserted`);
@@ -324,9 +368,13 @@ async function seed() {
       },
     ];
 
-    const members: AppUser[] = [];
-    for (const { club, ...userData } of membersData) {
-      const user = await userRepo.save({ ...userData, passwordHash: pw });
+    const members: User[] = [];
+    for (const { club, technicalLevel, ...userData } of membersData) {
+      const user = await userRepo.save({
+        ...userData,
+        ...levelFields(technicalLevel),
+        passwordHash: pw,
+      });
       await membershipRepo.save({
         user,
         club,
@@ -396,9 +444,13 @@ async function seed() {
       },
     ];
 
-    const instructors: AppUser[] = [];
-    for (const { club, ...userData } of instructorsData) {
-      const user = await userRepo.save({ ...userData, passwordHash: pw });
+    const instructors: User[] = [];
+    for (const { club, technicalLevel, ...userData } of instructorsData) {
+      const user = await userRepo.save({
+        ...userData,
+        ...levelFields(technicalLevel),
+        passwordHash: pw,
+      });
       await membershipRepo.save({
         user,
         club,
@@ -438,9 +490,13 @@ async function seed() {
       },
     ];
 
-    const committees: AppUser[] = [];
-    for (const { club, ...userData } of committeesData) {
-      const user = await userRepo.save({ ...userData, passwordHash: pw });
+    const committees: User[] = [];
+    for (const { club, technicalLevel, ...userData } of committeesData) {
+      const user = await userRepo.save({
+        ...userData,
+        ...levelFields(technicalLevel),
+        passwordHash: pw,
+      });
       await membershipRepo.save({
         user,
         club,
@@ -500,9 +556,13 @@ async function seed() {
       },
     ];
 
-    const admins: AppUser[] = [];
-    for (const { club, ...userData } of adminsData) {
-      const user = await userRepo.save({ ...userData, passwordHash: pw });
+    const admins: User[] = [];
+    for (const { club, technicalLevel, ...userData } of adminsData) {
+      const user = await userRepo.save({
+        ...userData,
+        ...levelFields(technicalLevel),
+        passwordHash: pw,
+      });
       await membershipRepo.save({
         user,
         club,
@@ -523,7 +583,7 @@ async function seed() {
 
     type EventData = {
       club: Club;
-      creator: AppUser;
+      creator: User;
       title: string;
       description: string;
       eventType: string;
@@ -862,30 +922,128 @@ async function seed() {
       },
     ];
 
+    const events: ClubEvent[] = [];
     for (const eventData of eventsData) {
       const event = eventRepo.create({
         ...eventData,
         price: eventData.price ?? undefined,
       });
-      await eventRepo.save(event);
+      events.push(await eventRepo.save(event));
       console.log(`  → [${eventData.eventType.padEnd(12)}] ${eventData.title}`);
     }
+
+    // ── 5. REGISTRATIONS ──────────────────────────────────────────────────────
+    console.log('\n📝 Creating registrations...');
+    const registrationsData = [
+      { user: members[0], event: events[0], status: 'registered' },
+      { user: committees[0], event: events[0], status: 'registered' },
+      { user: admins[0], event: events[2], status: 'registered' },
+      { user: instructors[0], event: events[3], status: 'registered' },
+      { user: members[0], event: events[1], status: 'registered' },
+      { user: members[1], event: events[4], status: 'registered' },
+      { user: instructors[1], event: events[4], status: 'waitlist' },
+      { user: members[2], event: events[6], status: 'registered' },
+      { user: members[3], event: events[8], status: 'cancelled' },
+    ];
+    for (const reg of registrationsData) {
+      await registrationRepo.save(reg);
+    }
+    console.log(`  → ${registrationsData.length} registrations created`);
+
+    // ── 6. CERTIFICATES ───────────────────────────────────────────────────────
+    console.log('\n🩺 Creating medical certificates...');
+    const certificatesData = [
+      {
+        user: members[0],
+        file: 'certificat-marc-dupont.pdf',
+        issueDate: new Date('2026-01-15'),
+        status: CertificateStatus.VALIDATED,
+      },
+      {
+        user: members[1],
+        file: 'certificat-julie-martin.pdf',
+        issueDate: new Date('2026-02-01'),
+        status: CertificateStatus.PENDING,
+      },
+      {
+        user: instructors[0],
+        file: 'certificat-thomas-dubois.pdf',
+        issueDate: new Date('2025-09-10'),
+        status: CertificateStatus.VALIDATED,
+      },
+      {
+        user: members[2],
+        file: 'certificat-antoine-garcia.pdf',
+        issueDate: new Date('2026-03-20'),
+        status: CertificateStatus.REFUSED,
+      },
+    ];
+    for (const c of certificatesData) {
+      await certificateRepo.save({
+        ...c,
+        expirationDate: certificateExpiration(c.issueDate),
+      });
+    }
+    console.log(`  → ${certificatesData.length} certificates created`);
+
+    // ── 7. PAYMENTS ───────────────────────────────────────────────────────────
+    console.log('\n💳 Creating payments...');
+    const paymentsData = [
+      {
+        user: members[0],
+        event: events[0],
+        reference: 'PAY-2026-0001',
+        amount: 35,
+        status: PaymentStatus.VALIDATED,
+        paymentAt: new Date('2026-04-20'),
+      },
+      {
+        user: members[0],
+        event: events[1],
+        reference: 'PAY-2026-0002',
+        amount: 150,
+        status: PaymentStatus.VALIDATED,
+        paymentAt: new Date('2026-04-15'),
+      },
+      {
+        user: members[1],
+        event: events[4],
+        reference: 'PAY-2026-0003',
+        amount: 45,
+        status: PaymentStatus.PENDING,
+        paymentAt: null,
+      },
+      {
+        user: members[2],
+        event: events[6],
+        reference: 'PAY-2026-0004',
+        amount: 40,
+        status: PaymentStatus.FAILED,
+        paymentAt: null,
+      },
+    ];
+    for (const p of paymentsData) {
+      await paymentRepo.save(p);
+    }
+    console.log(`  → ${paymentsData.length} payments created`);
 
     // ── RÉSUMÉ ────────────────────────────────────────────────────────────────
     console.log(
       '\n════════════════════════════════════════════════════════════════',
     );
     console.log('  ✅  Seed completed successfully!');
-    console.log('  🏊  Clubs    : 20');
+    console.log('  🏊  Clubs         : 20');
     console.log(
-      '  👤  Users    : 22 (1 super admin, 5 sans club, 5 membres, 5 moniteurs, 4 admins, 2 comités)',
+      '  👤  Users         : 21 (5 sans club, 5 membres, 5 moniteurs, 2 comités, 4 admins)',
     );
-    console.log('  📅  Events   : 20');
+    console.log('  📅  Events        : 20');
+    console.log('  📝  Registrations : 9');
+    console.log('  🩺  Certificates  : 4');
+    console.log('  💳  Payments      : 4');
     console.log('');
     console.log('  🔑  Password for all accounts : value of SEED_PASSWORD');
     console.log('');
     console.log('  Accounts:');
-    console.log('  super_admin → superadmin@test.com');
     console.log('  admin       → admin@test.com');
     console.log('  committee   → comite@test.com');
     console.log('  instructor  → moniteur@test.com');

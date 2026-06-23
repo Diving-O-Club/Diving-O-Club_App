@@ -3,14 +3,19 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
+  DeleteDateColumn,
   OneToMany,
 } from 'typeorm';
 import { Membership } from '../membership/membership.entity';
 import { ClubEvent } from '../event/event.entity';
-import { DivingLevel, InstructorLevel } from './app-user.enums';
+import { DivingLevel, InstructorLevel } from './user.enums';
 
-@Entity({ name: 'app_user' })
-export class AppUser {
+/**
+ * Application user account. `diving_level`/`instructor_level` hold the FFESSM
+ * qualifications; `deleted_at` (@DeleteDateColumn) drives the GDPR soft delete.
+ */
+@Entity({ name: 'users' })
+export class User {
   @PrimaryGeneratedColumn({ name: 'id_user' })
   idUser: number;
 
@@ -72,10 +77,13 @@ export class AppUser {
     length: 255,
     nullable: true,
   })
-  profilePictureUrl: string;
+  profilePictureUrl: string | null;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
+
+  @DeleteDateColumn({ name: 'deleted_at' })
+  deletedAt: Date | null;
 
   @OneToMany(() => Membership, (membership) => membership.user)
   memberships: Membership[];

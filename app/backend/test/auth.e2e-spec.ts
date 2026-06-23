@@ -26,20 +26,20 @@ describe('Auth (e2e)', () => {
 
     // Clean once before all tests
     await dataSource.query(
-      `DELETE FROM app_user WHERE email LIKE '%@e2e-test.com'`,
+      `DELETE FROM users WHERE email LIKE '%@e2e-test.com'`,
     );
   });
 
   beforeEach(async () => {
     // Only clean between tests, don't reinit the app
     await dataSource.query(
-      `DELETE FROM app_user WHERE email LIKE '%@e2e-test.com'`,
+      `DELETE FROM users WHERE email LIKE '%@e2e-test.com'`,
     );
   });
 
   afterAll(async () => {
     await dataSource.query(
-      `DELETE FROM app_user WHERE email LIKE '%@e2e-test.com'`,
+      `DELETE FROM users WHERE email LIKE '%@e2e-test.com'`,
     );
     await dataSource.destroy();
     await app.close();

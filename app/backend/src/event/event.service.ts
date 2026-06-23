@@ -17,6 +17,12 @@ const MANAGER_ROLES = ['admin', 'super_admin', 'instructor', 'committee'];
 const REGISTERED = 'registered';
 const WAITLIST = 'waitlist';
 
+/**
+ * Event domain logic: CRUD on club events (manager only) and per-event
+ * registration with a FIFO waitlist. Capacity is enforced server-side; a null
+ * max capacity means unlimited (no waitlist). Audit events are recorded via
+ * {@link LogService}.
+ */
 @Injectable()
 export class EventService {
   constructor(
@@ -29,6 +35,7 @@ export class EventService {
     private readonly logService: LogService,
   ) {}
 
+  /** Ensure the user has a manager role (admin/instructor/committee) in the club. */
   private async assertManager(
     userId: number,
     clubId: number,
@@ -83,6 +90,7 @@ export class EventService {
     };
   }
 
+  /** List a club's events, each enriched with the caller's registration figures. */
   async findAllByClub(clubId: number, userId: number): Promise<object[]> {
     const events = await this.eventRepo.find({
       where: { club: { idClub: clubId } },
@@ -100,6 +108,7 @@ export class EventService {
     );
   }
 
+  /** Return one event enriched with the caller's registration figures. */
   async findById(eventId: number, userId: number): Promise<object> {
     const event = await this.eventRepo.findOne({
       where: { idEvent: eventId },
@@ -118,12 +127,17 @@ export class EventService {
     };
   }
 
+  /** Create an event in the club (manager only). */
   async create(
     userId: number,
     clubId: number,
     dto: CreateEventDto,
   ): Promise<ClubEvent> {
     await this.assertManager(userId, clubId);
+
+    // minimum_level is a non-null ENUM: an empty string (sent when no minimum
+    // is selected) must fall back to 'all'.
+    if (dto.minimumLevel === '') dto.minimumLevel = 'all';
 
     const event = this.eventRepo.create({
       ...dto,
@@ -144,6 +158,7 @@ export class EventService {
     return saved;
   }
 
+  /** Update an event (manager only). */
   async update(
     userId: number,
     eventId: number,
@@ -157,6 +172,8 @@ export class EventService {
     if (!event) throw new NotFoundException('Événement introuvable');
 
     await this.assertManager(userId, event.club.idClub);
+
+    if (dto.minimumLevel === '') dto.minimumLevel = 'all';
 
     Object.assign(event, {
       ...dto,
@@ -175,6 +192,7 @@ export class EventService {
     return saved;
   }
 
+  /** Delete an event (manager only). */
   async delete(userId: number, eventId: number): Promise<void> {
     const event = await this.eventRepo.findOne({
       where: { idEvent: eventId },
@@ -211,6 +229,7 @@ export class EventService {
     }
   }
 
+  /** Register a member for an event, or place them on the waitlist if full. */
   async register(
     userId: number,
     eventId: number,
@@ -260,6 +279,10 @@ export class EventService {
     };
   }
 
+  /**
+   * Cancel a registration; when a confirmed spot frees up, promote the first
+   * waitlisted member (FIFO).
+   */
   async unregister(
     userId: number,
     eventId: number,
@@ -297,6 +320,7 @@ export class EventService {
     return { success: true, message: 'Désinscription réussie' };
   }
 
+  /** Return an event's participants split into registered and waitlist (FIFO). */
   async getParticipants(eventId: number): Promise<{
     registered: { firstName: string; lastName: string }[];
     waitlist: { firstName: string; lastName: string }[];

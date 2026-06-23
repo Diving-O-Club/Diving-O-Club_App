@@ -33,12 +33,12 @@ describe('Membership (e2e)', () => {
 
   async function cleanAll() {
     await dataSource.query(
-      `DELETE FROM membership WHERE id_user IN (
-         SELECT id_user FROM app_user WHERE email LIKE '%${EMAIL_SUFFIX}'
+      `DELETE FROM memberships WHERE id_user IN (
+         SELECT id_user FROM users WHERE email LIKE '%${EMAIL_SUFFIX}'
        )`,
     );
     await dataSource.query(
-      `DELETE FROM app_user WHERE email LIKE '%${EMAIL_SUFFIX}'`,
+      `DELETE FROM users WHERE email LIKE '%${EMAIL_SUFFIX}'`,
     );
   }
 
@@ -72,26 +72,26 @@ describe('Membership (e2e)', () => {
     });
 
     const clubs: { id_club: number }[] = await dataSource.query(
-      `SELECT id_club FROM club ORDER BY id_club LIMIT 2`,
+      `SELECT id_club FROM clubs ORDER BY id_club LIMIT 2`,
     );
     firstClubId = clubs[0].id_club;
     secondClubId = clubs[1].id_club;
 
     const roles: { id_role: number }[] = await dataSource.query(
-      `SELECT id_role FROM role WHERE code_role = 'admin'`,
+      `SELECT id_role FROM roles WHERE code_role = 'admin'`,
     );
     const adminRoleId = roles[0].id_role;
 
     // The admin manages the first club.
     await dataSource.query(
-      `INSERT INTO membership (id_user, id_club, id_role, season, status, membership_date, decision_date)
+      `INSERT INTO memberships (id_user, id_club, id_role, season, status, membership_at, decision_at)
        SELECT id_user, $1, $2, '2025-2026', 'active', CURRENT_DATE, CURRENT_DATE
-       FROM app_user WHERE email = $3`,
+       FROM users WHERE email = $3`,
       [firstClubId, adminRoleId, ADMIN_EMAIL],
     );
 
     const member: { id_user: number }[] = await dataSource.query(
-      `SELECT id_user FROM app_user WHERE email = $1`,
+      `SELECT id_user FROM users WHERE email = $1`,
       [MEMBER_EMAIL],
     );
     memberId = member[0].id_user;
@@ -102,7 +102,7 @@ describe('Membership (e2e)', () => {
 
   beforeEach(async () => {
     // Reset the member's requests between tests (keep the admin membership).
-    await dataSource.query(`DELETE FROM membership WHERE id_user = $1`, [
+    await dataSource.query(`DELETE FROM memberships WHERE id_user = $1`, [
       memberId,
     ]);
   });

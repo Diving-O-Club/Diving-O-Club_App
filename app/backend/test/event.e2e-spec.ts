@@ -58,15 +58,15 @@ describe('Event CRUD (e2e)', () => {
   // then the memberships, then the users themselves.
   async function cleanAll() {
     await dataSource.query(
-      `DELETE FROM event WHERE title LIKE '${TEST_PREFIX}%'`,
+      `DELETE FROM events WHERE title LIKE '${TEST_PREFIX}%'`,
     );
     await dataSource.query(
-      `DELETE FROM membership WHERE id_user IN (
-         SELECT id_user FROM app_user WHERE email LIKE '%${EMAIL_SUFFIX}'
+      `DELETE FROM memberships WHERE id_user IN (
+         SELECT id_user FROM users WHERE email LIKE '%${EMAIL_SUFFIX}'
        )`,
     );
     await dataSource.query(
-      `DELETE FROM app_user WHERE email LIKE '%${EMAIL_SUFFIX}'`,
+      `DELETE FROM users WHERE email LIKE '%${EMAIL_SUFFIX}'`,
     );
   }
 
@@ -101,27 +101,27 @@ describe('Event CRUD (e2e)', () => {
 
     // Grant memberships in the same club: one manager (admin), one member.
     const club: { id_club: number }[] = await dataSource.query(
-      `SELECT id_club FROM club ORDER BY id_club LIMIT 1`,
+      `SELECT id_club FROM clubs ORDER BY id_club LIMIT 1`,
     );
     clubId = club[0].id_club;
 
     const roles: { id_role: number; code_role: string }[] =
       await dataSource.query(
-        `SELECT id_role, code_role FROM role WHERE code_role IN ('admin', 'member')`,
+        `SELECT id_role, code_role FROM roles WHERE code_role IN ('admin', 'member')`,
       );
     const adminRoleId = roles.find((r) => r.code_role === 'admin')!.id_role;
     const memberRoleId = roles.find((r) => r.code_role === 'member')!.id_role;
 
     await dataSource.query(
-      `INSERT INTO membership (id_user, id_club, id_role, season, status, membership_date, decision_date)
+      `INSERT INTO memberships (id_user, id_club, id_role, season, status, membership_at, decision_at)
        SELECT id_user, $1, $2, '2025-2026', 'active', CURRENT_DATE, CURRENT_DATE
-       FROM app_user WHERE email = $3`,
+       FROM users WHERE email = $3`,
       [clubId, adminRoleId, ADMIN_EMAIL],
     );
     await dataSource.query(
-      `INSERT INTO membership (id_user, id_club, id_role, season, status, membership_date, decision_date)
+      `INSERT INTO memberships (id_user, id_club, id_role, season, status, membership_at, decision_at)
        SELECT id_user, $1, $2, '2025-2026', 'active', CURRENT_DATE, CURRENT_DATE
-       FROM app_user WHERE email = $3`,
+       FROM users WHERE email = $3`,
       [clubId, memberRoleId, MEMBER_EMAIL],
     );
 
@@ -131,7 +131,7 @@ describe('Event CRUD (e2e)', () => {
 
   beforeEach(async () => {
     await dataSource.query(
-      `DELETE FROM event WHERE title LIKE '${TEST_PREFIX}%'`,
+      `DELETE FROM events WHERE title LIKE '${TEST_PREFIX}%'`,
     );
   });
 
