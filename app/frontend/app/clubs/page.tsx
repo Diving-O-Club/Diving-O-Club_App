@@ -2,7 +2,7 @@
 
 import CTACard from '../components/ui/CTACard';
 import ClubCard from '../components/clubs/ClubCard';
-import { Search, ArrowRight } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { useClubSearch } from '../hooks/useClubSearch';
 
 export default function ClubsPage() {
@@ -53,7 +53,7 @@ export default function ClubsPage() {
         <div className="text-center py-16 bg-white rounded-2xl border border-gray-100">
           <Search className="w-16 h-16 text-gray-300 mx-auto mb-4" />
           <h3 className="font-bold text-[#0d3b66] text-xl mb-2">Aucun club trouvé</h3>
-          <p className="text-gray-500 mb-6">Essayez avec d'autres mots-clés</p>
+          <p className="text-gray-500 mb-6">Essayez avec d&apos;autres mots-clés</p>
         </div>
       )}
 

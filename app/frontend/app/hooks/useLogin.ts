@@ -28,7 +28,10 @@ export function useLogin() {
     setApiError('');
   };
 
-  const handleSubmit = async (e: React.FormEvent, onSuccess: () => void) => {
+  const handleSubmit = async (
+    e: React.SyntheticEvent,
+    onSuccess: () => void,
+  ) => {
     e.preventDefault();
     if (!validate()) return;
     setLoading(true);
