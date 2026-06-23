@@ -271,9 +271,9 @@ describe('MembershipService', () => {
       mockMembershipRepo.findOne
         .mockResolvedValueOnce(targetMembership)
         .mockResolvedValueOnce(null); // no admin membership for this club
-      await expect(service.changeMemberRole(1, 2, 'instructor')).rejects.toThrow(
-        ForbiddenException,
-      );
+      await expect(
+        service.changeMemberRole(1, 2, 'instructor'),
+      ).rejects.toThrow(ForbiddenException);
       expect(mockMembershipRepo.save).not.toHaveBeenCalled();
     });
 
