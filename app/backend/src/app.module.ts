@@ -14,16 +14,15 @@ import { Payment } from './payment/payment.entity';
 import { ClubModule } from './club/club.module';
 import { AuthModule } from './auth/auth.module';
 import { MembershipModule } from './membership/membership.module';
-import { MongooseModule } from '@nestjs/mongoose';
 import { EventModule } from './event/event.module';
 import { LogModule } from './log/log.module';
 
 const dbEnabled = process.env.DB_ENABLED === 'true';
 
 /**
- * Root application module. Wires the PostgreSQL (TypeORM) and MongoDB (Mongoose)
- * connections and registers every feature module. Database wiring is gated by
- * the DB_ENABLED flag (migrations run automatically on boot).
+ * Root application module. Wires the PostgreSQL (TypeORM) connection and
+ * registers every feature module. Database wiring is gated by the DB_ENABLED
+ * flag (migrations run automatically on boot).
  */
 @Module({
   imports: [
@@ -53,7 +52,6 @@ const dbEnabled = process.env.DB_ENABLED === 'true';
           ClubModule,
           AuthModule,
           MembershipModule,
-          MongooseModule.forRoot(process.env.MONGO_URL ?? ''),
           LogModule,
           EventModule,
         ]
