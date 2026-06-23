@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { changePassword } from '@/app/lib/api/user'
+import PasswordField from '@/app/components/ui/PasswordField'
 
 type Props = {
   onClose: () => void
@@ -81,13 +82,13 @@ export function ChangePasswordModal({ onClose, onSuccess }: Props) {
         {/* Champ mot de passe actuel */}
         <div className="flex flex-col gap-1">
           <label className="text-xs text-gray-500">Mot de passe actuel</label>
-          <input
-            type="password"
+          <PasswordField
             value={current}
             onChange={(e) => { setCurrent(e.target.value); setWrongCurrent(false) }}
-            className={`rounded-lg border px-4 py-3 text-sm text-gray-800 outline-none transition min-h-11
+            className={`w-full rounded-lg border pl-4 pr-10 py-3 text-sm text-gray-800 outline-none transition min-h-11
               focus:border-[#3DA9FC] focus:ring-2 focus:ring-[#3DA9FC]/20
               ${wrongCurrent ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-white hover:border-gray-300'}`}
+            toggleClassName="hover:text-[#3DA9FC]"
             placeholder="••••••••"
           />
           {wrongCurrent && (
@@ -98,12 +99,12 @@ export function ChangePasswordModal({ onClose, onSuccess }: Props) {
         {/* Nouveau mot de passe */}
         <div className="flex flex-col gap-1">
           <label className="text-xs text-gray-500">Nouveau mot de passe</label>
-          <input
-            type="password"
+          <PasswordField
             value={newPwd}
             onChange={(e) => setNewPwd(e.target.value)}
-            className="rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-800 outline-none transition min-h-11
+            className="w-full rounded-lg border border-gray-200 bg-white pl-4 pr-10 py-3 text-sm text-gray-800 outline-none transition min-h-11
               focus:border-[#3DA9FC] focus:ring-2 focus:ring-[#3DA9FC]/20 hover:border-gray-300"
+            toggleClassName="hover:text-[#3DA9FC]"
             placeholder="••••••••"
           />
         </div>
@@ -111,12 +112,12 @@ export function ChangePasswordModal({ onClose, onSuccess }: Props) {
         {/* Confirmation */}
         <div className="flex flex-col gap-1">
           <label className="text-xs text-gray-500">Confirmer le nouveau mot de passe</label>
-          <input
-            type="password"
+          <PasswordField
             value={confirm}
             onChange={(e) => setConfirm(e.target.value)}
-            className="rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-800 outline-none transition min-h-11
+            className="w-full rounded-lg border border-gray-200 bg-white pl-4 pr-10 py-3 text-sm text-gray-800 outline-none transition min-h-11
               focus:border-[#3DA9FC] focus:ring-2 focus:ring-[#3DA9FC]/20 hover:border-gray-300"
+            toggleClassName="hover:text-[#3DA9FC]"
             placeholder="••••••••"
           />
         </div>
