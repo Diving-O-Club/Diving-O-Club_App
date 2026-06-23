@@ -101,9 +101,13 @@ test.describe.serial('Inscription aux événements (e2e)', () => {
     await bPage.goto(eventUrl);
 
     await bPage.getByRole('button', { name: /^S.inscrire$/ }).click();
-    await expect(bPage.getByText(/liste d.attente/i)).toBeVisible({
-      timeout: 5000,
-    });
+    // Target B's own waitlist status (the ⏳ marker is unique to it — avoids
+    // matching the toast and the "Liste d’attente (n)" heading).
+    await expect(bPage.getByText(/⏳ Vous êtes en liste d.attente/i)).toBeVisible(
+      {
+        timeout: 5000,
+      },
+    );
   });
 
   test('la désinscription promeut le premier en liste d’attente', async () => {
