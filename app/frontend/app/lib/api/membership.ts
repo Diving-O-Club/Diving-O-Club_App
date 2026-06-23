@@ -4,7 +4,6 @@ import { DashboardEvent } from './events';
 export type MembershipRole = {
   idRole: number;
   codeRole: string;
-  labelRole: string;
 };
 
 export type MemberUser = {
@@ -12,7 +11,8 @@ export type MemberUser = {
   firstName: string;
   lastName: string;
   email: string;
-  technicalLevel: string;
+  divingLevel: string | null;
+  instructorLevel: string | null;
   phone: string;
   ffessmLicenseNumber: string;
 };

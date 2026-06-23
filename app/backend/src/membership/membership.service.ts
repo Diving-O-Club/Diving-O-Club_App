@@ -13,6 +13,12 @@ import { LogService } from '../log/log.service';
 const ADMIN_ROLES = ['admin', 'super_admin'];
 const ASSIGNABLE_ROLES = ['admin', 'committee', 'instructor', 'member'];
 
+/**
+ * Membership domain logic: join requests, status checks and admin actions
+ * (accept/reject requests, change role, expel). Authorization is club-scoped:
+ * admin actions require an active admin/super_admin membership in the same club.
+ * Audit events are recorded via {@link LogService}.
+ */
 @Injectable()
 export class MembershipService {
   constructor(
@@ -141,6 +147,7 @@ export class MembershipService {
     return { success: true };
   }
 
+  /** Load the caller's active membership with full club context (members, events). */
   async findMyMembership(userId: number): Promise<Membership | null> {
     return this.membershipRepo.findOne({
       where: {
@@ -159,6 +166,10 @@ export class MembershipService {
     });
   }
 
+  /**
+   * Resolve the caller's membership status for a club: active/pending for this
+   * club, or active/pending on another club (with that club's name and slug).
+   */
   async getStatusForClub(
     userId: number,
     clubId: number,
@@ -218,6 +229,10 @@ export class MembershipService {
 
     return { status: null };
   }
+  /**
+   * Create a pending join request with the default member role. Rejects a
+   * duplicate request for the club, or an existing membership on another club.
+   */
   async requestMembership(
     userId: number,
     clubId: number,
@@ -270,6 +285,7 @@ export class MembershipService {
     return { status: 'pending' };
   }
 
+  /** Remove the caller's own pending request for a club. */
   async cancelRequest(userId: number, clubId: number): Promise<void> {
     const membership = await this.membershipRepo.findOne({
       where: {
@@ -292,6 +308,7 @@ export class MembershipService {
     });
   }
 
+  /** List a club's pending requests, each user stripped of its password hash. */
   async getPendingRequests(clubId: number): Promise<Membership[]> {
     const memberships = await this.membershipRepo.find({
       where: {
@@ -307,6 +324,7 @@ export class MembershipService {
     }) as Membership[];
   }
 
+  /** Approve a pending request: set it active and stamp the decision date. */
   async acceptRequest(
     membershipId: number,
     clubId: number,
@@ -335,6 +353,7 @@ export class MembershipService {
     return { success: true };
   }
 
+  /** Remove a pending request (rejection). */
   async rejectRequest(membershipId: number, clubId: number): Promise<void> {
     const membership = await this.membershipRepo.findOne({
       where: {

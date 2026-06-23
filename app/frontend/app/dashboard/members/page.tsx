@@ -24,14 +24,7 @@ import {
 } from 'lucide-react';
 import { CustomSelect } from '@/app/components/ui/form-fields';
 import Link from 'next/link';
-
-const ROLE_LABELS: Record<string, string> = {
-  super_admin: 'Super Admin',
-  admin:       'Administrateur',
-  committee:   'Comité',
-  instructor:  'Moniteur',
-  member:      'Adhérent',
-};
+import { ROLE_LABELS } from '@/app/lib/roles';
 
 const ADMIN_ROLES = ['admin', 'super_admin'];
 
@@ -286,7 +279,7 @@ export default function MembersPage() {
                 {actionMenuMember.user.firstName} {actionMenuMember.user.lastName}
               </p>
               <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2.5 py-0.5 rounded-full whitespace-nowrap">
-                {ROLE_LABELS[actionMenuMember.role.codeRole] ?? actionMenuMember.role.labelRole}
+                {ROLE_LABELS[actionMenuMember.role.codeRole] ?? actionMenuMember.role.codeRole}
               </span>
             </div>
             <div className="flex flex-col">
@@ -332,7 +325,7 @@ export default function MembersPage() {
             <p className="text-sm text-gray-500 mb-4">
               Rôle actuel :{' '}
               <span className="font-medium text-[#0d3b66]">
-                {ROLE_LABELS[roleModalMember.role.codeRole] ?? roleModalMember.role.labelRole}
+                {ROLE_LABELS[roleModalMember.role.codeRole] ?? roleModalMember.role.codeRole}
               </span>
             </p>
             <CustomSelect

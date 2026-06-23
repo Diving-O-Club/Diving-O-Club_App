@@ -10,6 +10,8 @@ import { ClubEvent } from './event.entity';
 import { EventRegistration } from './event-registration.entity';
 import { Membership } from '../membership/membership.entity';
 import { LogService } from '../log/log.service';
+import { CreateEventDto } from './dto/create-event.dto';
+import { UpdateEventDto } from './dto/update-event.dto';
 
 // ── Mocks ──────────────────────────────────────────────────────────────────
 const mockEventRepo = {
@@ -43,16 +45,18 @@ const makeMembership = (codeRole: string, clubId: number): Membership =>
   ({
     idMembership: 1,
     status: 'active',
-    role: { codeRole, labelRole: codeRole } as any,
+    role: { codeRole } as any,
     club: { idClub: clubId } as any,
     user: { idUser: 1 } as any,
   }) as Membership;
 
-const validDto = {
+const validDto: CreateEventDto = {
   title: 'Sortie fosse',
+  eventType: 'dive_trip',
   startDatetime: '2026-07-01T10:00:00.000Z',
   endDatetime: '2026-07-01T12:00:00.000Z',
-} as any;
+  isPaid: false,
+};
 
 // ── Suite ──────────────────────────────────────────────────────────────────
 describe('EventService', () => {
@@ -136,7 +140,7 @@ describe('EventService', () => {
       mockMembershipRepo.findOne.mockResolvedValue(makeMembership('admin', 5));
       mockEventRepo.save.mockImplementation((e: object) => Promise.resolve(e));
 
-      await service.update(1, 10, { title: 'Modifié' } as any);
+      await service.update(1, 10, { title: 'Modifié' } as UpdateEventDto);
 
       expect(mockMembershipRepo.findOne).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -155,7 +159,7 @@ describe('EventService', () => {
       mockMembershipRepo.findOne.mockResolvedValue(null);
 
       await expect(
-        service.update(1, 10, { title: 'Modifié' } as any),
+        service.update(1, 10, { title: 'Modifié' } as UpdateEventDto),
       ).rejects.toThrow(ForbiddenException);
       expect(mockEventRepo.save).not.toHaveBeenCalled();
     });
@@ -163,9 +167,9 @@ describe('EventService', () => {
     it('should throw NotFoundException when the event does not exist', async () => {
       mockEventRepo.findOne.mockResolvedValue(null);
 
-      await expect(service.update(1, 999, {} as any)).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.update(1, 999, {} as UpdateEventDto),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 

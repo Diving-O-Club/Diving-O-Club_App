@@ -9,22 +9,29 @@ import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { Response } from 'express';
 import * as argon2 from 'argon2';
-import { AppUser } from '../app-user/app-user.entity';
+import { User } from '../user/user.entity';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { LogService } from '../log/log.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 
+/**
+ * Authentication domain logic: account creation, credential verification,
+ * JWT issuance (HttpOnly cookie) and self-service profile/password updates.
+ * Passwords are hashed with argon2; audit events are recorded via
+ * {@link LogService}.
+ */
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectRepository(AppUser)
-    private readonly userRepo: Repository<AppUser>,
+    @InjectRepository(User)
+    private readonly userRepo: Repository<User>,
     private readonly jwtService: JwtService,
     private readonly logService: LogService,
   ) {}
 
+  /** Create a new account; rejects a duplicate email with a 409 conflict. */
   async register(dto: RegisterDto): Promise<{ message: string }> {
     const existing = await this.userRepo.findOneBy({ email: dto.email });
     if (existing) {
@@ -53,6 +60,10 @@ export class AuthService {
     return { message: 'Compte créé avec succès' };
   }
 
+  /**
+   * Verify the credentials and, on success, set the signed access_token cookie
+   * (HttpOnly, 7-day expiry).
+   */
   async login(dto: LoginDto, res: Response): Promise<{ message: string }> {
     const user = await this.userRepo.findOneBy({ email: dto.email });
     if (!user) {
@@ -91,20 +102,26 @@ export class AuthService {
     return { message: 'Connexion réussie' };
   }
 
-  async me(userId: number): Promise<Omit<AppUser, 'passwordHash'>> {
+  /** Return the user for the given id, stripped of its password hash. */
+  async me(userId: number): Promise<Omit<User, 'passwordHash'>> {
     const user = await this.userRepo.findOneBy({ idUser: userId });
     // Never expose the password hash to the client.
     const { passwordHash: _passwordHash, ...safeUser } = user!;
     return safeUser;
   }
 
+  /** Clear the access_token cookie. */
   async logout(res: Response): Promise<{ message: string }> {
     res.clearCookie('access_token');
     await this.logService.logAuth({ action: 'logout' });
     return { message: 'Déconnexion réussie' };
   }
 
-  async changePassword(userId: number, dto: ChangePasswordDto): Promise<{ message: string }> {
+  /** Replace the password after verifying the current one. */
+  async changePassword(
+    userId: number,
+    dto: ChangePasswordDto,
+  ): Promise<{ message: string }> {
     const user = await this.userRepo.findOneByOrFail({ idUser: userId });
     const valid = await argon2.verify(user.passwordHash, dto.currentPassword);
     if (!valid) {
@@ -115,7 +132,8 @@ export class AuthService {
     return { message: 'Mot de passe modifié avec succès' };
   }
 
-  async updateMe(userId: number, dto: UpdateUserDto): Promise<AppUser> {
+  /** Update the user's editable profile fields and return the fresh entity. */
+  async updateMe(userId: number, dto: UpdateUserDto): Promise<User> {
     await this.userRepo.update(userId, {
       firstName: dto.firstName,
       lastName: dto.lastName,

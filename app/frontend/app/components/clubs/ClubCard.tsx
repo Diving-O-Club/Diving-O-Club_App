@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { MapPin, Users, ArrowRight, CheckCircle } from 'lucide-react';
+import { MapPin, CheckCircle } from 'lucide-react';
 
 type ClubCardProps = {
   name: string;

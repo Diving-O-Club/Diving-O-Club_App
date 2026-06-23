@@ -4,6 +4,7 @@ import { Club } from './club.entity';
 import { ClubController } from './club.controller';
 import { ClubService } from './club.service';
 
+/** Club module: public club lookup by slug and name/city search. */
 @Module({
   imports: [TypeOrmModule.forFeature([Club])],
   controllers: [ClubController],

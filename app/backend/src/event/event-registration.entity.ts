@@ -8,27 +8,35 @@ import {
   Unique,
 } from 'typeorm';
 import { ClubEvent } from './event.entity';
-import { AppUser } from '../app-user/app-user.entity';
+import { User } from '../user/user.entity';
+import { RegistrationStatus } from './event-registration.enums';
 
-// A user can register only once per event (registered or waitlist).
-@Entity({ name: 'event_registration' })
-@Unique(['event', 'user'])
+/**
+ * A user's registration to an event. Surrogate PK + UNIQUE(id_user, id_event):
+ * a user registers only once per event (registered, waitlist or cancelled).
+ */
+@Entity({ name: 'registrations' })
+@Unique(['user', 'event'])
 export class EventRegistration {
   @PrimaryGeneratedColumn({ name: 'id_registration' })
   idRegistration: number;
 
-  @ManyToOne(() => ClubEvent, { onDelete: 'CASCADE' })
+  @ManyToOne(() => User, { onDelete: 'RESTRICT' })
+  @JoinColumn({ name: 'id_user' })
+  user: User;
+
+  @ManyToOne(() => ClubEvent, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'id_event' })
   event: ClubEvent;
 
-  @ManyToOne(() => AppUser, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'id_user' })
-  user: AppUser;
-
-  // 'registered' | 'waitlist'
-  @Column({ type: 'varchar', length: 20 })
+  @Column({
+    name: 'status',
+    type: 'enum',
+    enum: RegistrationStatus,
+    default: RegistrationStatus.REGISTERED,
+  })
   status: string;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: 'registration_at' })
   createdAt: Date;
 }

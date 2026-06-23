@@ -28,10 +28,10 @@ export default function EventDeleteModal({ event, onConfirm, onCancel, loading }
         </div>
 
         <h2 className="text-lg font-bold text-[#0d3b66] mb-1">
-          Supprimer l'événement
+          Supprimer l&apos;événement
         </h2>
         <p className="text-sm text-gray-400 mb-6">
-          Vous êtes sur le point de supprimer <span className="font-medium text-gray-600">"{event.title}"</span>. Cette action est irréversible.
+          Vous êtes sur le point de supprimer <span className="font-medium text-gray-600">&quot;{event.title}&quot;</span>. Cette action est irréversible.
         </p>
 
         <div className="flex gap-3">

@@ -37,7 +37,7 @@ export default function Footer() {
           <div>
             <h3 className="font-bold text-lg mb-4">Informations</h3>
             <p className="text-[#48cae4] text-sm leading-relaxed mb-4">
-              Application web pour la gestion d'adhésions, événements et certificats médicaux.
+              Application web pour la gestion d&apos;adhésions, événements et certificats médicaux.
             </p>
             <p className="text-[#48cae4] text-sm">
               Version 1.0 - Avril 2026
