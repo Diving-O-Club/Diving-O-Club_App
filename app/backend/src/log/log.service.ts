@@ -1,20 +1,17 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { Log, LogDocument } from './schemas/log.schema';
 
 /**
- * Audit logging to MongoDB. Each helper writes a typed entry (auth, membership
- * or error). Writes are best-effort: failures are caught and logged locally,
- * never propagated — logging can never break a request.
+ * Audit logging. Each helper writes a typed entry (auth, membership or error)
+ * to the application logger. Writes are best-effort and never propagate —
+ * logging can never break a request.
+ *
+ * The previous Mongo-backed implementation is preserved in
+ * `schemas/log.schema.ts`; re-wire `MongooseModule` and inject the model here
+ * to restore persistent audit logs.
  */
 @Injectable()
 export class LogService {
   private readonly logger = new Logger(LogService.name);
-
-  constructor(
-    @InjectModel(Log.name) private readonly logModel: Model<LogDocument>,
-  ) {}
 
   /** Record an authentication event (register, login success/failure, logout). */
   async logAuth(data: {
@@ -23,11 +20,7 @@ export class LogService {
     email?: string;
     ip?: string;
   }): Promise<void> {
-    try {
-      await this.logModel.create({ type: 'auth', ...data });
-    } catch (err) {
-      this.logger.error('Failed to write auth log', err);
-    }
+    this.logger.log(`auth ${JSON.stringify(data)}`);
   }
 
   /** Record a membership or event action (request, role change, registration…). */
@@ -38,15 +31,7 @@ export class LogService {
     clubId?: number;
     clubName?: string;
   }): Promise<void> {
-    try {
-      await this.logModel.create({
-        type: 'membership',
-        userId: data.actorId,
-        ...data,
-      });
-    } catch (err) {
-      this.logger.error('Failed to write membership log', err);
-    }
+    this.logger.log(`membership ${JSON.stringify(data)}`);
   }
 
   /** Record a handled error (status code, endpoint, message). */
@@ -56,10 +41,6 @@ export class LogService {
     message: string;
     userId?: number;
   }): Promise<void> {
-    try {
-      await this.logModel.create({ type: 'error', ...data });
-    } catch (err) {
-      this.logger.error('Failed to write error log', err);
-    }
+    this.logger.log(`error ${JSON.stringify(data)}`);
   }
 }
