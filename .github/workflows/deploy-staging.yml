@@ -81,11 +81,13 @@ jobs:
             echo "⏳ Waiting for services to be healthy..."
             sleep 15
 
-            echo "🗄️ Running migrations..."
+            echo "🗄️ Resetting the schema (staging is reseeded on every deploy)..."
+            sudo docker compose -f docker-compose.staging.yml --env-file .env.staging exec -T postgres-staging psql -U diving_admin -d diving_o_club_staging -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
+
+            echo "🗄️ Running migrations (recreates the schema from scratch)..."
             sudo docker compose -f docker-compose.staging.yml --env-file .env.staging exec -T backend-staging npm run migration:run
 
-            echo "🌱 Resetting and seeding database..."
-            sudo docker compose -f docker-compose.staging.yml --env-file .env.staging exec -T postgres-staging psql -U diving_admin -d diving_o_club_staging -c "TRUNCATE role, club, app_user, membership, event RESTART IDENTITY CASCADE;" || echo "⚠️ Tables may not exist yet"
+            echo "🌱 Seeding database..."
             sudo docker compose -f docker-compose.staging.yml --env-file .env.staging exec -T backend-staging npm run seed
 
             echo "📊 STAGING Services status:"
