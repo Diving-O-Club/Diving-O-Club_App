@@ -67,6 +67,18 @@ export class EventService {
     return Math.max(0, maxCapacity - registeredCount);
   }
 
+  // Count an event's REGISTERED entries, excluding soft-deleted users: the
+  // inner join on `user` carries TypeORM's `deleted_at IS NULL` condition, so a
+  // deleted member no longer occupies a spot.
+  private countActiveRegistered(eventId: number): Promise<number> {
+    return this.registrationRepo
+      .createQueryBuilder('registration')
+      .innerJoin('registration.user', 'user')
+      .where('registration.id_event = :eventId', { eventId })
+      .andWhere('registration.status = :status', { status: REGISTERED })
+      .getCount();
+  }
+
   // Registration figures for one event, from the current user's point of view.
   private async registrationInfo(
     eventId: number,
@@ -77,9 +89,7 @@ export class EventService {
     remainingSpots: number | null;
     userStatus: string | null;
   }> {
-    const registeredCount = await this.registrationRepo.count({
-      where: { event: { idEvent: eventId }, status: REGISTERED },
-    });
+    const registeredCount = await this.countActiveRegistered(eventId);
     const myRegistration = await this.registrationRepo.findOne({
       where: { event: { idEvent: eventId }, user: { idUser: userId } },
     });
@@ -252,9 +262,7 @@ export class EventService {
     // Unlimited capacity (maxCapacity null) never goes to the waitlist.
     let status = REGISTERED;
     if (event.maxCapacity != null) {
-      const registeredCount = await this.registrationRepo.count({
-        where: { event: { idEvent: eventId }, status: REGISTERED },
-      });
+      const registeredCount = await this.countActiveRegistered(eventId);
       if (registeredCount >= event.maxCapacity) status = WAITLIST;
     }
 
@@ -299,12 +307,16 @@ export class EventService {
     const clubId = registration.event.club.idClub;
     await this.registrationRepo.remove(registration);
 
-    // Promote the first waitlisted member when a registered spot frees up.
+    // Promote the first waitlisted member when a registered spot frees up. The
+    // inner join on `user` skips soft-deleted accounts so they are not promoted.
     if (freedSpot) {
-      const nextInLine = await this.registrationRepo.findOne({
-        where: { event: { idEvent: eventId }, status: WAITLIST },
-        order: { createdAt: 'ASC' },
-      });
+      const nextInLine = await this.registrationRepo
+        .createQueryBuilder('registration')
+        .innerJoin('registration.user', 'user')
+        .where('registration.id_event = :eventId', { eventId })
+        .andWhere('registration.status = :status', { status: WAITLIST })
+        .orderBy('registration.registration_at', 'ASC')
+        .getOne();
       if (nextInLine) {
         nextInLine.status = REGISTERED;
         await this.registrationRepo.save(nextInLine);
@@ -341,11 +353,13 @@ export class EventService {
       lastName: r.user.lastName,
     });
 
+    // Drop registrations whose user was soft-deleted (GDPR): their `user`
+    // relation resolves to null and they must no longer appear among participants.
+    const visible = registrations.filter((r) => r.user);
+
     return {
-      registered: registrations
-        .filter((r) => r.status === REGISTERED)
-        .map(toName),
-      waitlist: registrations.filter((r) => r.status === WAITLIST).map(toName),
+      registered: visible.filter((r) => r.status === REGISTERED).map(toName),
+      waitlist: visible.filter((r) => r.status === WAITLIST).map(toName),
     };
   }
 }
