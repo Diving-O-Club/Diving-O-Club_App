@@ -224,10 +224,11 @@ export default function ProfilePage() {
 
   async function handleConfirmDelete() {
     setIsDeleting(true)
-    const ok = await deleteAccount()
-    if (!ok) {
+    const result = await deleteAccount()
+    if (!result.ok) {
       setIsDeleting(false)
-      showToast('error', 'La suppression a échoué. Veuillez réessayer.')
+      setShowDeleteModal(false)
+      showToast('error', result.message ?? 'La suppression a échoué. Veuillez réessayer.')
       return
     }
     // The backend already cleared the session cookie; sync the client state.

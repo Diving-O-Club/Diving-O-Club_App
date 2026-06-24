@@ -58,14 +58,16 @@ export async function exportMyData(): Promise<Blob | null> {
   }
 }
 
-export async function deleteAccount(): Promise<boolean> {
+export async function deleteAccount(): Promise<{ ok: boolean; message?: string }> {
   try {
     const res = await clientFetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
       method: 'DELETE',
       credentials: 'include',
     });
-    return res.ok;
+    if (res.ok) return { ok: true };
+    const body = await res.json().catch(() => null);
+    return { ok: false, message: body?.message };
   } catch {
-    return false;
+    return { ok: false };
   }
 }
