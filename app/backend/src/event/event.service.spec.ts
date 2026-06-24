@@ -22,12 +22,23 @@ const mockEventRepo = {
   remove: jest.fn(),
 };
 
+// Chainable query builder used by countActiveRegistered and waitlist promotion.
+const mockQueryBuilder = {
+  innerJoin: jest.fn(),
+  where: jest.fn(),
+  andWhere: jest.fn(),
+  orderBy: jest.fn(),
+  getCount: jest.fn(),
+  getOne: jest.fn(),
+};
+
 const mockRegistrationRepo = {
   findOne: jest.fn(),
   find: jest.fn(),
   count: jest.fn(),
   save: jest.fn(),
   remove: jest.fn(),
+  createQueryBuilder: jest.fn(),
 };
 
 const mockMembershipRepo = {
@@ -81,6 +92,13 @@ describe('EventService', () => {
 
     service = module.get<EventService>(EventService);
     jest.clearAllMocks();
+
+    // Re-wire the chainable query builder after the reset.
+    mockQueryBuilder.innerJoin.mockReturnThis();
+    mockQueryBuilder.where.mockReturnThis();
+    mockQueryBuilder.andWhere.mockReturnThis();
+    mockQueryBuilder.orderBy.mockReturnThis();
+    mockRegistrationRepo.createQueryBuilder.mockReturnValue(mockQueryBuilder);
   });
 
   // ── create ───────────────────────────────────────────────────────────────
@@ -212,7 +230,7 @@ describe('EventService', () => {
       });
       mockMembershipRepo.findOne.mockResolvedValue(makeMembership('member', 1));
       mockRegistrationRepo.findOne.mockResolvedValue(null); // not yet registered
-      mockRegistrationRepo.count.mockResolvedValue(2); // 2 < 5
+      mockQueryBuilder.getCount.mockResolvedValue(2); // 2 < 5
 
       const result = await service.register(1, 10);
       expect(result.status).toBe('registered');
@@ -230,7 +248,7 @@ describe('EventService', () => {
       });
       mockMembershipRepo.findOne.mockResolvedValue(makeMembership('member', 1));
       mockRegistrationRepo.findOne.mockResolvedValue(null);
-      mockRegistrationRepo.count.mockResolvedValue(2); // full
+      mockQueryBuilder.getCount.mockResolvedValue(2); // full
 
       const result = await service.register(1, 10);
       expect(result.status).toBe('waitlist');
@@ -250,7 +268,7 @@ describe('EventService', () => {
 
       const result = await service.register(1, 10);
       expect(result.status).toBe('registered');
-      expect(mockRegistrationRepo.count).not.toHaveBeenCalled();
+      expect(mockRegistrationRepo.createQueryBuilder).not.toHaveBeenCalled();
     });
 
     it('should forbid a non-member of the club', async () => {
@@ -293,9 +311,8 @@ describe('EventService', () => {
         event: { club: { idClub: 1 } },
       };
       const nextInLine = { idRegistration: 2, status: 'waitlist' };
-      mockRegistrationRepo.findOne
-        .mockResolvedValueOnce(myReg) // my registration
-        .mockResolvedValueOnce(nextInLine); // next waitlisted
+      mockRegistrationRepo.findOne.mockResolvedValue(myReg); // my registration
+      mockQueryBuilder.getOne.mockResolvedValue(nextInLine); // next waitlisted
 
       const result = await service.unregister(1, 10);
       expect(result.success).toBe(true);
