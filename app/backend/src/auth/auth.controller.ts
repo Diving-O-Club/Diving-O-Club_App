@@ -4,6 +4,7 @@ import {
   Post,
   Put,
   Patch,
+  Delete,
   Body,
   Req,
   Res,
@@ -77,6 +78,36 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Missing or invalid token.' })
   me(@Req() req: AuthenticatedRequest) {
     return this.authService.me(req.user.idUser);
+  }
+
+  /** Export the authenticated user's personal data as JSON (GDPR). */
+  @Get('me/export')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiCookieAuth()
+  @ApiOperation({ summary: 'Export the current user personal data (GDPR)' })
+  @ApiResponse({ status: 200, description: 'JSON export of personal data.' })
+  @ApiResponse({ status: 401, description: 'Missing or invalid token.' })
+  exportMyData(@Req() req: AuthenticatedRequest) {
+    return this.authService.exportMyData(req.user.idUser);
+  }
+
+  /** Delete (anonymize + soft delete) the authenticated user's account (GDPR). */
+  @Delete('me')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiCookieAuth()
+  @ApiOperation({
+    summary: 'Delete the current account (GDPR right to erasure)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Account anonymized and deleted; the cookie is cleared.',
+  })
+  @ApiResponse({ status: 401, description: 'Missing or invalid token.' })
+  deleteMe(
+    @Req() req: AuthenticatedRequest,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    return this.authService.deleteMe(req.user.idUser, res);
   }
 
   /** Update the authenticated user's profile. */

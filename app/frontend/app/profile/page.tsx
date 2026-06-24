@@ -3,8 +3,9 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../context/AuthContext'
-import { getMe, updateMe, exportMyData } from '@/app/lib/api/user'
+import { getMe, updateMe, exportMyData, deleteAccount } from '@/app/lib/api/user'
 import { ChangePasswordModal } from '@/app/components/profile/ChangePasswordModal'
+import { DeleteAccountModal } from '@/app/components/profile/DeleteAccountModal'
 import { User } from '@/app/types/user'
 import { UpdateUserDto } from '@/app/types/user'
 import { PersonalInfoSection } from '@/app/components/profile/PersonalInfoSection'
@@ -39,7 +40,7 @@ function parseBirthDate(dateStr: string | null): { day: string; month: string; y
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ProfilePage() {
-  const { user: authUser, loading } = useAuth()
+  const { user: authUser, loading, logout } = useAuth()
   const router = useRouter()
 
   const [profile, setProfile] = useState<User | null>(null)
@@ -51,6 +52,8 @@ export default function ProfilePage() {
   const [isSaving, setIsSaving] = useState(false)
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
   const [showPasswordModal, setShowPasswordModal] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
   const [navHeight, setNavHeight] = useState(68)
 
   useEffect(() => {
@@ -216,7 +219,21 @@ export default function ProfilePage() {
   }
 
   function handleDeleteRequest() {
-    // TODO : open the deletion modal
+    setShowDeleteModal(true)
+  }
+
+  async function handleConfirmDelete() {
+    setIsDeleting(true)
+    const result = await deleteAccount()
+    if (!result.ok) {
+      setIsDeleting(false)
+      setShowDeleteModal(false)
+      showToast('error', result.message ?? 'La suppression a échoué. Veuillez réessayer.')
+      return
+    }
+    // The backend already cleared the session cookie; sync the client state.
+    logout()
+    router.push('/')
   }
 
   // ─── Loading states ───────────────────────────────────────────────────
@@ -350,6 +367,15 @@ export default function ProfilePage() {
             setShowPasswordModal(false)
             showToast('success', 'Profil mis à jour avec succès')
           }}
+        />
+      )}
+
+      {showDeleteModal && (
+        <DeleteAccountModal
+          onClose={() => setShowDeleteModal(false)}
+          onConfirm={handleConfirmDelete}
+          onDownload={handleDownload}
+          loading={isDeleting}
         />
       )}
     </div>

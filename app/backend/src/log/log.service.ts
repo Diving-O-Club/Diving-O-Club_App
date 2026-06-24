@@ -14,17 +14,18 @@ export class LogService {
   private readonly logger = new Logger(LogService.name);
 
   /** Record an authentication event (register, login success/failure, logout). */
-  async logAuth(data: {
+  logAuth(data: {
     action: string;
     userId?: number;
     email?: string;
     ip?: string;
   }): Promise<void> {
     this.logger.log(`auth ${JSON.stringify(data)}`);
+    return Promise.resolve();
   }
 
   /** Record a membership or event action (request, role change, registration…). */
-  async logMembership(data: {
+  logMembership(data: {
     action: string;
     actorId?: number;
     targetUserId?: number;
@@ -32,15 +33,17 @@ export class LogService {
     clubName?: string;
   }): Promise<void> {
     this.logger.log(`membership ${JSON.stringify(data)}`);
+    return Promise.resolve();
   }
 
   /** Record a handled error (status code, endpoint, message). */
-  async logError(data: {
+  logError(data: {
     statusCode: number;
     endpoint: string;
     message: string;
     userId?: number;
   }): Promise<void> {
     this.logger.log(`error ${JSON.stringify(data)}`);
+    return Promise.resolve();
   }
 }

@@ -27,7 +27,7 @@
     "migration:run:test": "DOTENV_CONFIG_PATH=.env.test npm run migration:run",
     "seed:test": "DOTENV_CONFIG_PATH=.env.test npm run seed",
     "db:test:setup": "npm run migration:run:test && npm run seed:test",
-    "db:reset": "set -a && . ./.env && set +a && PGPASSWORD=\"$STAGING_DB_PASSWORD\" psql -h localhost -p 15433 -U diving_admin -d diving_o_club_staging -c 'TRUNCATE role, club, app_user, membership, event RESTART IDENTITY CASCADE;' && npm run seed"
+    "db:reset": "set -a && . ./.env && set +a && PGPASSWORD=\"$STAGING_DB_PASSWORD\" psql -h localhost -p 15433 -U diving_admin -d diving_o_club_staging -c 'TRUNCATE roles, clubs, users, memberships, events, registrations, certificates, payments RESTART IDENTITY CASCADE;' && npm run seed"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

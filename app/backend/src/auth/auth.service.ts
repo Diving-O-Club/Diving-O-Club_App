@@ -5,11 +5,14 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { Response } from 'express';
 import * as argon2 from 'argon2';
 import { User } from '../user/user.entity';
+import { Membership } from '../membership/membership.entity';
+import { EventRegistration } from '../event/event-registration.entity';
+import { Certificate } from '../certificate/certificate.entity';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { LogService } from '../log/log.service';
@@ -27,6 +30,12 @@ export class AuthService {
   constructor(
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
+    @InjectRepository(Membership)
+    private readonly membershipRepo: Repository<Membership>,
+    @InjectRepository(EventRegistration)
+    private readonly registrationRepo: Repository<EventRegistration>,
+    @InjectRepository(Certificate)
+    private readonly certificateRepo: Repository<Certificate>,
     private readonly jwtService: JwtService,
     private readonly logService: LogService,
   ) {}
@@ -148,5 +157,139 @@ export class AuthService {
       instructorLevel: dto.instructorLevel,
     });
     return this.userRepo.findOneByOrFail({ idUser: userId });
+  }
+
+  /**
+   * Anonymize and soft-delete the account (GDPR right to erasure). Identifying
+   * fields are wiped, medical certificates (health data) are removed, then the
+   * row is soft-deleted so TypeORM excludes it from every `find()` while keeping
+   * the `RESTRICT` relations (memberships, registrations) intact for club data
+   * integrity. The session cookie is cleared on the way out.
+   */
+  async deleteMe(userId: number, res: Response): Promise<{ message: string }> {
+    // Block deletion while the user is the only admin of a club: they must hand
+    // over admin rights first, otherwise the club would be left unmanageable.
+    const adminMemberships = await this.membershipRepo.find({
+      where: {
+        user: { idUser: userId },
+        status: 'active',
+        role: { codeRole: In(['admin', 'super_admin']) },
+      },
+      relations: { club: true },
+    });
+
+    for (const m of adminMemberships) {
+      const otherAdmins = await this.membershipRepo
+        .createQueryBuilder('m')
+        .innerJoin('m.user', 'u') // excludes soft-deleted accounts
+        .innerJoin('m.role', 'r')
+        .where('m.id_club = :clubId', { clubId: m.club.idClub })
+        .andWhere('m.status = :status', { status: 'active' })
+        .andWhere('r.code_role IN (:...roles)', {
+          roles: ['admin', 'super_admin'],
+        })
+        .andWhere('m.id_membership != :selfId', { selfId: m.idMembership })
+        .getCount();
+
+      if (otherAdmins === 0) {
+        throw new ConflictException(
+          `Vous êtes le seul administrateur du club « ${m.club.name} ». Désignez un autre administrateur avant de supprimer votre compte.`,
+        );
+      }
+    }
+
+    await this.userRepo.update(userId, {
+      email: `deleted_${userId}@deleted.local`,
+      firstName: 'Compte',
+      lastName: 'supprimé',
+      phone: null,
+      birthDate: null,
+      street: null,
+      postalCode: null,
+      city: null,
+      ffessmLicenseNumber: null,
+      divingLevel: null,
+      instructorLevel: null,
+      profilePictureUrl: null,
+    });
+
+    // Medical certificates are health data: remove them on account deletion.
+    await this.certificateRepo
+      .createQueryBuilder()
+      .delete()
+      .where('id_user = :userId', { userId })
+      .execute();
+
+    await this.userRepo.softDelete(userId);
+
+    res.clearCookie('access_token');
+    return { message: 'Compte supprimé' };
+  }
+
+  /**
+   * Build a portable JSON copy of the user's personal data (GDPR right to
+   * access/portability): identity, diving profile, memberships, event
+   * registrations and certificates. The password hash, soft-delete marker and
+   * stored file references are deliberately excluded.
+   */
+  async exportMyData(userId: number) {
+    const user = await this.userRepo.findOneByOrFail({ idUser: userId });
+
+    const memberships = await this.membershipRepo.find({
+      where: { user: { idUser: userId } },
+      relations: { club: true, role: true },
+    });
+    const registrations = await this.registrationRepo.find({
+      where: { user: { idUser: userId } },
+      relations: { event: true },
+    });
+    const certificates = await this.certificateRepo.find({
+      where: { user: { idUser: userId } },
+    });
+
+    return {
+      exportedAt: new Date().toISOString(),
+      identity: {
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        birthDate: user.birthDate,
+        phone: user.phone,
+        address: {
+          street: user.street,
+          postalCode: user.postalCode,
+          city: user.city,
+        },
+      },
+      diving: {
+        ffessmLicenseNumber: user.ffessmLicenseNumber,
+        divingLevel: user.divingLevel,
+        instructorLevel: user.instructorLevel,
+      },
+      account: {
+        createdAt: user.createdAt,
+      },
+      memberships: memberships.map((m) => ({
+        club: m.club?.name ?? null,
+        role: m.role?.codeRole ?? null,
+        season: m.season,
+        status: m.status,
+        membershipDate: m.membershipDate,
+        decisionDate: m.decisionDate,
+      })),
+      registrations: registrations.map((r) => ({
+        event: r.event?.title ?? null,
+        date: r.event?.startDatetime ?? null,
+        location: r.event?.location ?? null,
+        status: r.status,
+        registeredAt: r.createdAt,
+      })),
+      certificates: certificates.map((c) => ({
+        issueDate: c.issueDate,
+        expirationDate: c.expirationDate,
+        status: c.status,
+        depositAt: c.depositAt,
+      })),
+    };
   }
 }

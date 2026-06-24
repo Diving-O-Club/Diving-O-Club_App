@@ -38,6 +38,15 @@ export class ClubService {
       throw new NotFoundException(`Club "${slug}" not found`);
     }
 
+    // This endpoint is public: exclude soft-deleted members (their `user` relation
+    // resolves to null, GDPR) and never expose any member's password hash.
+    club.memberships = club.memberships
+      .filter((m) => m.user)
+      .map((m) => {
+        const { passwordHash: _pw, ...safeUser } = m.user;
+        return { ...m, user: safeUser };
+      }) as Club['memberships'];
+
     return club;
   }
 }
