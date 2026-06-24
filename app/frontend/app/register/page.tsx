@@ -105,9 +105,9 @@ export default function RegisterPage() {
 
             <p className="text-center text-xs text-gray-400">
               En créant un compte, vous acceptez nos{' '}
-              <span className="text-[#006994] cursor-pointer hover:underline">conditions d&apos;utilisation</span>
+              <Link href="/cgu" className="text-[#006994] cursor-pointer hover:underline">conditions d&apos;utilisation</Link>
               {' '}et notre{' '}
-              <span className="text-[#006994] cursor-pointer hover:underline">politique de confidentialité</span>.
+              <Link href="/confidentialite" className="text-[#006994] cursor-pointer hover:underline">politique de confidentialité</Link>.
             </p>
 
           </form>

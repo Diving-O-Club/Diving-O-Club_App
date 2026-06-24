@@ -8,8 +8,8 @@ export default function Footer() {
     <footer className="bg-[#0d3b66] text-white px-6 py-12 md:px-16">
       <div className="max-w-7xl mx-auto">
 
-        {/* 3 columns */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-10">
+        {/* 2 columns */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mb-10">
 
           {/* 1st column - Logo + description */}
           <div>
@@ -33,22 +33,16 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* 3rd column - Information */}
-          <div>
-            <h3 className="font-bold text-lg mb-4">Informations</h3>
-            <p className="text-[#48cae4] text-sm leading-relaxed mb-4">
-              Application web pour la gestion d&apos;adhésions, événements et certificats médicaux.
-            </p>
-            <p className="text-[#48cae4] text-sm">
-              Version 1.0 - Avril 2026
-            </p>
-          </div>
-
         </div>
 
         {/* Separator + copyright */}
-        <div className="border-t border-white/20 pt-6 text-center text-[#48cae4] text-sm">
-          © {currentYear} Diving O Club. Tous droits réservés.
+        <div className="border-t border-white/20 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-[#48cae4] text-sm">
+          <p>© {currentYear} Diving O Club. Tous droits réservés.</p>
+          <nav className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
+            <Link href="/confidentialite" className="hover:text-white transition-colors">Confidentialité</Link>
+            <Link href="/mentions-legales" className="hover:text-white transition-colors">Mentions légales</Link>
+            <Link href="/cgu" className="hover:text-white transition-colors">CGU</Link>
+          </nav>
         </div>
 
       </div>
