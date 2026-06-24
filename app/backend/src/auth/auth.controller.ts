@@ -95,7 +95,9 @@ export class AuthController {
   @Delete('me')
   @UseGuards(AuthGuard('jwt'))
   @ApiCookieAuth()
-  @ApiOperation({ summary: 'Delete the current account (GDPR right to erasure)' })
+  @ApiOperation({
+    summary: 'Delete the current account (GDPR right to erasure)',
+  })
   @ApiResponse({
     status: 200,
     description: 'Account anonymized and deleted; the cookie is cleared.',

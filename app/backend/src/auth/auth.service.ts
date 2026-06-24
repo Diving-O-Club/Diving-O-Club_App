@@ -5,7 +5,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { Response } from 'express';
 import * as argon2 from 'argon2';
@@ -166,10 +166,38 @@ export class AuthService {
    * the `RESTRICT` relations (memberships, registrations) intact for club data
    * integrity. The session cookie is cleared on the way out.
    */
-  async deleteMe(
-    userId: number,
-    res: Response,
-  ): Promise<{ message: string }> {
+  async deleteMe(userId: number, res: Response): Promise<{ message: string }> {
+    // Block deletion while the user is the only admin of a club: they must hand
+    // over admin rights first, otherwise the club would be left unmanageable.
+    const adminMemberships = await this.membershipRepo.find({
+      where: {
+        user: { idUser: userId },
+        status: 'active',
+        role: { codeRole: In(['admin', 'super_admin']) },
+      },
+      relations: { club: true },
+    });
+
+    for (const m of adminMemberships) {
+      const otherAdmins = await this.membershipRepo
+        .createQueryBuilder('m')
+        .innerJoin('m.user', 'u') // excludes soft-deleted accounts
+        .innerJoin('m.role', 'r')
+        .where('m.id_club = :clubId', { clubId: m.club.idClub })
+        .andWhere('m.status = :status', { status: 'active' })
+        .andWhere('r.code_role IN (:...roles)', {
+          roles: ['admin', 'super_admin'],
+        })
+        .andWhere('m.id_membership != :selfId', { selfId: m.idMembership })
+        .getCount();
+
+      if (otherAdmins === 0) {
+        throw new ConflictException(
+          `Vous êtes le seul administrateur du club « ${m.club.name} ». Désignez un autre administrateur avant de supprimer votre compte.`,
+        );
+      }
+    }
+
     await this.userRepo.update(userId, {
       email: `deleted_${userId}@deleted.local`,
       firstName: 'Compte',
