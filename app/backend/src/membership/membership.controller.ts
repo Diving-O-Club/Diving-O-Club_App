@@ -52,10 +52,14 @@ export class MembershipController {
       user: safeUser,
       club: {
         ...membership.club,
-        memberships: membership.club.memberships.map((m) => {
-          const { passwordHash: _pw2, ...safeU } = m.user;
-          return { ...m, user: safeU };
-        }),
+        // Skip memberships whose user was soft-deleted (GDPR): their `user`
+        // relation resolves to null, so they must not appear in the list.
+        memberships: membership.club.memberships
+          .filter((m) => m.user)
+          .map((m) => {
+            const { passwordHash: _pw2, ...safeU } = m.user;
+            return { ...m, user: safeU };
+          }),
       },
     };
   }

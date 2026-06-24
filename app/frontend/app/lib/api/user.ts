@@ -57,3 +57,15 @@ export async function exportMyData(): Promise<Blob | null> {
     return null;
   }
 }
+
+export async function deleteAccount(): Promise<boolean> {
+  try {
+    const res = await clientFetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
+      method: 'DELETE',
+      credentials: 'include',
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}

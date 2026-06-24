@@ -318,10 +318,12 @@ export class MembershipService {
       relations: ['user'],
     });
 
-    return memberships.map((m) => {
-      const { passwordHash: _pw, ...safeUser } = m.user;
-      return { ...m, user: safeUser };
-    }) as Membership[];
+    return memberships
+      .filter((m) => m.user)
+      .map((m) => {
+        const { passwordHash: _pw, ...safeUser } = m.user;
+        return { ...m, user: safeUser };
+      }) as Membership[];
   }
 
   /** Approve a pending request: set it active and stamp the decision date. */
