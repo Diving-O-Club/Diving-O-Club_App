@@ -2,6 +2,9 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
 import { User } from '../user/user.entity';
+import { Membership } from '../membership/membership.entity';
+import { EventRegistration } from '../event/event-registration.entity';
+import { Certificate } from '../certificate/certificate.entity';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './jwt.strategy';
@@ -13,7 +16,12 @@ import { LogModule } from '../log/log.module';
  */
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([
+      User,
+      Membership,
+      EventRegistration,
+      Certificate,
+    ]),
     JwtModule.register({
       secret: process.env.JWT_SECRET ?? 'diving-o-club-secret',
       signOptions: { expiresIn: '7d' },
