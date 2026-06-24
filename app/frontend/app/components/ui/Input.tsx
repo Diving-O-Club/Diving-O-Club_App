@@ -15,7 +15,7 @@ type InputProps = {
 
 export default function Input({ name, type = 'text', value, onChange, placeholder, icon: Icon, error, hint, label }: InputProps) {
   const isPassword = type === 'password';
-  const inputClassName = `w-full ${Icon ? 'pl-10' : 'pl-4'} ${isPassword ? 'pr-10' : 'pr-4'} py-3 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-[#00b4d8] ${error ? 'border-red-400' : 'border-gray-200'}`;
+  const inputClassName = `w-full ${Icon ? 'pl-10' : 'pl-4'} pr-4 py-3 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-[#00b4d8] ${error ? 'border-red-400' : 'border-gray-200'}`;
 
   return (
     <div>

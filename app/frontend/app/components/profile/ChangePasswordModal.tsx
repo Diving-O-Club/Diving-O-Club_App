@@ -85,10 +85,10 @@ export function ChangePasswordModal({ onClose, onSuccess }: Props) {
           <PasswordField
             value={current}
             onChange={(e) => { setCurrent(e.target.value); setWrongCurrent(false) }}
-            className={`w-full rounded-lg border pl-4 pr-10 py-3 text-sm text-gray-800 outline-none transition min-h-11
+            className={`w-full rounded-lg border px-4 py-3 text-sm text-gray-800 outline-none transition min-h-11
               focus:border-[#3DA9FC] focus:ring-2 focus:ring-[#3DA9FC]/20
               ${wrongCurrent ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-white hover:border-gray-300'}`}
-            toggleClassName="hover:text-[#3DA9FC]"
+            toggleClassName="rounded-lg border border-gray-200 hover:text-[#3DA9FC] hover:border-gray-300"
             placeholder="••••••••"
           />
           {wrongCurrent && (
@@ -102,9 +102,9 @@ export function ChangePasswordModal({ onClose, onSuccess }: Props) {
           <PasswordField
             value={newPwd}
             onChange={(e) => setNewPwd(e.target.value)}
-            className="w-full rounded-lg border border-gray-200 bg-white pl-4 pr-10 py-3 text-sm text-gray-800 outline-none transition min-h-11
+            className="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-800 outline-none transition min-h-11
               focus:border-[#3DA9FC] focus:ring-2 focus:ring-[#3DA9FC]/20 hover:border-gray-300"
-            toggleClassName="hover:text-[#3DA9FC]"
+            toggleClassName="rounded-lg border border-gray-200 hover:text-[#3DA9FC] hover:border-gray-300"
             placeholder="••••••••"
           />
         </div>
@@ -115,9 +115,9 @@ export function ChangePasswordModal({ onClose, onSuccess }: Props) {
           <PasswordField
             value={confirm}
             onChange={(e) => setConfirm(e.target.value)}
-            className="w-full rounded-lg border border-gray-200 bg-white pl-4 pr-10 py-3 text-sm text-gray-800 outline-none transition min-h-11
+            className="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-800 outline-none transition min-h-11
               focus:border-[#3DA9FC] focus:ring-2 focus:ring-[#3DA9FC]/20 hover:border-gray-300"
-            toggleClassName="hover:text-[#3DA9FC]"
+            toggleClassName="rounded-lg border border-gray-200 hover:text-[#3DA9FC] hover:border-gray-300"
             placeholder="••••••••"
           />
         </div>
