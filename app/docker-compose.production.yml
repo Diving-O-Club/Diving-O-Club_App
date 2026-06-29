@@ -20,28 +20,6 @@ services:
       timeout: 5s
       retries: 5
 
-  # MongoDB Database - PRODUCTION
-  mongodb:
-    image: mongo:7-jammy
-    container_name: diving-mongodb-prod
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
-      MONGO_INITDB_DATABASE: ${MONGO_DB}
-    volumes:
-      - /mnt/mongo-data/db:/data/db
-      - /mnt/mongo-data/configdb:/data/configdb
-    ports:
-      - "127.0.0.1:27017:27017"
-    networks:
-      - diving-network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   # Backend Service - PRODUCTION
   backend:
     image: minifrizz/diving-o-club-backend:latest
@@ -57,12 +35,9 @@ services:
       DB_USER: ${POSTGRES_USER}
       DB_PASSWORD: ${POSTGRES_PASSWORD}
       DB_NAME: ${POSTGRES_DB}
-      MONGO_URL: mongodb://${MONGO_ROOT_USER}:${MONGO_ROOT_PASSWORD}@mongodb:27017/${MONGO_DB}?authSource=admin
       JWT_SECRET: ${JWT_SECRET}
     depends_on:
       postgres:
-        condition: service_healthy
-      mongodb:
         condition: service_healthy
     networks:
       - diving-network
