@@ -20,28 +20,6 @@ services:
       timeout: 5s
       retries: 5
 
-  # MongoDB Database - STAGING
-  mongodb-staging:
-    image: mongo:7-jammy
-    container_name: diving-mongodb-staging
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
-      MONGO_INITDB_DATABASE: ${MONGO_DB}
-    volumes:
-      - mongodb_staging_data:/data/db
-      - mongodb_staging_config:/data/configdb
-    ports:
-      - "127.0.0.1:27018:27017"
-    networks:
-      - diving-staging-network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   # Backend Service - STAGING
   backend-staging:
     image: minifrizz/diving-o-club-backend:staging
@@ -57,13 +35,10 @@ services:
       DB_USER: ${POSTGRES_USER}
       DB_PASSWORD: ${POSTGRES_PASSWORD}
       DB_NAME: ${POSTGRES_DB}
-      MONGO_URL: mongodb://${MONGO_ROOT_USER}:${MONGO_ROOT_PASSWORD}@mongodb-staging:27017/${MONGO_DB}?authSource=admin
       JWT_SECRET: ${JWT_SECRET}
       SEED_PASSWORD: ${SEED_PASSWORD}
     depends_on:
       postgres-staging:
-        condition: service_healthy
-      mongodb-staging:
         condition: service_healthy
     networks:
       - diving-staging-network
@@ -87,10 +62,6 @@ services:
 # Persistent volumes for database data in STAGING (local EC2 storage)
 volumes:
   postgres_staging_data:
-    driver: local
-  mongodb_staging_data:
-    driver: local
-  mongodb_staging_config:
     driver: local
 
 # Internal Docker network for services to communicate
